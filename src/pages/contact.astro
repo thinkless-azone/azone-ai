@@ -1,0 +1,131 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Свяжитесь с нами" description="Оставьте заявку, и мы подготовим персональную презентацию и расчёт стоимости пилотного проекта.">
+
+  <div class="min-h-screen pt-24 pb-24 relative">
+    <div class="absolute top-1/4 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center max-w-3xl mx-auto mb-16 animate-fade-up">
+        <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6">Свяжитесь с <span class="text-gradient">нами</span></h1>
+        <p class="text-xl text-muted-foreground">Оставьте заявку, и мы подготовим для вас персональную презентацию и расчёт стоимости пилотного проекта.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+        <!-- Contact Info -->
+        <div class="lg:col-span-4 space-y-6">
+          <div class="glass-card p-6 flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div><h4 class="text-white font-bold mb-1">Email</h4><a href="mailto:order@azone-it.ru" class="text-muted-foreground hover:text-white transition-colors">order@azone-it.ru</a></div>
+          </div>
+          <div class="glass-card p-6 flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <div><h4 class="text-white font-bold mb-1">Телефон</h4><a href="tel:+74959026636" class="text-muted-foreground hover:text-white transition-colors">+7 (495) 902-66-36</a></div>
+          </div>
+          <div class="glass-card p-6 flex items-start gap-4">
+            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div><h4 class="text-white font-bold mb-1">Офис</h4><p class="text-muted-foreground">Москва, ул. Прянишникова, д. 23А</p></div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div class="lg:col-span-8 glass-card p-8 md:p-10 glow-border">
+          <form id="contactForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Имя и фамилия *</label>
+                <input name="name" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Иван Иванов" />
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Компания *</label>
+                <input name="company" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="ООО Ромашка" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Корпоративный Email *</label>
+                <input name="email" type="email" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="ivan@company.ru" />
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Телефон *</label>
+                <input name="phone" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="+7 (999) 000-00-00" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-white/80">Интересующий продукт *</label>
+              <select name="product" required class="w-full bg-[#13192B] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+                <option value="" disabled selected hidden>Выберите продукт</option>
+                <option value="contentguard">ContentGuard (Мониторинг сети)</option>
+                <option value="azonedoc">AzoneDoc (Умный архив)</option>
+                <option value="constructioneye">ConstructionEye (Видеоаналитика)</option>
+                <option value="predictmaintain">PredictMaintain (Предиктивная аналитика)</option>
+                <option value="contractguard">ContractGuard (Анализ договоров)</option>
+                <option value="other">Другое / Пилотный проект</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-white/80">Дополнительная информация *</label>
+              <textarea name="message" rows="4" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" placeholder="Опишите вашу задачу или инфраструктуру..."></textarea>
+            </div>
+            <button type="submit" id="submitBtn" class="w-full premium-btn py-4 flex items-center justify-center text-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed">Отправить заявку</button>
+            <div id="formStatus" class="text-center text-sm mt-2"></div>
+            <p class="text-xs text-muted-foreground text-center mt-4">Нажимая кнопку, вы соглашаетесь с политикой обработки персональных данных.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Pre-fill product from URL query
+    const params = new URLSearchParams(window.location.search);
+    const product = params.get('product');
+    if (product) {
+      const sel = document.querySelector('select[name="product"]');
+      if (sel) sel.value = product.toLowerCase();
+    }
+
+    document.getElementById('contactForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('formStatus');
+      btn.disabled = true;
+      btn.textContent = 'Отправка...';
+      status.textContent = '';
+
+      const data = Object.fromEntries(new FormData(form));
+
+      try {
+        const res = await fetch('/.netlify/functions/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (res.ok) {
+          status.style.color = '#06B6D4';
+          status.textContent = '✅ Заявка отправлена! Мы свяжемся в течение 1 рабочего дня.';
+          form.reset();
+        } else {
+          const json = await res.json();
+          throw new Error(json.error || 'Ошибка отправки');
+        }
+      } catch (err) {
+        status.style.color = '#ef4444';
+        status.textContent = '❌ ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Отправить заявку';
+      }
+    });
+  </script>
+</Base>

@@ -1,0 +1,357 @@
+﻿---
+import Base from '../../layouts/Base.astro';
+
+const resultsTable = [
+  { metric: "Среднее время поиска документа", before: "2–4 часа", after: "1–3 минуты", change: "×60–80 быстрее" },
+  { metric: "Доля запросов без обращения в архив", before: "~15%", after: "~82%", change: "+67 п.п." },
+  { metric: "Релевантность Top-3", before: "—", after: "78%", change: "—" },
+  { metric: "Релевантность Top-5", before: "—", after: "91%", change: "—" },
+  { metric: "Скорость индексации", before: "—", after: "~120 000 сканов/сут.", change: "—" },
+  { metric: "Экономия времени архивного отдела (12 чел.)", before: "—", after: "~950 чел.-ч/мес.", change: "—" },
+  { metric: "Подготовка пакета для аудита", before: "3–5 рабочих дней", after: "2–4 часа", change: "×10–15 быстрее" },
+];
+---
+<Base title="Как ИИ сокращает время поиска документов с часов до минут" description="Разбор кейса внедрения нейросетевого архива в крупном промышленном холдинге. Семантический поиск по архиву из 5 миллионов скан-копий.">
+
+
+      <section class="relative py-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div>
+            <a href="/blog"><span class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8 cursor-pointer">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
+              </span>
+            </a>
+
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">
+                Кейсы
+              </span>
+            </div>
+
+            <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+              Как ИИ сокращает время поиска документов с часов до минут
+            </h1>
+
+            <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+              Разбор кейса внедрения нейросетевого архива в крупном промышленном холдинге. Семантический поиск по архиву из 5 миллионов скан-копий.
+            </p>
+
+            <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 15 сентября 2025</span>
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6 мин чтения</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+      <section class="pb-24">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="space-y-12 text-muted-foreground leading-relaxed text-[17px]">
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Контекст и проблема
+              </h2>
+              <p>
+                Крупный промышленный холдинг потратил два года на оцифровку бумажного архива — и получил 5 миллионов файлов, в которых невозможно ничего найти. Рассказываем, как семантический поиск на базе ИИ решил эту задачу и что нужно, чтобы повторить результат у себя.
+              </p>
+              <p class="mt-4">
+                Типичный архив крупного холдинга — это договоры, акты, счета-фактуры, протоколы, приказы, техническая документация и переписка за 15–20 лет. После сканирования всё это превращается в 5 миллионов PDF-файлов на сетевых хранилищах. Часть документов отсканирована ровно и чётко, часть — это кривые скан-копии с пятнами и рукописными пометками.
+              </p>
+              <p class="mt-4">
+                Формально оцифровка завершена. Фактически — сотрудники продолжают звонить в архив и ждать, пока оператор вручную найдёт нужный скан. Причина проста: у большинства файлов нет нормальных метаданных. Имена вроде <code class="text-accent text-sm bg-white/5 px-1.5 py-0.5 rounded">scan_0048712.pdf</code> не говорят ни о чём, а ручная разметка 5 миллионов документов нереальна.
+              </p>
+            </div>
+
+            
+            <div>
+              <h3 class="text-xl font-bold text-white mb-4">Какие запросы приходят каждый день</h3>
+              <div class="space-y-2">
+                {[
+                  '«Найди договор с «Волга-Транс» на перевозку за 2019 год, там ещё была пролонгация»',
+                  '«Нужен акт сверки с контрагентом, ИНН 7712345678, за третий квартал 2021»',
+                  '«Покажи все протоколы совета директоров, где обсуждали сделку по покупке завода в Тольятти»',
+                  '«Есть ли доверенность на Иванова А. П. с правом подписи актов?»',
+                  '«Техническое заключение по аварии на участке №3, сентябрь 2022»',
+                ].map((q, i) => (
+                  <div class="flex items-start gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/10 text-sm italic">
+                    <svg class="w-4 h-4 text-accent shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <span>{q}</span>
+                  </div>
+                ))}
+              </div>
+              <p class="mt-4 text-sm">Ни один из этих запросов не решается простым поиском по имени файла.</p>
+            </div>
+
+            
+            <div>
+              <img
+                src="/images/img31_1772789992470.webp"
+                alt="Путь запроса до и после внедрения: 2–4 часа vs 30 секунд"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Типовой маршрут поискового запроса: было и стало
+              </p>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Почему поиск по ключевым словам — тупик
+              </h2>
+              <p>
+                Первая мысль: «Давайте прогоним всё через OCR и будем искать по тексту». Звучит логично, но на практике разбивается о несколько стен.
+              </p>
+              <div class="mt-6 space-y-4">
+                {[
+                  { title: "OCR ошибается", desc: "Даже хорошие движки на сканах среднего качества дают 2–5% ошибок посимвольно. «Договор» превращается в «Дoговор» (с латинской «o»), номер «ДП-2018/0451» — в «ДП-2О18/О451». Полнотекстовый поиск по точному совпадению такие документы не найдёт." },
+                  { title: "Синонимы и вариации", desc: "Один и тот же документ в разных подразделениях называют «договор», «контракт», «соглашение». Акт выполненных работ — «акт сдачи-приёмки», «закрывающий акт», просто «закрывашка». Ключевое слово ловит только одну формулировку." },
+                  { title: "Шум от печатей и штампов", desc: "OCR пытается распознать текст внутри круглых печатей и угловых штампов. Результат — мусорные строки, которые засоряют индекс и снижают точность." },
+                  { title: "Рукописные пометки", desc: "Резолюции, визы, подписи — всё это добавляет «фантомный» текст в распознанный слой." },
+                ].map((item) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <h3 class="text-white font-bold mb-2">{item.title}</h3>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div class="mt-5 p-4 rounded-xl bg-red-500/5 border border-red-500/20 text-sm">
+                В итоге классический полнотекстовый поиск по OCR-тексту находит в лучшем случае <strong class="text-white">40–60%</strong> релевантных документов. Остальное — ручная работа.
+              </div>
+            </div>
+
+            
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Решение: семантический ИИ-поиск
+                </h2>
+              </div>
+              <p>
+                Идея семантического поиска в том, что система ищет не по буквальному совпадению слов, а по смыслу. Каждый фрагмент текста (страница или абзац) превращается в числовой вектор — набор из нескольких сотен чисел, который кодирует смысл написанного.
+              </p>
+              <p class="mt-4">
+                Когда сотрудник вводит запрос, система превращает его в такой же вектор и находит ближайшие по смыслу фрагменты в базе. «Договор на перевозку» найдёт и «контракт на транспортные услуги», и «соглашение о грузоперевозках» — потому что смысл один.
+              </p>
+              <div class="mt-4 p-4 rounded-xl bg-accent/5 border border-accent/20 text-sm">
+                <strong class="text-white">Важно:</strong> поиск идёт по фрагментам и страницам, а не только по целым документам. Система указывает конкретную страницу 47-страничного контракта, где упоминается нужное условие.
+              </div>
+            </div>
+
+            
+            <div>
+              <img
+                src="/images/img32_1772789992471.webp"
+                alt="Схема конвейера: от скана до результатов поиска"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Конвейер обработки: от скана до поиска по смыслу
+              </p>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-6">Как это работает</h2>
+              <div class="space-y-5">
+                {[
+                  { step: "1", title: "OCR и контроль качества", desc: "На входе — скан. OCR-движок распознаёт текст, а параллельно система оценивает качество: уровень уверенности распознавания, наличие перекосов, процент «мусорных» символов. Если качество ниже порога — скан уходит на повторную обработку с предварительной коррекцией." },
+                  { step: "2", title: "Разбиение на фрагменты (chunking)", desc: "Распознанный текст разрезается на фрагменты по 300–500 слов с перекрытием. Перекрытие нужно, чтобы не потерять контекст на стыке двух кусков: если нужная фраза попала на границу, она окажется в обоих соседних фрагментах." },
+                  { step: "3", title: "Векторная база", desc: "Каждый фрагмент прогоняется через языковую модель и превращается в вектор. Все векторы складываются в специализированную векторную базу данных, оптимизированную для быстрого поиска ближайших соседей среди миллионов записей." },
+                  { step: "4", title: "Гибридный поиск", desc: "Лучше всего работает гибрид: семантический поиск (по смыслу) + классический полнотекстовый (по ключевым словам). Семантика ловит синонимы и перефразировки, а ключевые слова — точные номера договоров, ИНН, даты. Результаты двух каналов объединяются и взвешиваются." },
+                  { step: "5", title: "Переранжирование (re-ranking)", desc: "Первичный поиск возвращает 50–100 кандидатов. Затем более тяжёлая модель переранжирования оценивает каждого кандидата в паре с запросом и выстраивает финальный рейтинг. «Второй тур» — медленнее, но точнее, и работает только с короткими списками." },
+                ].map((item) => (
+                  <div class="flex items-start gap-4 p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <span class="w-9 h-9 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">{item.step}</span>
+                    <div>
+                      <h3 class="text-white font-bold mb-2">{item.title}</h3>
+                      <p class="text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <img
+                src="/images/img33_1772789992472.webp"
+                alt="Интерфейс AzoneDoc: поиск на естественном языке с подсветкой результатов"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Интерфейс поиска: запрос на естественном языке, подсветка релевантных фрагментов, фильтры
+              </p>
+            </div>
+
+            
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Результаты</h2>
+              </div>
+              <p class="mb-6">
+                Пилот на 800 000 сканов занял 3 месяца. После масштабирования на полный архив (5 млн документов) зафиксированы следующие показатели:
+              </p>
+
+              <div class="overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05] text-white">
+                      <th class="text-left px-5 py-4 font-semibold">Метрика</th>
+                      <th class="text-center px-5 py-4 font-semibold">Было</th>
+                      <th class="text-center px-5 py-4 font-semibold">Стало</th>
+                      <th class="text-center px-5 py-4 font-semibold text-green-400">Изменение</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {resultsTable.map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-5 py-4 text-white">{row.metric}</td>
+                        <td class="px-5 py-4 text-center text-muted-foreground/70">{row.before}</td>
+                        <td class="px-5 py-4 text-center text-white font-medium">{row.after}</td>
+                        <td class="px-5 py-4 text-center text-green-400 font-semibold">{row.change}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mt-6 p-5 rounded-xl bg-green-500/5 border border-green-500/20 text-sm">
+                <strong class="text-white">Ключевой бизнес-эффект:</strong> подготовка документов для due diligence по сделке, которая раньше занимала 2–3 недели, теперь укладывается в 2–3 дня.
+              </div>
+            </div>
+
+            
+            <div>
+              <img
+                src="/images/img34_1772789992473.webp"
+                alt="Время закрытия запроса по пяти типовым сценариям: до и после внедрения"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Время закрытия запроса по пяти типовым сценариям: до и после внедрения
+              </p>
+            </div>
+
+            
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Риски и как их закрывали</h2>
+              </div>
+              <div class="space-y-4">
+                {[
+                  { title: "Безопасность и доступы", desc: "Не все документы доступны всем. Система интегрирована с корпоративным каталогом (Active Directory) и реализует ролевую модель доступа (RBAC). Сотрудник юридического отдела видит одну выдачу, сотрудник производственного — другую. Все поисковые запросы журналируются." },
+                  { title: "Утечки и конфиденциальность", desc: "Векторная база и модели развёрнуты на собственных серверах холдинга внутри защищённого контура. Никакие данные не передаются за периметр. Для обработки используются модели, которые запускаются локально." },
+                  { title: "Качество OCR и «мусорные» сканы", desc: "Часть архива оцифрована плохо: косые скан-копии, выцветшие чернила, двусторонние документы с просвечиванием. Для них применяется предобработка изображений (выравнивание, повышение контраста) перед OCR. Документы с неприемлемым качеством выносятся в отдельную очередь для ручной проверки." },
+                ].map((item) => (
+                  <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <h3 class="text-white font-bold mb-2">{item.title}</h3>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <img
+                src="/images/img35_1772789992473.webp"
+                alt="Схема контура безопасности данных холдинга"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Схема контура безопасности: данные не покидают инфраструктуру холдинга
+              </p>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Таймлайн проекта
+              </h2>
+              <img
+                src="/images/img36_1772789992474.webp"
+                alt="Таймлайн проекта: от аудита до промышленной эксплуатации"
+                class="w-full rounded-2xl object-cover mb-5"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mb-6 italic">
+                От аудита до промышленной эксплуатации за 6–9 месяцев
+              </p>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                {[
+                  { phase: "1. Аудит архива", duration: "1 месяц", items: ["Оценка объёмов", "Инвентаризация", "Анализ состояния"] },
+                  { phase: "2. Планирование", duration: "1 месяц", items: ["Определение целей", "Архитектура решения", "Выбор технологий"] },
+                  { phase: "3. Пилотный проект", duration: "1–2 месяца", items: ["Оцифровка образцов", "Настройка пайплайна", "Тестирование MVP"] },
+                  { phase: "4. Доработка", duration: "2 месяца", items: ["Устранение багов", "Расширение функционала", "Интеграция систем"] },
+                  { phase: "5. Тестирование", duration: "1 месяц", items: ["Контроль качества", "Пользовательские тесты", "Обучение персонала"] },
+                  { phase: "6. Запуск", duration: "1 месяц", items: ["Запуск системы", "Мониторинг", "Полное масштабирование"] },
+                ].map((ph) => (
+                  <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-white font-bold text-xs mb-1">{ph.phase}</div>
+                    <div class="text-accent text-xs mb-2">{ph.duration}</div>
+                    <ul class="space-y-1">
+                      {ph.items.map((item) => (
+                        <li class="text-xs text-muted-foreground/80">· {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">Вывод</h2>
+              <p>
+                Семантический поиск — это не экзотика. Это инженерная задача с известными решениями, проверенными стеками и реальными ROI-метриками. Если у вашей организации есть большой документальный архив и сотрудники тратят часы на поиск информации — это решаемо.
+              </p>
+              <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+                <p class="text-white font-medium text-lg leading-relaxed">
+                  AzoneDoc разворачивается на вашей инфраструктуре: данные не покидают периметр, система интегрируется с 1С, SAP, Directum и ELMA. Обсудим ваш архив?
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
+          <a href="/contact" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

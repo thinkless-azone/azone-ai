@@ -1,0 +1,360 @@
+﻿---
+import Base from '../../layouts/Base.astro';
+
+const comparisonTable = [
+  { criterion: "Основание для ремонта", ppr: "Календарный график", cbm: "Фактическое состояние" },
+  { criterion: "Учёт условий эксплуатации", ppr: "Нет", cbm: "Да, в реальном времени" },
+  { criterion: "Доля «лишних» ремонтов", ppr: "До 30–40%", cbm: "Менее 5%" },
+  { criterion: "Внеплановые аварийные остановки", ppr: "До 40% всех ремонтов", cbm: "Сокращение на 70–75%" },
+  { criterion: "Затраты на ТО", ppr: "Фиксированные, избыточные", cbm: "Снижение на 25–40%" },
+  { criterion: "Продление ресурса оборудования", ppr: "Нет", cbm: "Да, обоснованный перенос ТО" },
+];
+---
+<Base title="Предиктивная аналитика: предотвращение аварий до их возникновения" description="Как машинное обучение анализирует данные SCADA-систем и помогает перейти от планово-предупредительного ремонта к обслуживанию по состоянию.">
+
+
+      <section class="relative py-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div>
+            <a href="/blog"><span class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8 cursor-pointer">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
+              </span>
+            </a>
+
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">
+                Технологии
+              </span>
+            </div>
+
+            <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+              Предиктивная аналитика: предотвращение аварий до их возникновения
+            </h1>
+
+            <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+              Как машинное обучение анализирует данные SCADA-систем и помогает перейти от планово-предупредительного ремонта к обслуживанию по состоянию.
+            </p>
+
+            <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 21 августа 2025</span>
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 9 мин чтения</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+      <section class="pb-24">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="space-y-12 text-muted-foreground leading-relaxed text-[17px]">
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                120 миллионов рублей за 47 часов простоя
+              </h2>
+              <p>
+                В ноябре 2023 года на одном из нефтеперерабатывающих заводов в Западной Сибири внеплановый отказ подшипника центробежного компрессора обошёлся предприятию в 47 часов простоя и более 120 миллионов рублей прямых убытков. Позже выяснилось: характерные изменения в вибрационной сигнатуре начались за 18 дней до аварии. Данные были. SCADA их собирала. Просто никто не смотрел в нужное место в нужное время.
+              </p>
+              <p class="mt-4">
+                Эта история не уникальна. По оценкам отраслевых аналитиков, незапланированные остановки обходятся мировой промышленности в сотни миллиардов долларов ежегодно. При этом значительная часть отказов оставляет «цифровые следы» задолго до катастрофы — в тех самых данных, которые SCADA-системы добросовестно пишут в historian.
+              </p>
+              <div class="mt-6 p-5 rounded-xl bg-white/[0.03] border border-white/10 text-center">
+                <p class="text-white text-lg font-medium italic">
+                  Типичное предприятие использует менее 5% данных, которые собирает его SCADA-система, для принятия решений о техобслуживании
+                </p>
+              </div>
+            </div>
+
+            
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                  </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Почему планово-предупредительный ремонт устарел
+                </h2>
+              </div>
+              <p>
+                Концепция ППР появилась в эпоху, когда оборудование было проще, а инструментов непрерывного мониторинга не существовало. На бумаге логика разумная: раз в регламентный срок останавливаем агрегат, разбираем, проверяем, заменяем детали по нормативу. На практике — две проблемы.
+              </p>
+              <p class="mt-4">
+                Главная проблема ППР — он игнорирует реальное состояние оборудования. Насос, работающий на чистом сырье в щадящем режиме, обслуживается по тому же графику, что и его «собрат», перекачивающий абразивную суспензию на пределе мощности. Первый вскрывается раньше нужного (лишние расходы), второй может дотянуть до аварийной остановки.
+              </p>
+              <p class="mt-4">
+                Есть и обратная сторона: культура «не трогай, пока работает». По отраслевой статистике, до 40% всех ремонтов на промышленных объектах выполняются аварийно. Это самые дорогие и разрушительные из всех видов обслуживания.
+              </p>
+              <img
+                src="/images/img51_1772792180134.webp"
+                alt="Сравнение стратегий обслуживания: ППР vs обслуживание по состоянию"
+                class="w-full rounded-2xl object-cover mt-6"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                ППР vs обслуживание по состоянию: кривые вероятности отказа наглядно показывают разницу
+              </p>
+            </div>
+
+            
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Предиктивная аналитика: не магия, а математика
+                </h2>
+              </div>
+              <p>
+                Суть подхода Predictive Maintenance — непрерывное наблюдение за «здоровьем» агрегата через его цифровой портрет. Вместо жёсткого графика система сама сигнализирует: «подшипник насоса №7 демонстрирует характерный паттерн деградации, рекомендуемый срок вмешательства — ближайшие 3–5 суток».
+              </p>
+              <p class="mt-4">
+                Для этого не нужна футуристическая инфраструктура. SCADA-системы, развёрнутые на большинстве современных предприятий, уже собирают те самые данные, которые нужны для прогнозирования. Проблема никогда не была в нехватке информации — она была в неумении её интерпретировать в нужном темпе и масштабе.
+              </p>
+              <img
+                src="/images/img52_1772792180134.webp"
+                alt="Архитектура системы: SCADA → Data Lake → ML-модели"
+                class="w-full rounded-2xl object-cover mt-6"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Архитектура: датчики и контроллеры → SCADA → Data Lake → ML-модели → рекомендации сервисным инженерам
+              </p>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Что именно анализируется: данные SCADA под микроскопом
+              </h2>
+              <p class="mb-6">Для предиктивной аналитики наиболее информативны пять категорий сигналов:</p>
+              <div class="space-y-4">
+                {[
+                  {
+                    title: "Вибрация",
+                    badge: "Золотой стандарт",
+                    desc: "Спектральный анализ вибраций позволяет различать дефекты подшипников, дисбаланс ротора, расцентровку и ослабление крепежа — каждый тип неисправности оставляет характерный «отпечаток» в частотном спектре.",
+                  },
+                  {
+                    title: "Температура",
+                    badge: "Динамика важнее абсолюта",
+                    desc: "Перегрев обмоток, рост температуры масла, неравномерный нагрев корпуса. Важна не абсолютная величина, а динамика: рост на 2–3 градуса в неделю при стабильной нагрузке — уже тревожный сигнал.",
+                  },
+                  {
+                    title: "Токи и электрические параметры",
+                    badge: "Ранние маркеры",
+                    desc: "Пусковые токи, потребляемая мощность, коэффициент мощности. Когда механическая часть привода начинает деградировать, это отражается на электрических параметрах зачастую раньше, чем на температуре.",
+                  },
+                  {
+                    title: "Технологические параметры",
+                    badge: "Производительность",
+                    desc: "Давление, расход, уровень, состав среды. Падение производительности насоса при тех же оборотах может указывать на износ рабочего колеса или кавитацию.",
+                  },
+                  {
+                    title: "Дискретные события",
+                    badge: "Скрытые симптомы",
+                    desc: "Сигналы аварийных защит, частота переключений, количество пусков/остановов. Слишком частое срабатывание защиты по перегреву — не «ложные тревоги», а симптом, который ML научилась интерпретировать.",
+                  },
+                ].map((item) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="flex items-center gap-3 mb-2">
+                      <h3 class="text-white font-bold">{item.title}</h3>
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">{item.badge}</span>
+                    </div>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <img
+                src="/images/img53_1772792180135.webp"
+                alt="Обнаружение аномалий: граница нормы и сигнал тревоги по вибрации"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                ML-модель обнаружила начало деградации подшипника за 18 дней до отказа — когда вибрация вышла за коридор нормы
+              </p>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Как работает машинное обучение: три кита предиктивной диагностики
+              </h2>
+              <div class="space-y-5">
+                {[
+                  {
+                    num: "1",
+                    title: "Обнаружение аномалий",
+                    desc: "Модель изучает нормальное поведение агрегата по историческим данным и строит «портрет нормы». Любое отклонение фактических значений от этого портрета генерирует сигнал. Чем сильнее расхождение — тем выше оценка аномальности. Подход работает даже без исторических данных об отказах — достаточно данных о нормальной работе.",
+                    tools: "Isolation Forest, Autoencoder, OneClassSVM"
+                  },
+                  {
+                    num: "2",
+                    title: "Анализ временных рядов",
+                    desc: "Температура подшипника — это не просто число, а история. Алгоритмы LSTM (рекуррентные нейронные сети с долгой памятью) умеют распознавать тренды в динамике параметров и экстраполировать их. Если температура растёт на 0.3°C в сутки, система предупреждает: через 14 дней она достигнет критического порога.",
+                    tools: "LSTM, ARIMA, Prophet"
+                  },
+                  {
+                    num: "3",
+                    title: "Классификация и прогноз RUL",
+                    desc: "Остаточный ресурс (Remaining Useful Life) — главная метрика для инженера. Модели обучаются на исторических данных об отказах, чтобы ответить: «сколько часов работы осталось до отказа». Ответ превращается в конкретную дату рекомендуемого обслуживания.",
+                    tools: "Gradient Boosting, Random Forest, ансамбли"
+                  },
+                ].map((item) => (
+                  <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <div class="flex items-start gap-4">
+                      <span class="w-9 h-9 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">{item.num}</span>
+                      <div>
+                        <h3 class="text-white font-bold mb-2">{item.title}</h3>
+                        <p class="text-sm leading-relaxed mb-3">{item.desc}</p>
+                        <span class="text-xs text-accent font-mono bg-accent/5 border border-accent/20 px-3 py-1 rounded-full">{item.tools}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                    <polyline points="17 6 23 6 23 12"></polyline>
+                  </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Реальные примеры: от насосных станций до металлургии
+                </h2>
+              </div>
+              <div class="space-y-4">
+                {[
+                  {
+                    industry: "Нефтеперекачивающие станции",
+                    desc: "На магистральных нефтепроводах одна из российских трубопроводных компаний внедрила мониторинг вибраций с ML-аналитикой на 12 станциях. За первый год эксплуатации было предотвращено несколько критических отказов насосных агрегатов с суммарным предотвращённым ущербом, многократно превышающим стоимость внедрения."
+                  },
+                  {
+                    industry: "Энергетика",
+                    desc: "Газовые турбины электростанций — один из классических объектов предиктивной аналитики. Мониторинг десятков параметров (температура выхлопных газов по секторам, давление компрессора, вибрации опорных подшипников) позволяет детектировать засорение воздушного тракта и эрозию лопаток задолго до снижения КПД."
+                  },
+                  {
+                    industry: "Металлургия",
+                    desc: "Прокатный стан — механизм, где отказ одного элемента останавливает всю линию. Мониторинг токов главных приводов и давления в гидросистемах позволяет выявлять износ валков, деградацию подшипников и утечки в гидравлике."
+                  },
+                ].map((item) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <h3 class="text-white font-bold mb-2">{item.industry}</h3>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Экономический эффект: цифры, которые убеждают
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {[
+                  { value: "25–40%", label: "снижение затрат на техобслуживание" },
+                  { value: "70–75%", label: "сокращение внеплановых остановок" },
+                  { value: "8–12 мес.", label: "типичный срок окупаемости" },
+                ].map((item) => (
+                  <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
+                    <div class="text-3xl font-heading font-bold text-accent mb-2">{item.value}</div>
+                    <div class="text-sm leading-relaxed">{item.label}</div>
+                  </div>
+                ))}
+              </div>
+              <img
+                src="/images/img54_1772792180136.webp"
+                alt="Экономический эффект внедрения предиктивной аналитики по отраслям"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Сравнительный анализ по итогам пилотных проектов 2022–2024 гг.: сокращение простоев и снижение затрат на ТО
+              </p>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                ППР vs обслуживание по состоянию: сравнение
+              </h2>
+              <div class="overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05]">
+                      <th class="text-left px-5 py-4 font-semibold text-white">Критерий</th>
+                      <th class="text-center px-5 py-4 font-semibold text-red-400">ППР</th>
+                      <th class="text-center px-5 py-4 font-semibold text-green-400">По состоянию (CBM)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {comparisonTable.map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-5 py-4 text-white">{row.criterion}</td>
+                        <td class="px-5 py-4 text-center text-muted-foreground">{row.ppr}</td>
+                        <td class="px-5 py-4 text-center text-green-400 font-medium">{row.cbm}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Будущее: конвергенция SCADA, IIoT и AI-платформ
+              </h2>
+              <p>
+                Следующий шаг — цифровые двойники оборудования. Это не просто мониторинг параметров, а полная виртуальная копия агрегата, позволяющая моделировать различные сценарии нагрузки и предсказывать поведение в экстремальных условиях. Вместе с IIoT-сенсорами нового поколения и edge-вычислениями прямо на объекте это формирует качественно новый уровень управления надёжностью.
+              </p>
+              <img
+                src="/images/img55_1772792180136.webp"
+                alt="Будущее: конвергенция SCADA, IIoT и AI-платформ — трёхуровневая архитектура"
+                class="w-full rounded-2xl object-cover mt-6"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Трёхуровневая архитектура: полевые устройства → edge-вычисления → AI-модели и цифровые двойники
+              </p>
+            </div>
+
+            
+            <div>
+              <div class="mt-4 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+                <p class="text-white font-medium text-lg leading-relaxed">
+                  PredictMaintain от AZONE AI разворачивается на существующей телеметрии SCADA без замены оборудования. Подключается к historian, строит цифровые двойники, прогнозирует отказы. Один предотвращённый простой окупает стоимость проекта.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
+          <a href="/contact" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

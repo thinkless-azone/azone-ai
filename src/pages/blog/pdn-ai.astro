@@ -1,0 +1,331 @@
+﻿---
+import Base from '../../layouts/Base.astro';
+
+const pdnCategories = [
+  { category: "Идентификационные данные", examples: "ФИО, паспорт, СНИЛС, ИНН" },
+  { category: "Контактные данные", examples: "Номер телефона, e-mail, адрес" },
+  { category: "Биометрические данные", examples: "Фотографии, записи голоса, отпечатки пальцев" },
+  { category: "Техническая информация", examples: "IP-адрес, cookie-файлы, геолокация" },
+  { category: "Поведенческие данные", examples: "История покупок, поисковые запросы, данные о перемещениях" },
+];
+
+const anonymizationMethods = [
+  { method: "Псевдонимизация", desc: "Замена части сведений идентификаторами. Таблица соответствий хранится отдельно под строгой защитой.", example: "Иванов И.И. → user_4721" },
+  { method: "Обобщение", desc: "Замена точных значений на более общие категории.", example: "Возраст 37 лет → «35–45 лет»" },
+  { method: "Декомпозиция", desc: "Разделение набора данных на части, которые хранятся отдельно.", example: "ФИО и история покупок — в разных БД" },
+  { method: "Перемешивание", desc: "Перестановка строк или столбцов для разрушения исходных связей.", example: "Шаффлинг записей в датасете" },
+];
+
+const checklist = [
+  "Мы точно знаем, какие данные попадут в нейросеть?",
+  "У нас есть отдельное, явное и недвусмысленное согласие пользователей на обучение ИИ на их данных?",
+  "Мы можем использовать обезличенные данные? Наш метод обезличивания надёжен и соответствует закону?",
+  "Первичная база данных с ПДн находится в России?",
+  "Если мы используем зарубежный сервис — уведомили ли мы Роскомнадзор и соблюдены ли все условия трансграничной передачи?",
+  "Наша Политика обработки ПДн и другие локальные акты актуализированы с учётом использования ИИ?",
+  "В компании назначен ответственный за обработку ПДн, и он в курсе нового проекта?",
+  "Разработан внутренний регламент использования нейросетей?",
+];
+---
+<Base title="152-ФЗ и нейросети: как внедрить ИИ и не нарушить закон" description="Юридические аспекты обработки персональных данных с помощью алгоритмов искусственного интеллекта. Практика обезличивания и защиты.">
+
+
+      <section class="relative py-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div>
+            <a href="/blog"><span class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8 cursor-pointer">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
+              </span>
+            </a>
+
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">
+                Регуляторика
+              </span>
+            </div>
+
+            <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+              152-ФЗ и нейросети: как внедрить ИИ и не нарушить закон
+            </h1>
+
+            <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+              Юридические аспекты обработки персональных данных с помощью алгоритмов искусственного интеллекта. Практика обезличивания и защиты.
+            </p>
+
+            <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 5 августа 2025</span>
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8 мин чтения</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+      <section class="pb-24">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="space-y-12 text-muted-foreground leading-relaxed text-[17px]">
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Введение
+              </h2>
+              <p>
+                Искусственный интеллект перестал быть технологией из фантастических фильмов и превратился в рабочий инструмент для бизнеса. Нейросети помогают оптимизировать процессы, анализировать большие массивы данных, создавать контент и персонализировать клиентский опыт. Однако за возможностями скрываются серьёзные юридические риски.
+              </p>
+              <p class="mt-4">
+                Основная проблема: для обучения и работы нейросети нужны данные. И очень часто эти данные — персональные данные (ПДн) реальных людей: клиентов, сотрудников, пользователей. В России обработка ПДн регулируется Федеральным законом № 152-ФЗ «О персональных данных», и незнание его требований не освобождает от ответственности.
+              </p>
+              <p class="mt-4">
+                В этой статье мы разберём, как подружить нейросети с требованиями российского законодательства и использовать мощь ИИ, не нарушая закон.
+              </p>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Как 152-ФЗ применяется к системам искусственного интеллекта
+              </h2>
+              <p>
+                Федеральный закон № 152-ФЗ не содержит прямых упоминаний искусственного интеллекта или нейросетей. Однако его действие полностью распространяется на любые операции с данными, которые позволяют прямо или косвенно идентифицировать конкретного человека. Если нейросеть обучается на таких данных, работает с ними или генерирует их — она попадает в сферу действия закона.
+              </p>
+
+              <h3 class="text-lg font-bold text-white mt-8 mb-4">Какие данные считаются персональными</h3>
+              <p class="mb-4">Закон трактует понятие персональных данных очень широко. Даже если отдельные фрагменты не позволяют идентифицировать человека, их совокупность, обрабатываемая нейросетью, может быть признана ПДн.</p>
+              <div class="overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05]">
+                      <th class="text-left px-5 py-4 font-semibold text-white">Категория</th>
+                      <th class="text-left px-5 py-4 font-semibold text-white">Примеры</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {pdnCategories.map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-5 py-4 text-white font-medium">{row.category}</td>
+                        <td class="px-5 py-4 text-muted-foreground">{row.examples}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 class="text-lg font-bold text-white mt-8 mb-3">Когда нейросеть становится оператором обработки ПДн</h3>
+              <p>
+                Оператором персональных данных является не сама нейросеть, а юридическое лицо, которое организует обработку ПДн и определяет цели обработки. Таким образом, <strong class="text-white">оператором всегда выступает компания</strong>, которая использует ИИ — а не разработчик нейросети.
+              </p>
+              <div class="mt-5 p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <p class="text-white/80 italic text-base leading-relaxed">
+                  «Ответственной за защиту данных и соблюдение всех норм перед Роскомнадзором всегда остаётся сама компания вне зависимости от того, какой ИИ она использует. Разработчик ИИ будет нести только договорную ответственность перед компанией.»
+                </p>
+                <p class="text-sm text-muted-foreground/60 mt-3">— Юлия Барышева, ведущий юрист Enforce Law Company</p>
+              </div>
+            </div>
+
+            
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 3l8 4v5c0 5-3.4 9.4-8 10-4.6-.6-8-5-8-10V7l8-4z"></path>
+                    <line x1="12" y1="8" x2="12" y2="13"></line>
+                    <circle cx="12" cy="17" r="1"></circle>
+                  </svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Основные юридические риски использования нейросетей
+                </h2>
+              </div>
+              <img
+                src="/images/img61_1772792526722.webp"
+                alt="Юридические риски нейросетей: три главных нарушения 152-ФЗ и их последствия"
+                class="w-full rounded-2xl object-cover mb-8"
+              />
+              <div class="space-y-5">
+                {[
+                  {
+                    title: "Обучение моделей на персональных данных",
+                    fine: "до 18 000 000 ₽",
+                    fineNote: "за повторное нарушение (ч. 2.1 ст. 13.11 КоАП РФ)",
+                    desc: "Использование клиентских баз, переписок или других данных, содержащих ПДн, для обучения нейросетей без соответствующего юридического основания — прямое нарушение закона. Для такой обработки необходимо получить отдельное, явное согласие, в котором прямо упоминается цель «обучение ИИ-моделей».",
+                  },
+                  {
+                    title: "Использование зарубежных облачных сервисов",
+                    fine: "до 6 000 000 ₽",
+                    fineNote: "за первичное нарушение (ч. 8 ст. 13.11 КоАП РФ)",
+                    desc: "Многие популярные ИИ-сервисы (ChatGPT, Gemini и другие) размещают серверы за пределами России. Загружая в них данные российских граждан, вы осуществляете трансграничную передачу данных. Согласно 152-ФЗ, она возможна только в страны, обеспечивающие адекватную защиту прав субъектов.",
+                  },
+                  {
+                    title: "Передача данных третьим лицам",
+                    fine: "до 500 000 ₽",
+                    fineNote: "за каждый факт нарушения (ч. 1 ст. 13.11 КоАП РФ)",
+                    desc: "Некоторые ИИ-платформы могут передавать полученные данные своим партнёрам или подрядчикам. Если в этих данных содержатся ПДн ваших клиентов, такая передача будет законной только при наличии отдельного согласия.",
+                  },
+                ].map((item) => (
+                  <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-3">
+                      <h3 class="text-white font-bold text-base">{item.title}</h3>
+                      <div class="shrink-0 text-right">
+                        <div class="text-red-400 font-bold text-lg">{item.fine}</div>
+                        <div class="text-xs text-muted-foreground/60">{item.fineNote}</div>
+                      </div>
+                    </div>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Практика обезличивания данных
+              </h2>
+              <p class="mb-4">
+                Один из самых эффективных способов снизить юридические риски — использовать для обучения и работы ИИ не «сырые», а обезличенные данные. С 1 сентября 2025 года вступают в силу новые правила: обработка полностью обезличенных данных выводится из-под действия 152-ФЗ.
+              </p>
+              <p class="mb-6">
+                Обезличивание — это обработка персональных данных, в результате которой становится невозможным определить их принадлежность конкретному человеку без использования дополнительной информации. Важно: простое удаление ФИО из таблицы не является достаточным.
+              </p>
+              <img
+                src="/images/img62_1772792526722.webp"
+                alt="Процесс обезличивания персональных данных перед использованием в ИИ-системах"
+                class="w-full rounded-2xl object-cover mb-8"
+              />
+
+              <h3 class="text-lg font-bold text-white mb-4">Разрешённые методы обезличивания (приказ Роскомнадзора, с 01.09.2025)</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {anonymizationMethods.map((item) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <h4 class="text-white font-bold mb-2">{item.method}</h4>
+                    <p class="text-sm leading-relaxed mb-2">{item.desc}</p>
+                    <p class="text-xs text-accent font-mono bg-accent/5 border border-accent/20 px-3 py-1 rounded-full inline-block">{item.example}</p>
+                  </div>
+                ))}
+              </div>
+
+              <h3 class="text-lg font-bold text-white mb-4">Что НЕ является обезличиванием</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[
+                  { text: "Шифрование без удаления ключа", note: "Зашифрованные данные остаются ПДн, пока ключ доступен оператору" },
+                  { text: "Простое удаление ФИО из таблицы", note: "По оставшимся полям человека можно вычислить" },
+                  { text: "Хранение исходных и обезличенных данных вместе", note: "Таблица соответствий должна храниться отдельно и под защитой" },
+                  { text: "Передача таблиц соответствий третьим лицам", note: "Псевдонимизация теряет смысл, если ключ доступен другим" },
+                ].map((item) => (
+                  <div class="flex items-start gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                    <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    <div>
+                      <p class="text-white text-sm font-medium">{item.text}</p>
+                      <p class="text-xs text-muted-foreground/70 mt-1">{item.note}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Требования регуляторов: легальная схема обработки ПДн
+              </h2>
+              <p class="mb-6">
+                Позиция Роскомнадзора строится на действующих нормах 152-ФЗ: любая обработка ПДн, в том числе с помощью ИИ, требует наличия законного основания. Ключевое требование — <strong class="text-white">локализация</strong>: первичная база данных с ПДн граждан РФ должна находиться на территории России.
+              </p>
+              <img
+                src="/images/img63_1772792526723.webp"
+                alt="Легальная схема обработки ПДн в системе ИИ: жизненный цикл данных от сбора до уничтожения"
+                class="w-full rounded-2xl object-cover mb-6"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mb-6 italic">
+                5 этапов легального жизненного цикла данных в соответствии с 152-ФЗ
+              </p>
+              <div class="p-5 rounded-xl bg-amber-500/5 border border-amber-500/20 text-sm">
+                <p>
+                  <strong class="text-amber-400">Важно:</strong> Если компания хранит данные россиян за пределами страны, штраф для компании составит от 1 до 6 млн рублей. При повторных нарушениях штрафы возрастают. Роскомнадзор также вправе заблокировать сайт, что остановит работу онлайн-бизнеса.
+                </p>
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-6">
+                Практические рекомендации компаниям
+              </h2>
+              <div class="space-y-4">
+                {[
+                  { step: "1", title: "Проведите аудит данных", desc: "Определите, какие данные вы собираете и обрабатываете. Классифицируйте их: являются ли они персональными, специальными или биометрическими. Это фундамент, без которого невозможно выстроить правомерный процесс." },
+                  { step: "2", title: "Разработайте юридическую основу", desc: "Для каждой цели обработки ПДн определите законное основание. В большинстве случаев для обучения ИИ это будет согласие. Составьте корректную форму согласия, где будет прямо указана цель — «обучение моделей искусственного интеллекта». Общие формулировки не подойдут." },
+                  { step: "3", title: "Внедрите процессы обезличивания", desc: "По возможности используйте для обучения ИИ обезличенные данные. Разработайте и задокументируйте методику обезличивания в соответствии с новыми требованиями, вступающими в силу с 1 сентября 2025 года." },
+                  { step: "4", title: "Проверьте своих контрагентов", desc: "Если вы используете сторонний ИИ-сервис, внимательно изучите его политику конфиденциальности и пользовательское соглашение. Убедитесь, что сервис соответствует требованиям 152-ФЗ, особенно в части локализации и трансграничной передачи данных." },
+                  { step: "5", title: "Обновите внутренние документы", desc: "Внесите изменения в Политику обработки персональных данных, отразив в ней использование ИИ. Разработайте внутренний регламент использования нейросетей: перечень инструментов, круг задач, правила работы с ПДн." },
+                  { step: "6", title: "Обучите сотрудников", desc: "Объясните команде правила работы с персональными данными при использовании нейросетей. Повышение осведомлённости — ключ к снижению человеческого фактора." },
+                ].map((item) => (
+                  <div class="flex items-start gap-4 p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <span class="w-8 h-8 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">{item.step}</span>
+                    <div>
+                      <h3 class="text-white font-bold mb-1">{item.title}</h3>
+                      <p class="text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                Чек-лист: перед запуском ИИ-проекта
+              </h2>
+              <p class="mb-6">Перед тем как нажать кнопку «Обучить модель» или подключить новый ИИ-сервис, пройдитесь по этому списку:</p>
+              <div class="space-y-3">
+                {checklist.map((item, i) => (
+                  <div class="flex items-start gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/10" data-testid={`checklist-item-${i + 1}`}>
+                    <svg class="w-5 h-5 text-accent shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                    <p class="text-sm leading-relaxed"><span class="text-muted-foreground/50 mr-2 font-mono text-xs">{i + 1}.</span>{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">Заключение</h2>
+              <p>
+                Внедрение искусственного интеллекта открывает перед бизнесом огромные возможности. Но, как и любой мощный инструмент, он требует ответственного подхода. Соблюдение требований 152-ФЗ — это не бюрократическая формальность, а основа для построения доверительных отношений с клиентами.
+              </p>
+              <p class="mt-4">
+                Ключевой вывод: ответственность за соблюдение закона о персональных данных при использовании ИИ <strong class="text-white">всегда лежит на компании-операторе</strong>, а не на разработчике нейросети. Именно поэтому юридическую экспертизу необходимо включать в процесс внедрения ИИ с самого начала — наравне с технической и бизнес-оценкой.
+              </p>
+              <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+                <p class="text-white font-medium text-lg leading-relaxed">
+                  Решения AZONE AI разворачиваются на серверах заказчика на территории РФ. Данные не покидают периметр. Мы помогаем выстроить архитектуру, соответствующую 152-ФЗ, с первого дня проекта.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
+          <a href="/contact" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

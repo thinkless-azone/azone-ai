@@ -1,0 +1,567 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const modelTable = [
+  { criterion: "Качество ответов",  llama: "★★★★★", mistral: "★★★★",  qwen: "★★★★★", note: "Llama и Qwen лидируют на 70B+" },
+  { criterion: "Код и данные",      llama: "★★★★",  mistral: "★★★★",  qwen: "★★★★★", note: "Qwen-Coder — один из лучших" },
+  { criterion: "Русский язык",      llama: "★★★",   mistral: "★★★★",  qwen: "★★★★★", note: "Qwen: 119+ языков с хорошей грамматикой" },
+  { criterion: "Следование инструкциям", llama: "★★★★", mistral: "★★★★★", qwen: "★★★★", note: "Mistral — самый дисциплинированный" },
+  { criterion: "Эффективность",     llama: "★★★★",  mistral: "★★★★★", qwen: "★★★★",  note: "Mixtral MoE — лучшее качество/размер" },
+  { criterion: "Экосистема",        llama: "★★★★★", mistral: "★★★★",  qwen: "★★★",   note: "Llama = больше адаптеров и туториалов" },
+  { criterion: "Лицензия",          llama: "Community", mistral: "Apache 2.0", qwen: "Apache 2.0", note: "Mistral и Qwen — максимум свободы" },
+];
+
+const inferenceTable = [
+  { param: "Пропускная способность",  vllm: "Выше при высокой конкурентности (до 24× в пиковых сценариях)", tgi: "Хорошая; сильная сторона — длинные контексты (до 13× на промптах 200K+ токенов)" },
+  { param: "Задержка (latency)",       vllm: "Стабильная, масштабируется линейно", tgi: "Ниже tail-latency при 1–2 пользователях" },
+  { param: "API",                      vllm: "OpenAI-совместимый из коробки", tgi: "OpenAI-совместимый + SSE-стриминг" },
+  { param: "Поддержка моделей",        vllm: "Широчайшая, новые архитектуры быстрее", tgi: "Все основные семейства, новые — сложнее" },
+  { param: "Квантизация",             vllm: "AWQ, GPTQ, FP8", tgi: "GPTQ, bitsandbytes, EETQ, FP8" },
+  { param: "Мониторинг",              vllm: "Базовый, требует доработки", tgi: "Prometheus + OpenTelemetry из коробки" },
+  { param: "Простота запуска",         vllm: "pip install + одна команда", tgi: "Docker-контейнер, больше конфигурации" },
+  { param: "Статус проекта",           vllm: "Активно развивается, де-факто стандарт", tgi: "Maintenance mode с декабря 2025" },
+];
+
+const hwTable = [
+  { param: "GPU VRAM",     small: "6–8 ГБ (min), 24 ГБ (комфортно)", medium: "35–40 ГБ → 1× A100 80 ГБ", large: "140+ ГБ → 2× A100 80 ГБ" },
+  { param: "RAM",          small: "32 ГБ",       medium: "64–128 ГБ",    large: "128–256 ГБ" },
+  { param: "CPU",          small: "8+ ядер",      medium: "16–32 ядра",   large: "32+ ядра" },
+  { param: "Диск",         small: "50 ГБ SSD",    medium: "150 ГБ NVMe",  large: "300+ ГБ NVMe" },
+  { param: "Сеть",         small: "1 Gbps",       medium: "10 Gbps",      large: "10–25 Gbps (NVLink)" },
+  { param: "Пользователи", small: "5–15",         medium: "20–50",        large: "50–100" },
+  { param: "GPU (ориентир)", small: "RTX 4090 / A10G", medium: "1× A100 80 ГБ", large: "2× A100 / H100" },
+];
+
+const steps = [
+  { num: "1", title: "Определите конкретный кейс", text: "Не «внедрить ИИ», а «сократить время подготовки ответа на тендерный запрос с 4 часов до 30 минут». Измеримая цель — основа адекватного пилота." },
+  { num: "2", title: "Оцените данные", text: "Какие данные будет обрабатывать модель? Есть ли ПДн, КТ, гостайна? Нужно ли согласование с ИБ-службой? Какие требования к логированию?" },
+  { num: "3", title: "Выберите модель и формат", text: "Для пилота — 7–8B в INT4. Достаточно, чтобы проверить гипотезу. Не начинайте с 70B: потратите месяцы на железо, а потом кейс может не сработать." },
+  { num: "4", title: "Подготовьте инфраструктуру", text: "Выделите сервер с GPU. Убедитесь, что сетевая сегментация позволяет обращаться к сервису, но не даёт модели доступ в интернет." },
+  { num: "5", title: "Разверните инференс-сервер", text: "vLLM + Docker — минимальная конфигурация с рабочим API за 30–60 минут. Проверьте endpoint, загрузку модели, стриминг." },
+  { num: "6", title: "Интегрируйте с рабочим процессом", text: "RAG-пайплайн, чат-интерфейс, API-интеграция — подключите модель к реальной задаче. Здесь становится понятно, подходит модель или нет." },
+  { num: "7", title: "Проведите валидацию", text: "Тестирование на реальных данных, замер метрик (точность, полнота, время ответа), сбор обратной связи от пользователей." },
+  { num: "8", title: "Масштабируйте", text: "Переход в продакшен: мониторинг, алерты, процедуры обновления модели, регламент обработки инцидентов, документация." },
+];
+
+const mistakes = [
+  { title: "Начинать с самой большой модели", text: "8B-модель часто справляется не хуже 70B. Проверьте гипотезу на малом — потом масштабируйте." },
+  { title: "Выбирать по бенчмаркам, а не по задаче", text: "MMLU и HumanEval не покажут, как модель справится с суммаризацией ваших договоров на русском." },
+  { title: "Игнорировать ИБ на старте", text: "Согласуйте архитектуру с ИБ-службой до развёртывания, а не после первого аудита." },
+  { title: "Недооценивать эксплуатацию", text: "GPU потребляют ~300 Вт, модели нужно обновлять, сервис требует мониторинга. Закладывайте OpEx." },
+  { title: "Не планировать замену моделей", text: "Архитектура должна позволять менять модель без переписывания интеграций. OpenAI-совместимый API решает это." },
+  { title: "Путать пилот с продакшеном", text: "Ноутбук с RTX 4090 — это проверка гипотезы. Продакшен — сервер с резервированием, SLA и мониторингом." },
+];
+---
+<Base title="Как развернуть LLM в закрытом контуре: пошаговое руководство" description="Llama, Mistral или Qwen? Сравнение моделей, квантизация, vLLM vs TGI, требования к железу — полный гайд по развёртыванию LLM on-premise для ИБ-специалистов.">
+
+
+      <section class="relative py-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div>
+            <a href="/blog"><span class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8 cursor-pointer">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
+              </span>
+            </a>
+
+            <div class="mb-6">
+              <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">
+                Технологии
+              </span>
+            </div>
+
+            <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+              Как развернуть LLM в закрытом контуре: пошаговое руководство
+            </h1>
+
+            <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+              Llama, Mistral или Qwen? Сравнение моделей, квантизация, vLLM vs TGI, требования к железу — всё для ИБ-специалистов и технических руководителей.
+            </p>
+
+            <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 3 апреля 2026</span>
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 мин чтения</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+      <section class="pb-24">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="space-y-12 text-muted-foreground leading-relaxed text-[17px]">
+
+            <!-- Лид -->
+            <div>
+              <p>
+                Компания получает доступ к GPT-4 через API. Через два месяца выясняется, что сотрудники отправляли в промпты фрагменты конструкторской документации, персональные данные клиентов и тексты внутренних регламентов. Знакомая ситуация? Именно так обычно начинается разговор о развёртывании LLM on-premise — не с технического интереса, а с конкретного инцидента.
+              </p>
+              <p class="mt-4">
+                Эта статья — практическое руководство для тех, кто уже решил, что локальная LLM для компании нужна, но пока не понимает, с какого конца подступиться. Разберём выбор модели, инфраструктуру, инструменты инференса и типовые ошибки — без рекламы и без иллюзий.
+              </p>
+            </div>
+
+
+            <!-- ★ КАРТИНКА: Блок-схема архитектуры -->
+            <div>
+              <img
+                src="/images/llm-deploy-architecture.webp"
+                alt="Архитектура развёртывания LLM в закрытом контуре: пользователь → API-gateway → vLLM → модель → ответ"
+                class="w-full rounded-2xl object-cover"
+              />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                Путь запроса в закрытом контуре: пользователь → API-gateway → vLLM → модель → ответ. Точки контроля ИБ выделены
+              </p>
+            </div>
+
+
+            <!-- Секция 1: Почему не «просто поднять» -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Почему «просто поднять модель на сервере» — не решение
+                </h2>
+              </div>
+
+              <p>
+                Интерес к LLM в закрытом контуре вырос не из-за моды. Причины практические: ужесточение требований регуляторов (152-ФЗ, отраслевые стандарты ИБ), рост стоимости облачных API при масштабировании, а также нежелание отдавать конфиденциальные данные третьей стороне — даже если эта сторона обещает их не хранить.
+              </p>
+              <p class="mt-4">
+                Но между решением «нам нужна своя LLM» и работающим сервисом лежит цепочка нетривиальных инженерных решений. Поставить Docker-контейнер с моделью — это не развёртывание. Это эксперимент. Развёртывание LLM on-premise — это когда модель устойчиво обслуживает пользователей, укладывается в бюджет по железу, не деградирует под нагрузкой и вписывается в ИБ-инфраструктуру: сегментация сети, логирование, контроль доступа.
+              </p>
+
+              <div class="mt-6 p-5 rounded-xl bg-accent/5 border border-accent/20">
+                <p class="text-sm"><span class="text-white font-semibold">Когда закрытый контур оправдан:</span> данные не должны покидать периметр (ПДн, гостайна, КТ); регуляторные требования запрещают облако; нужна предсказуемость затрат; нужен полный контроль над поведением модели, включая файнтюнинг.</p>
+                <p class="text-sm mt-2"><span class="text-white font-semibold">Когда избыточен:</span> задача — отвечать на типовые вопросы по публичной базе знаний, объём невелик. Облачный API будет дешевле и проще.</p>
+              </div>
+            </div>
+
+
+            <!-- Секция 2: Задачи для закрытого контура -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Какие задачи решают в закрытом контуре
+                </h2>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { task: "Суммаризация документов", desc: "Протоколы совещаний, договоры, техническая документация" },
+                  { task: "Семантический поиск", desc: "RAG-пайплайн поверх внутренней базы знаний" },
+                  { task: "Генерация черновиков", desc: "КП, письма, отчёты по шаблону" },
+                  { task: "Классификация обращений", desc: "Заявки от клиентов, тикеты в HelpDesk" },
+                  { task: "Ассистент разработчика", desc: "Автодополнение кода, ревью, работа с внутренними API" },
+                  { task: "Анализ тендерной документации", desc: "Извлечение требований, сопоставление с каталогом" },
+                ].map((item) => (
+                  <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-white font-medium mb-1">{item.task}</div>
+                    <div class="text-sm text-muted-foreground/80">{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              <p class="mt-6">
+                Ключевой критерий: данные чувствительны, объём запросов предсказуем, а требования к качеству ответов измеримы. Если задача размыта — «пусть ИИ нам что-нибудь полезное подскажет» — пилот почти гарантированно провалится вне зависимости от модели.
+              </p>
+            </div>
+
+
+            <!-- Секция 3: Выбор модели -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Как выбрать модель: Llama, Mistral или Qwen
+                </h2>
+              </div>
+
+              <p>
+                Выбор модели — решение, на которое тратят больше всего времени. И часто зря, потому что выбирают по бенчмаркам, а не по реальным требованиям задачи. Разберём три наиболее зрелых семейства open-source LLM для on-premise.
+              </p>
+
+              <div class="mt-6 space-y-4">
+                {[
+                  {
+                    name: "Llama 3.x / 4 (Meta AI)",
+                    sizes: "8B – 405B (dense); Scout / Maverick (MoE)",
+                    pros: "Стабильно высокое качество, крупнейшая экосистема адаптеров, максимальная поддержка во всех фреймворках. Огромное сообщество — любая проблема уже решена на GitHub.",
+                    cons: "Русский язык из коробки средний — приемлемо для классификации, слабее в генерации связного текста.",
+                    best: "Универсальный выбор, когда приоритет — стабильность и сообщество"
+                  },
+                  {
+                    name: "Mistral / Mixtral (Mistral AI)",
+                    sizes: "7B, 8×7B, 8×22B, Small, Large",
+                    pros: "Отличное следование инструкциям — самый «дисциплинированный» из тройки. Mixtral MoE даёт качество 70B-модели при активации лишь 12.9B параметров. Лицензия Apache 2.0.",
+                    cons: "Русский лучше Llama, но хуже Qwen. Крупные модели требуют больше VRAM, чем аналоги.",
+                    best: "Многоязычность, точное следование инструкциям, работа с длинными документами"
+                  },
+                  {
+                    name: "Qwen 2.5 / 3.x (Alibaba Cloud)",
+                    sizes: "0.5B – 72B (dense); MoE до 235B+",
+                    pros: "Лидер по мультиязычности — 119+ языков с хорошей грамматикой, включая русский. Qwen-Coder конкурирует с лучшими в генерации кода. Лицензия Apache 2.0.",
+                    cons: "Экосистема и туториалы менее зрелые, чем у Llama.",
+                    best: "Русский язык, код, структурированные данные, математика"
+                  },
+                ].map((m) => (
+                  <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <h3 class="text-white font-bold text-lg mb-1">{m.name}</h3>
+                    <p class="text-xs text-muted-foreground/60 mb-3">Размеры: {m.sizes}</p>
+                    <p class="text-sm leading-relaxed mb-2"><span class="text-green-400">+</span> {m.pros}</p>
+                    <p class="text-sm leading-relaxed mb-2"><span class="text-red-400">−</span> {m.cons}</p>
+                    <p class="text-sm leading-relaxed"><span class="text-accent">→</span> <span class="text-white/80">{m.best}</span></p>
+                  </div>
+                ))}
+              </div>
+
+              <!-- Таблица сравнения моделей -->
+              <div class="mt-8 overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05] text-white">
+                      <th class="text-left px-4 py-4 font-semibold">Критерий</th>
+                      <th class="text-center px-4 py-4 font-semibold">Llama</th>
+                      <th class="text-center px-4 py-4 font-semibold">Mistral</th>
+                      <th class="text-center px-4 py-4 font-semibold">Qwen</th>
+                      <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Комментарий</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {modelTable.map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-4 py-3 text-white font-medium whitespace-nowrap">{row.criterion}</td>
+                        <td class="px-4 py-3 text-center">{row.llama}</td>
+                        <td class="px-4 py-3 text-center">{row.mistral}</td>
+                        <td class="px-4 py-3 text-center">{row.qwen}</td>
+                        <td class="px-4 py-3 text-muted-foreground/70 text-xs hidden md:table-cell">{row.note}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                {[
+                  { case: "Экосистема и стабильность", rec: "Llama 3.x" },
+                  { case: "Русский язык", rec: "Qwen 2.5 / 3" },
+                  { case: "Следование инструкциям", rec: "Mistral" },
+                ].map((item) => (
+                  <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-center">
+                    <div class="text-muted-foreground/70 mb-1">{item.case}</div>
+                    <div class="text-accent font-bold">{item.rec}</div>
+                  </div>
+                ))}
+              </div>
+
+              <!-- ★ КАРТИНКА: Дерево решений по выбору модели -->
+              <div class="mt-6">
+                <img
+                  src="/images/llm-model-decision-tree.webp"
+                  alt="Дерево решений по выбору LLM-модели для закрытого контура"
+                  class="w-full rounded-2xl object-cover"
+                />
+                <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                  Стартовый вопрос → приоритет задачи → рекомендация модели
+                </p>
+              </div>
+
+              <div class="mt-6 p-5 rounded-xl bg-accent/5 border border-accent/20">
+                <p class="text-sm"><span class="text-white font-semibold">Практический совет:</span> не тратьте недели на выбор «идеальной» модели. Возьмите Llama 3.x 8B или Qwen 2.5 7B для пилота — они развернутся за час. Финальный выбор делайте после теста на реальных данных.</p>
+              </div>
+            </div>
+
+
+            <!-- Секция 4: Квантизация -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Что нужно знать о квантизации
+                </h2>
+              </div>
+
+              <p>
+                Квантизация LLM — это снижение точности числовых представлений весов модели. Вместо 16-битных чисел (FP16) используются 8-битные (INT8), 4-битные (INT4) или промежуточные форматы. Зачем? Чтобы модель поместилась в меньший объём видеопамяти и работала быстрее.
+              </p>
+              <p class="mt-4">
+                Цифры говорят сами за себя: модель на 70 миллиардов параметров в FP16 требует около 140 ГБ VRAM. В формате INT4 — примерно 35–40 ГБ. Разница — между кластером из нескольких GPU и одним A100 80 ГБ.
+              </p>
+
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { format: "GPTQ", desc: "Постобучающая квантизация с калибровочным датасетом. Стабильный, проверенный вариант. Хорошо поддерживается в vLLM и TGI." },
+                  { format: "AWQ", desc: "Activation-aware Weight Quantization — учитывает распределение активаций. Чуть лучшее качество при том же сжатии. Поддержка в vLLM." },
+                  { format: "GGUF", desc: "Формат llama.cpp, оптимизирован для CPU-инференса и гибридных сценариев (CPU + GPU). Основной вариант при отсутствии мощной GPU." },
+                  { format: "bitsandbytes (NF4/FP4)", desc: "Квантизация на лету, не требует подготовки. Удобно для экспериментов, менее производительно в продакшене." },
+                ].map((item) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <h3 class="text-white font-bold mb-2">{item.format}</h3>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div class="mt-6 overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05] text-white">
+                      <th class="text-left px-5 py-4 font-semibold">Модель</th>
+                      <th class="text-left px-5 py-4 font-semibold">FP16</th>
+                      <th class="text-left px-5 py-4 font-semibold">INT8</th>
+                      <th class="text-left px-5 py-4 font-semibold text-accent">INT4</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {[
+                      { model: "7–8B", fp16: "~14–16 ГБ", int8: "~8 ГБ", int4: "~4–5 ГБ" },
+                      { model: "13–14B", fp16: "~28 ГБ", int8: "~14 ГБ", int4: "~7 ГБ" },
+                      { model: "70B", fp16: "~140 ГБ", int8: "~70 ГБ", int4: "~35–40 ГБ" },
+                    ].map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-5 py-4 text-white font-medium">{row.model}</td>
+                        <td class="px-5 py-4">{row.fp16}</td>
+                        <td class="px-5 py-4">{row.int8}</td>
+                        <td class="px-5 py-4 text-accent">{row.int4}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- ★ КАРТИНКА: VRAM-калькулятор -->
+              <div class="mt-6">
+                <img
+                  src="/images/llm-vram-calculator.webp"
+                  alt="VRAM-калькулятор: сколько видеопамяти нужно для моделей 7B, 13B и 70B в FP16, INT8 и INT4"
+                  class="w-full rounded-2xl object-cover"
+                />
+                <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">
+                  7B, 13B, 70B — требования к VRAM при разных уровнях квантизации и подходящие GPU
+                </p>
+              </div>
+
+              <div class="mt-6 p-5 rounded-xl bg-accent/5 border border-accent/20">
+                <p class="text-sm"><span class="text-white font-semibold">Практический совет:</span> не квантизуйте «для экономии» модель, которая и так помещается в GPU. Начинайте с FP16, и если не хватает памяти — переходите на INT8, затем INT4. Каждый шаг вниз сопровождайте валидацией на вашем конкретном наборе тестов. INT8 обычно даёт минимальные потери; INT4 заметнее снижает качество на задачах рассуждения.</p>
+              </div>
+            </div>
+
+
+            <!-- Секция 5: vLLM vs TGI -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Что выбрать для инференса: vLLM или TGI
+                </h2>
+              </div>
+
+              <p>
+                Когда модель выбрана и квантизована, нужен движок, который будет её обслуживать: принимать запросы, управлять очередями, эффективно использовать GPU. Два основных варианта — vLLM и TGI (Text Generation Inference от Hugging Face).
+              </p>
+              <p class="mt-4">
+                Важный контекст: в декабре 2025 года Hugging Face перевёл TGI в режим maintenance mode. Новые фичи больше не добавляются, принимаются только баг-фиксы. Для новых проектов HF рекомендует vLLM или SGLang. TGI по-прежнему стабилен и проверен — но вектор развития сместился.
+              </p>
+
+              <!-- Таблица vLLM vs TGI -->
+              <div class="mt-6 overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05] text-white">
+                      <th class="text-left px-4 py-4 font-semibold">Параметр</th>
+                      <th class="text-left px-4 py-4 font-semibold text-blue-400">vLLM</th>
+                      <th class="text-left px-4 py-4 font-semibold text-orange-400">TGI</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {inferenceTable.map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-4 py-3 text-white font-medium">{row.param}</td>
+                        <td class="px-4 py-3">{row.vllm}</td>
+                        <td class="px-4 py-3">{row.tgi}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                  <div class="text-blue-400 font-bold mb-2">vLLM — для новых проектов</div>
+                  <p>Текущий стандарт индустрии, OpenAI-совместимый API, самая широкая поддержка моделей, самое активное сообщество.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20">
+                  <div class="text-orange-400 font-bold mb-2">TGI — для существующих стендов</div>
+                  <p>Стабилен, хорошо мониторится, подходит для задач с низкой задержкой. Планируйте миграцию в среднесрочной перспективе.</p>
+                </div>
+              </div>
+
+              <div class="mt-6 p-5 rounded-xl bg-accent/5 border border-accent/20">
+                <p class="text-sm"><span class="text-white font-semibold">Практический совет:</span> выбор инференс-движка влияет на пропускную способность, но не на качество ответов — это определяется моделью. Также стоит присмотреться к SGLang — молодой, но быстро растущий проект, который HF рекомендует наряду с vLLM.</p>
+              </div>
+            </div>
+
+
+            <!-- Секция 6: Требования к железу -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Требования к инфраструктуре и железу
+                </h2>
+              </div>
+
+              <p>
+                Самый частый вопрос: «Какой сервер нужен?» Ответ зависит от размера модели, квантизации, нагрузки и бюджета. Главное ограничение — VRAM: именно объём видеопамяти определяет, какую модель вы сможете запустить.
+              </p>
+
+              <!-- Таблица требований к железу -->
+              <div class="mt-6 overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05] text-white">
+                      <th class="text-left px-4 py-4 font-semibold">Параметр</th>
+                      <th class="text-left px-4 py-4 font-semibold">7–8B (INT4)</th>
+                      <th class="text-left px-4 py-4 font-semibold">70B (INT4)</th>
+                      <th class="text-left px-4 py-4 font-semibold">70B (FP16)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {hwTable.map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-4 py-3 text-white font-medium">{row.param}</td>
+                        <td class="px-4 py-3">{row.small}</td>
+                        <td class="px-4 py-3">{row.medium}</td>
+                        <td class="px-4 py-3">{row.large}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                {[
+                  { tip: "NVLink vs PCIe", text: "При tensor parallelism на нескольких GPU скорость межгрупового соединения критична. NVLink в разы быстрее PCIe." },
+                  { tip: "Диски важнее, чем кажется", text: "Загрузка 70B-модели с HDD — 10–15 минут. С NVMe SSD — 1–2 минуты. Влияет на доступность при перезапуске." },
+                  { tip: "Не забывайте про RAM", text: "Модель сначала читается в оперативку, затем переносится на GPU. Если RAM меньше размера модели — процесс упадёт." },
+                  { tip: "Формула оценки VRAM", text: "Параметры × 2 (FP16) или × 0.5 (INT4) = VRAM в ГБ. Грубая оценка, но сразу покажет класс нужного железа." },
+                ].map((item) => (
+                  <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-white font-medium mb-1">{item.tip}</div>
+                    <div class="text-muted-foreground/80">{item.text}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+
+            <!-- Секция 7: Пошаговый план -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Пошаговый план внедрения
+                </h2>
+              </div>
+
+              <p class="mb-6">
+                Внедрение LLM в закрытом контуре — проект, а не разовая установка. Весь путь от идеи до пилота занимает 2–4 недели при наличии железа и компетенций.
+              </p>
+
+              <div class="space-y-4">
+                {steps.map((step) => (
+                  <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="w-8 h-8 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0">{step.num}</span>
+                      <h3 class="text-white font-bold">{step.title}</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed ml-11">{step.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div class="mt-6 p-5 rounded-xl bg-accent/5 border border-accent/20">
+                <p class="text-sm"><span class="text-white font-semibold">Практический совет:</span> не пытайтесь спроектировать идеальную архитектуру до первого запуска. Сначала покажите, что модель решает задачу — потом масштабируйте.</p>
+              </div>
+            </div>
+
+
+            <!-- Секция 8: Типовые ошибки -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                  Типовые ошибки при внедрении
+                </h2>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {mistakes.map((m) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="text-red-400">✕</span>
+                      <h3 class="text-white font-bold text-sm">{m.title}</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed">{m.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+
+            <!-- Заключение -->
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">
+                С чего начинать
+              </h2>
+              <p>
+                Развёртывание LLM в закрытом контуре — реалистичная задача для организации с профильными ИТ-компетенциями. Но это инженерный проект, а не покупка «коробочного решения».
+              </p>
+              <p class="mt-4">
+                Наиболее реалистичный путь: выберите одну конкретную задачу с измеримым результатом. Возьмите модель 7–8B (Llama 3.x или Qwen 2.5) в INT4. Разверните vLLM на сервере с GPU уровня RTX 4090 или A10G. Подключите к реальному процессу. Замерьте результат. И только после подтверждения гипотезы — масштабируйте.
+              </p>
+
+              <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+                <p class="text-white font-medium text-lg leading-relaxed">
+                  Хотите развернуть LLM на своей инфраструктуре? AZONE AI реализует полный цикл: подбор железа, выбор и дообучение модели, интеграция с корпоративными системами — под ключ.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
+          <a href="/pilot" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

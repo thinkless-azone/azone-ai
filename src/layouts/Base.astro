@@ -1,0 +1,160 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = "AZONE-AI — внедряем нейросети и LLM on-premise. Данные не покидают вашу инфраструктуру. Лицензии ФСТЭК, ФСБ, МО РФ." } = Astro.props;
+const currentPath = Astro.url.pathname;
+const fullTitle = `${title} | AZONE-AI`;
+---
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={`https://azoneai.ru${currentPath}`} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={`https://azoneai.ru${currentPath}`} />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context":"https://schema.org","@type":"Organization",
+    "name":"ООО «Азон»","alternateName":"AZONE-AI",
+    "url":"https://azoneai.ru",
+    "description":"Системный интегратор. Внедрение ИИ-решений on-premise для госсектора и бизнеса.",
+    "foundingDate":"2003","taxID":"7723340837",
+    "address":{"@type":"PostalAddress","streetAddress":"ул. Прянишникова, д. 23А","addressLocality":"Москва","addressCountry":"RU"},
+    "telephone":"+74959026636",
+    "email":"order@azone-it.ru",
+    "sameAs":["https://www.azone-it.ru"]
+  })} />
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <!-- ═══ NAVBAR ═══ -->
+  <header id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 border-b border-transparent bg-transparent py-5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2 group">
+          <img src="/images/logo.png" alt="AZONE-AI" class="w-10 h-10 rounded-xl object-contain" />
+          <span class="font-heading font-bold text-xl tracking-wide text-white">
+            AZONE<span class="text-accent">-AI</span>
+          </span>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/" ? "text-white" : "text-muted-foreground"]}>Главная</a>
+          <a href="/#products" class="text-sm font-medium transition-colors hover:text-white text-muted-foreground">Продукты</a>
+          <a href="/about" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/about/" ? "text-white" : "text-muted-foreground"]}>О компании</a>
+          <a href="/blog" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/blog") ? "text-white" : "text-muted-foreground"]}>Блог</a>
+          <a href="/contact" class="premium-btn py-2 px-5 text-sm">Обсудить проект</a>
+        </nav>
+
+        <button id="burger" class="md:hidden text-white p-2" aria-label="Меню">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="mobileMenu" class="hidden md:hidden bg-background border-b border-white/10">
+      <div class="px-4 pt-2 pb-6 space-y-4 flex flex-col">
+        <a href="/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Главная</a>
+        <a href="/#products" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Продукты</a>
+        <a href="/about" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">О компании</a>
+        <a href="/blog" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Блог</a>
+        <a href="/contact" class="w-full text-center premium-btn py-3 mt-4">Обсудить проект</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ CONTENT ═══ -->
+  <main class="flex-grow">
+    <slot />
+  </main>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="border-t border-white/10 bg-background/50 relative overflow-hidden pt-16 pb-8">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div>
+          <a href="/" class="flex items-center gap-2 mb-6">
+            <img src="/images/logo.png" alt="AZONE-AI" class="w-8 h-8 rounded-lg object-contain" />
+            <span class="font-heading font-bold text-xl tracking-wide text-white">AZONE<span class="text-accent">-AI</span></span>
+          </a>
+          <p class="text-muted-foreground text-sm mb-6 leading-relaxed">Внедряем нейросети и LLM on-premise. Данные не покидают вашу инфраструктуру.</p>
+          <a href="https://azone-it.ru" target="_blank" rel="noopener noreferrer" class="text-accent hover:text-white transition-colors text-sm font-medium">Подразделение AZONE-IT →</a>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-6">Продукты</h4>
+          <ul class="space-y-3 text-sm text-muted-foreground">
+            <li><a href="/products/contentguard" class="hover:text-primary transition-colors">ContentGuard</a></li>
+            <li><a href="/products/azonedoc" class="hover:text-primary transition-colors">AzoneDoc</a></li>
+            <li><a href="/products/constructioneye" class="hover:text-primary transition-colors">ConstructionEye</a></li>
+            <li><a href="/products/predictmaintain" class="hover:text-primary transition-colors">PredictMaintain</a></li>
+            <li><a href="/products/contractguard" class="hover:text-primary transition-colors">ContractGuard</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-6">Компания</h4>
+          <ul class="space-y-3 text-sm text-muted-foreground">
+            <li><a href="/about" class="hover:text-primary transition-colors">О нас</a></li>
+            <li><a href="/blog" class="hover:text-primary transition-colors">Блог и материалы</a></li>
+            <li><a href="/contact" class="hover:text-primary transition-colors">Контакты</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-6">Связь с нами</h4>
+          <ul class="space-y-4 text-sm text-muted-foreground">
+            <li class="flex items-center gap-3">
+              <svg class="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <a href="mailto:order@azone-it.ru" class="hover:text-white transition-colors">order@azone-it.ru</a>
+            </li>
+            <li class="flex items-center gap-3">
+              <svg class="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <a href="tel:+74959026636" class="hover:text-white transition-colors">+7 (495) 902-66-36</a>
+            </li>
+            <li class="flex items-start gap-3">
+              <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Москва, ул. Прянишникова, д. 23А</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-sm text-muted-foreground">© 2026 AZONE-AI. Все права защищены.</p>
+        <div class="flex gap-6 text-sm text-muted-foreground">
+          <a href="#" class="hover:text-white transition-colors">Политика конфиденциальности</a>
+          <a href="#" class="hover:text-white transition-colors">Пользовательское соглашение</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) {
+        navbar?.classList.add('bg-background/80', 'backdrop-blur-md', 'border-white/10', 'py-3', 'shadow-lg');
+        navbar?.classList.remove('bg-transparent', 'py-5');
+      } else {
+        navbar?.classList.remove('bg-background/80', 'backdrop-blur-md', 'border-white/10', 'py-3', 'shadow-lg');
+        navbar?.classList.add('bg-transparent', 'py-5');
+      }
+    });
+    // Mobile menu
+    document.getElementById('burger')?.addEventListener('click', () => {
+      document.getElementById('mobileMenu')?.classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

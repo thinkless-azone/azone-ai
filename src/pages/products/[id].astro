@@ -1,0 +1,91 @@
+---
+import Base from '../../layouts/Base.astro';
+import { products } from '../../data/products.js';
+
+export function getStaticPaths() {
+  return products.map((p) => ({ params: { id: p.id }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+---
+<Base title={product.name} description={product.shortDesc}>
+
+  <!-- Hero -->
+  <section class="relative pt-24 py-20 overflow-hidden border-b border-white/5">
+    <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <a href="/#products" class="inline-flex items-center text-muted-foreground hover:text-white transition-colors mb-12 text-sm font-medium">
+        <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Назад к продуктам
+      </a>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div class="animate-fade-up">
+          <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white mb-6">
+            <span class="text-accent" set:html={product.iconSvg}></span>
+            <span class="font-heading font-medium tracking-wider">{product.number} SERIES</span>
+          </div>
+          <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6">{product.name}</h1>
+          <p class="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-8">{product.shortDesc}</p>
+          <a href={`/contact?product=${encodeURIComponent(product.name)}`} class="premium-btn">Обсудить внедрение</a>
+        </div>
+        <div class="glass-card p-8 relative overflow-hidden animate-fade-up animate-delay-200">
+          <h3 class="text-2xl font-bold text-white mb-6 relative z-10">Что делает</h3>
+          <ul class="space-y-4 relative z-10">
+            {product.fullDesc.map((item) => (
+              <li class="flex items-start gap-3 text-muted-foreground">
+                <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Details -->
+  <section class="py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="glass-card p-8">
+          <div class="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-4">Кому подходит</h3>
+          <p class="text-muted-foreground leading-relaxed">{product.audienceDetail}</p>
+        </div>
+        <div class="glass-card p-8">
+          <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-4">Как поставляется</h3>
+          <p class="text-muted-foreground leading-relaxed">{product.delivery}</p>
+        </div>
+        <div class="glass-card p-8 border-accent/30">
+          <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-4">Стоимость</h3>
+          <p class="text-muted-foreground leading-relaxed">{product.costDetail}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
+          <a href="/contact" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

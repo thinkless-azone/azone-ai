@@ -1,0 +1,125 @@
+---
+import Base from '../layouts/Base.astro';
+
+const licenses = [
+  { issuer:"ФСТЭК России", type:"Разработка и производство средств защиты конфиденциальной информации", number:"КИ 0137 / № 006817", regNumber:"№ 1495 от 29.12.2015", validity:"Бессрочно" },
+  { issuer:"ФСБ России", type:"Работы по лицензированию, сертификации и защите государственной тайны (пп. 2, 3, 7–9, 11–14, 17–18, 20–26)", number:"ЛСЗ / № 0014927", regNumber:"№ 16171 Н от 17.08.2017", validity:"Бессрочно" },
+  { issuer:"ФСТЭК России", type:"Техническая защита конфиденциальной информации", number:"КИ 0289 / № 014538", regNumber:"№ 3409 от 31.10.2017", validity:"Бессрочно" },
+  { issuer:"МЧС России", type:"Монтаж, техническое обслуживание и ремонт средств пожарной безопасности зданий и сооружений", number:"77-Б / 07463", regNumber:"№ 154749 от 19.09.2019", validity:"Бессрочно" },
+  { issuer:"ФСТЭК России", type:"Мероприятия и услуги в области защиты государственной тайны (техническая защита информации)", number:"ГТ 0283 / № 014240", regNumber:"№ 3772 от 02.09.2024", validity:"До 02.09.2029" },
+  { issuer:"ФСТЭК России", type:"Работы, связанные с созданием средств защиты информации", number:"ГТ 0283 / № 014241", regNumber:"№ 3773 от 02.09.2024", validity:"До 02.09.2029" },
+  { issuer:"УФСБ по г. Москве и МО", type:"Работы, связанные с использованием сведений, составляющих государственную тайну", number:"ГТ / № 0135147", regNumber:"№ 39143 от 27.10.2023", validity:"До 27.10.2028" },
+  { issuer:"ФСБ России", type:"Мероприятия и услуги в области защиты государственной тайны", number:"ГТ № 0147215", regNumber:"№ 19852/М от 16.10.2024", validity:"До 16.10.2029" },
+  { issuer:"Министерство обороны РФ", type:"Работы, связанные с созданием средств защиты информации", number:"СК № 0000510", regNumber:"№ 2038 от 02.06.2021", validity:"До 02.06.2026" },
+];
+---
+<Base title="О компании" description="AZONE-AI — специализированное подразделение компании АЗОН для внедрения нейросетевых технологий в критическую инфраструктуру.">
+
+  <!-- Hero -->
+  <section class="pt-24 py-20 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+      <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6 animate-fade-up">Интегратор <span class="text-gradient">доверенных</span> AI-решений</h1>
+      <p class="text-xl text-muted-foreground max-w-3xl mx-auto animate-fade-up animate-delay-100">AZONE-AI — специализированное подразделение компании АЗОН, созданное для внедрения передовых нейросетевых технологий в критическую инфраструктуру.</p>
+    </div>
+  </section>
+
+  <!-- Key Facts -->
+  <section class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="glass-card p-10 flex gap-6">
+          <svg class="w-12 h-12 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div>
+            <h3 class="text-2xl font-bold text-white mb-3">История с 2003 года</h3>
+            <p class="text-muted-foreground leading-relaxed">Мы работаем на IT-рынке более 20 лет. За это время мы реализовали тысячи проектов для государственных структур и крупнейших корпораций России, заслужив репутацию надежного партнера.</p>
+          </div>
+        </div>
+        <div class="glass-card p-10 flex gap-6">
+          <svg class="w-12 h-12 text-accent shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div>
+            <h3 class="text-2xl font-bold text-white mb-3">Высший уровень допуска</h3>
+            <p class="text-muted-foreground leading-relaxed">Компания обладает действующими государственными лицензиями ФСТЭК России, ФСБ России и Министерства Обороны РФ. Имеем право работать с государственной тайной и объектами КИИ.</p>
+          </div>
+        </div>
+        <div class="glass-card p-10 flex gap-6">
+          <svg class="w-12 h-12 text-accent shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <div>
+            <h3 class="text-2xl font-bold text-white mb-3">Лаборатория спецпроверок</h3>
+            <p class="text-muted-foreground leading-relaxed">Собственная аккредитованная лаборатория специальных проверок и специальных исследований (СП и СИ) аппаратного обеспечения. Мы проверяем серверы перед поставкой.</p>
+          </div>
+        </div>
+        <div class="glass-card p-10 flex gap-6">
+          <svg class="w-12 h-12 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div>
+            <h3 class="text-2xl font-bold text-white mb-3">Экспертная команда</h3>
+            <p class="text-muted-foreground leading-relaxed">В штате AZONE-AI работают сертифицированные специалисты по информационной безопасности, инженеры данных (Data Engineers) и разработчики ML-моделей.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Licenses -->
+  <section class="py-24 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          Государственные лицензии
+        </div>
+        <h2 class="text-3xl md:text-4xl font-heading font-bold text-white mb-4">Государственные лицензии</h2>
+        <p class="text-muted-foreground max-w-2xl mx-auto">Компания АЗОН обладает полным комплектом разрешительных документов для работы с государственной тайной, объектами КИИ и конфиденциальной информацией.</p>
+      </div>
+      <div class="overflow-x-auto rounded-2xl border border-white/10">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-white/5 border-b border-white/10">
+              <th class="text-left text-white font-semibold px-6 py-4 w-8">№</th>
+              <th class="text-left text-white font-semibold px-6 py-4">Выдавший орган</th>
+              <th class="text-left text-white font-semibold px-6 py-4">Вид лицензии</th>
+              <th class="text-left text-white font-semibold px-6 py-4 whitespace-nowrap">Серия / Номер</th>
+              <th class="text-left text-white font-semibold px-6 py-4 whitespace-nowrap">Рег. номер / Дата</th>
+              <th class="text-left text-white font-semibold px-6 py-4 whitespace-nowrap">Срок действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {licenses.map((lic, i) => (
+              <tr class="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors">
+                <td class="px-6 py-4 text-muted-foreground font-mono">{String(i + 1).padStart(2, '0')}</td>
+                <td class="px-6 py-4 font-medium text-white whitespace-nowrap">{lic.issuer}</td>
+                <td class="px-6 py-4 text-muted-foreground leading-relaxed">{lic.type}</td>
+                <td class="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">{lic.number}</td>
+                <td class="px-6 py-4 text-muted-foreground whitespace-nowrap">{lic.regNumber}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class:list={["inline-block px-3 py-1 rounded-full text-xs font-semibold", lic.validity === "Бессрочно" ? "bg-emerald-500/15 text-emerald-400" : "bg-primary/15 text-primary"]}>{lic.validity}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
+            <a href="/contact" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Скачать презентацию
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
