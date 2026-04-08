@@ -15,6 +15,49 @@
   status = 301
   force = true
 
+# /pilot — старый CTA «Заказать пилот», страница не существовала
+[[redirects]]
+  from = "/pilot"
+  to = "/contact?product=other"
+  status = 301
+
+[[redirects]]
+  from = "/pilot/"
+  to = "/contact?product=other"
+  status = 301
+
+# Исходный .md лежал в src/pages/blog/ и мог быть сгенерирован Astro
+[[redirects]]
+  from = "/blog/10-sravnenie-llm-seo-optimized"
+  to = "/blog/10-sravnenie-llm/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/10-sravnenie-llm-seo-optimized/"
+  to = "/blog/10-sravnenie-llm/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/sravnenie-llm-seo-optimized"
+  to = "/blog/10-sravnenie-llm/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/sravnenie-llm-seo-optimized/"
+  to = "/blog/10-sravnenie-llm/"
+  status = 301
+
+# Исходный .md без префикса «08-»
+[[redirects]]
+  from = "/blog/reestr-doverennyh-ii-modelej-rossiya-2026"
+  to = "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026/"
+  status = 301
+
+[[redirects]]
+  from = "/blog/reestr-doverennyh-ii-modelej-rossiya-2026/"
+  to = "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026/"
+  status = 301
+
 [[headers]]
   for = "/*"
   [headers.values]

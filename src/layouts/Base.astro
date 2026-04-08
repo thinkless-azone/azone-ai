@@ -4,10 +4,20 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  image?: string;
+  ogType?: string;
+  noindex?: boolean;
 }
-const { title, description = "AZONE-AI — внедряем нейросети и LLM on-premise. Данные не покидают вашу инфраструктуру. Лицензии ФСТЭК, ФСБ, МО РФ." } = Astro.props;
+const {
+  title,
+  description = "AZONE-AI — внедряем нейросети и LLM on-premise. Данные не покидают вашу инфраструктуру. Лицензии ФСТЭК, ФСБ, МО РФ.",
+  image = "/images/logo.png",
+  ogType = "website",
+  noindex = false,
+} = Astro.props;
 const currentPath = Astro.url.pathname;
 const fullTitle = `${title} | AZONE-AI`;
+const absoluteImage = image.startsWith("http") ? image : `https://azoneai.ru${image}`;
 ---
 <!DOCTYPE html>
 <html lang="ru">
@@ -20,9 +30,12 @@ const fullTitle = `${title} | AZONE-AI`;
   <meta property="og:title" content={fullTitle} />
   <meta property="og:description" content={description} />
   <meta property="og:url" content={`https://azoneai.ru${currentPath}`} />
+  <meta property="og:image" content={absoluteImage} />
+  <meta property="og:image:alt" content={fullTitle} />
+  <meta property="og:site_name" content="AZONE-AI" />
   <meta property="og:locale" content="ru_RU" />
-  <meta property="og:type" content="website" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta property="og:type" content={ogType} />
+  {noindex && <meta name="robots" content="noindex, follow" />}
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -52,7 +65,7 @@ const fullTitle = `${title} | AZONE-AI`;
 
         <nav class="hidden md:flex items-center gap-8">
           <a href="/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/" ? "text-white" : "text-muted-foreground"]}>Главная</a>
-          <a href="/#products" class="text-sm font-medium transition-colors hover:text-white text-muted-foreground">Продукты</a>
+          <a href="/products" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/products") ? "text-white" : "text-muted-foreground"]}>Продукты</a>
           <a href="/about" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/about/" ? "text-white" : "text-muted-foreground"]}>О компании</a>
           <a href="/blog" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/blog") ? "text-white" : "text-muted-foreground"]}>Блог</a>
           <a href="/contact" class="premium-btn py-2 px-5 text-sm">Обсудить проект</a>
@@ -67,7 +80,7 @@ const fullTitle = `${title} | AZONE-AI`;
     <div id="mobileMenu" class="hidden md:hidden bg-background border-b border-white/10">
       <div class="px-4 pt-2 pb-6 space-y-4 flex flex-col">
         <a href="/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Главная</a>
-        <a href="/#products" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Продукты</a>
+        <a href="/products" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Продукты</a>
         <a href="/about" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">О компании</a>
         <a href="/blog" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Блог</a>
         <a href="/contact" class="w-full text-center premium-btn py-3 mt-4">Обсудить проект</a>
@@ -132,8 +145,8 @@ const fullTitle = `${title} | AZONE-AI`;
       <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <p class="text-sm text-muted-foreground">© 2026 AZONE-AI. Все права защищены.</p>
         <div class="flex gap-6 text-sm text-muted-foreground">
-          <a href="#" class="hover:text-white transition-colors">Политика конфиденциальности</a>
-          <a href="#" class="hover:text-white transition-colors">Пользовательское соглашение</a>
+          <a href="/privacy" class="hover:text-white transition-colors">Политика конфиденциальности</a>
+          <a href="/terms" class="hover:text-white transition-colors">Пользовательское соглашение</a>
         </div>
       </div>
     </div>

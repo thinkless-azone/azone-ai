@@ -1,5 +1,6 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 
 const modelTable = [
   { criterion: "Рассуждения",    llama: "★★★★★", mistral: "★★★★",  qwen: "★★★★★", note: "Llama и Qwen лидируют на 70B+" },
@@ -9,17 +10,21 @@ const modelTable = [
   { criterion: "Экосистема",     llama: "★★★★★", mistral: "★★★★",  qwen: "★★★",   note: "Llama = больше готовых решений" },
   { criterion: "Лицензия",       llama: "Community", mistral: "Apache 2.0", qwen: "Apache 2.0", note: "Mistral — максимум свободы" },
 ];
+const relatedArticles = [
+  { title: "Как развернуть LLM в закрытом контуре: пошаговое руководство", href: "/blog/07-llm-closed-circuit-guide", category: "Технологии", readTime: "10 мин" },
+  { title: "Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы", href: "/blog/10-sravnenie-llm", category: "Технологии", readTime: "12 мин" },
+  { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii", category: "Безопасность", readTime: "8 мин" },
+];
 ---
 <Base title="On-premise LLM: как развернуть языковую модель внутри периметра" description="Технический гайд по выбору open-source моделей, требованиям к железу (GPU) и процессу тонкой настройки (fine-tuning) на корпоративных данных.">
 
 
-      <section class="relative py-16 overflow-hidden">
+      <section class="relative pt-28 pb-16 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div>
-            <a href="/blog"><span class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8 cursor-pointer">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
-              </span>
+            <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
             </a>
 
             <div class="mb-6">
@@ -337,6 +342,8 @@ const modelTable = [
         </div>
       </section>
 
+  <RelatedArticles articles={relatedArticles} />
+
   <!-- CTA -->
   <section class="py-24 relative">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -347,7 +354,7 @@ const modelTable = [
         <div class="relative p-10 md:p-16 text-center">
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
-          <a href="/contact" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>

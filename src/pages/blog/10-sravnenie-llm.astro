@@ -1,0 +1,404 @@
+---
+import Base from '../../layouts/Base.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
+
+const meta = {
+  title: 'Сравнение отечественных LLM 2026: YandexGPT, GigaChat и альтернативы для бизнеса',
+  description: 'Объективное сравнение YandexGPT, GigaChat, MTS AI и open-source моделей для корпоративного использования. Критерии выбора, цены, on-premise, RAG — практическое руководство.',
+  date: '2026-04-07',
+  author: 'AZONE-AI',
+  image: '/images/blog/sravnenie-llm-cover.webp',
+  tags: ['LLM', 'YandexGPT', 'GigaChat', 'on-premise', 'RAG', 'сравнение моделей', 'корпоративный ИИ'],
+};
+
+const comparisonTable = [
+  { criterion: "Русский язык", yandex: "Высокий", giga: "Высокий", mts: "Средний–Высокий", oss: "Зависит от модели" },
+  { criterion: "Контекстное окно", yandex: "До 32K (Pro)", giga: "128K токенов", mts: "Зависит от модели", oss: "Зависит от модели" },
+  { criterion: "Мультимодальность", yandex: "Текст, эмбеддинги", giga: "Текст, изображения, аудио, видео", mts: "Текст, речь", oss: "Зависит от модели" },
+  { criterion: "API-совместимость", yandex: "OpenAI-совместимый", giga: "Собственный формат", mts: "REST API", oss: "OpenAI-совместимый (vLLM)" },
+  { criterion: "On-premise", yandex: "Только Lite (open-source)", giga: "Ultra (открытые веса)", mts: "Через MWS Cloud", oss: "Полный контроль" },
+  { criterion: "Данные в РФ", yandex: "Да (Yandex Cloud)", giga: "Да (инфраструктура Сбера)", mts: "Да (ЦОД МТС)", oss: "Да (ваша инфраструктура)" },
+  { criterion: "Стоимость API (1 млн токенов)", yandex: "~800 ₽ (Pro 5.1)", giga: "~650 ₽ (Max)", mts: "Индивидуально", oss: "Стоимость GPU" },
+  { criterion: "Дообучение", yandex: "Через Yandex Cloud", giga: "Через SberDevices", mts: "Через MWS", oss: "Полный контроль" },
+];
+
+const scenarios = [
+  { icon: "💬", title: "AI-ассистент для сотрудников", models: "GigaChat 2 Lite / YandexGPT Lite", desc: "Чат-бот по HR, ИТ, черновики документов. Ключевое — скорость и стоимость на потоке." },
+  { icon: "🔍", title: "Семантический поиск (RAG)", models: "YandexGPT + эмбеддинги / GigaChat Max / Qwen3 on-prem", desc: "Поиск по базе знаний, регламентам. Критичны: эмбеддинги, контекстное окно, точность." },
+  { icon: "📧", title: "Обработка обращений и писем", models: "GigaChat 2 Lite / YandexGPT Lite", desc: "Классификация, маршрутизация, черновики ответов. Задача массовая, чувствительна к цене." },
+  { icon: "📊", title: "Аналитика и суммаризация", models: "YandexGPT 5.1 Pro / GigaChat 2 Max", desc: "Договоры, протоколы, отчёты. Нужна «тяжёлая» модель с хорошим следованием инструкциям." },
+  { icon: "🔒", title: "Закрытый контур", models: "GigaChat Ultra / Qwen3 / DeepSeek V3", desc: "Полная изоляция. Открытые веса, собственная GPU-инфраструктура." },
+  { icon: "🛡️", title: "Повышенные требования ИБ", models: "Open-source (Qwen / Llama) на сертифицированном ПАК", desc: "Гостайна, конфиденциальные ПДн. Только on-premise с аттестацией, без телеметрии." },
+];
+
+const recommendations = [
+  { task: "Массовые текстовые операции", model: "GigaChat 2 Lite", reason: "Лучшее соотношение цены и качества на русском" },
+  { task: "Аналитика документов", model: "YandexGPT 5.1 Pro", reason: "Сильнее в следовании инструкциям и точности" },
+  { task: "Закрытый контур", model: "GigaChat Ultra / Qwen3 / DeepSeek V3", reason: "Открытые веса, полный контроль" },
+  { task: "Мультимодальные задачи", model: "GigaChat", reason: "Единственная отечественная платформа с такой широтой" },
+  { task: "Речевая аналитика", model: "MTS AI (Audiogram + LLM)", reason: "Готовая интеграция транскрипции и суммаризации" },
+  { task: "Максимальная независимость", model: "Open-source стек", reason: "Дороже в запуске, гибче в долгосрочной перспективе" },
+];
+const relatedArticles = [
+  { title: "Как развернуть LLM в закрытом контуре: пошаговое руководство", href: "/blog/07-llm-closed-circuit-guide", category: "Технологии", readTime: "10 мин" },
+  { title: "On-premise LLM: как развернуть языковую модель внутри периметра", href: "/blog/02-on-premise-llm", category: "Технологии", readTime: "12 мин" },
+  { title: "Как ИИ сокращает время поиска документов с часов до минут", href: "/blog/03-azonedoc-case", category: "Кейсы", readTime: "6 мин" },
+];
+---
+
+<Base title={meta.title} description={meta.description}>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": meta.title,
+    "description": meta.description,
+    "image": `https://azoneai.ru${meta.image}`,
+    "datePublished": meta.date,
+    "author": { "@type": "Organization", "name": "AZONE AI", "url": "https://azoneai.ru" },
+    "publisher": { "@type": "Organization", "name": "AZONE AI", "url": "https://azoneai.ru" },
+  })} />
+
+  <!-- HERO -->
+  <section class="relative pt-28 pb-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div>
+        <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
+        </a>
+        <div class="mb-6 flex items-center gap-3 flex-wrap">
+          {meta.tags.map((tag) => (
+            <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">{tag}</span>
+          ))}
+        </div>
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">Сравнение отечественных LLM: YandexGPT, GigaChat и&nbsp;альтернативы</h1>
+        <p class="text-xl text-muted-foreground mb-8 leading-relaxed">Объективное сравнение российских языковых моделей для корпоративного использования&nbsp;— критерии, цены, on&#8209;premise, RAG</p>
+        <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+          <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 7 апреля 2026</span>
+          <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 12 мин чтения</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENT -->
+  <section class="pb-24">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="space-y-12 text-muted-foreground leading-relaxed text-[17px]">
+
+        <!-- Лид -->
+        <div class="space-y-4">
+          <p>Ещё два года назад вопрос «какую языковую модель выбрать» для большинства российских компаний не&nbsp;стоял&nbsp;— ChatGPT казался единственным разумным вариантом. Сегодня ситуация принципиально иная.</p>
+          <p>Санкционное давление, требования 152-ФЗ о&nbsp;локализации персональных данных, растущая настороженность регуляторов к&nbsp;трансграничной передаче информации&nbsp;— всё это превратило выбор LLM из&nbsp;технической задачи в&nbsp;стратегическое решение. Для компаний, работающих с&nbsp;государственными заказчиками, обрабатывающих персональные данные или оперирующих коммерческой тайной, использование зарубежных облачных моделей стало если не&nbsp;невозможным, то&nbsp;юридически рискованным.</p>
+          <p>Параллельно российские вендоры за&nbsp;последние полтора года сделали заметный рывок. YandexGPT вышел на&nbsp;версию 5.1&nbsp;Pro, Сбер представил GigaChat Ultra с&nbsp;открытым кодом, а&nbsp;на&nbsp;рынке появились нишевые решения от&nbsp;MTS&nbsp;AI, Т-Банка и&nbsp;облачных провайдеров. Рынок перестал быть экспериментальным&nbsp;— пришло время прагматичного выбора.</p>
+          <p>Эта статья&nbsp;— попытка дать ИТ-руководителю и&nbsp;бизнес-заказчику объективную картину: что реально умеют отечественные LLM, где их&nbsp;сильные и&nbsp;слабые стороны, и&nbsp;как выбирать модель не&nbsp;по&nbsp;маркетинговым обещаниям, а&nbsp;под конкретный корпоративный сценарий.</p>
+        </div>
+
+        <!-- Обложка -->
+        <div>
+          <img src="/images/blog/sravnenie-llm-cover.webp" alt="Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы — обложка статьи AZONE AI" class="w-full rounded-2xl object-cover" loading="eager" />
+        </div>
+
+        <!-- Почему нельзя выбирать по бренду -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Почему нельзя выбирать LLM «по&nbsp;громкости бренда»</h2>
+          </div>
+          <div class="space-y-4">
+            <p>Демонстрация на&nbsp;конференции и&nbsp;работа в&nbsp;продакшене&nbsp;— два разных мира. Вендор показывает идеально подобранные промпты и&nbsp;заранее отрепетированные сценарии. В&nbsp;реальной корпоративной среде модель сталкивается с&nbsp;зашумлёнными данными, нечёткими инструкциями и&nbsp;пользователями, которые формулируют запросы далеко не&nbsp;так, как хотелось&nbsp;бы промпт-инженеру.</p>
+          </div>
+          <div class="mt-6 space-y-3">
+            {[
+              { title: "Бенчмарки ≠ качество в вашей задаче", text: "Когда вендор заявляет «превосходит GPT-4.1 в 56% случаев» — это результат на конкретной выборке. На вашем корпусе договоров результаты могут оказаться совершенно другими." },
+              { title: "«Понимает русский» — слишком размыто", text: "Важно не абстрактное «понимание», а конкретные навыки: суммаризация юридического текста, извлечение реквизитов из договора, классификация обращений. Здесь разрыв между моделями существенный." },
+              { title: "Облачный API и закрытый контур — разные продукты", text: "Модель через API может быть недоступна on-premise. А open-source версия того же вендора может заметно уступать проприетарной по качеству." },
+            ].map((item) => (
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 shrink-0 w-5 h-5 text-red-400"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+                  <div>
+                    <div class="text-white font-bold text-sm mb-1">{item.title}</div>
+                    <p class="text-sm leading-relaxed">{item.text}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="mt-6 p-5 rounded-xl bg-green-500/5 border border-green-500/20">
+            <p class="text-sm"><span class="text-green-400 font-semibold">Вывод. </span>Единственный надёжный способ выбора&nbsp;— пилотное тестирование на&nbsp;ваших данных и&nbsp;ваших задачах. Но&nbsp;чтобы сузить список кандидатов, нужно понимать архитектуру предложений на&nbsp;рынке.</p>
+          </div>
+        </div>
+
+        <!-- Кого сравниваем -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Кого сравниваем: российские LLM в&nbsp;2026&nbsp;году</h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { term: "YandexGPT", desc: "Семейство моделей Яндекса через Yandex Cloud AI Studio. Флагман — YandexGPT 5.1 Pro. Плюс Alice AI и YandexGPT 5 Lite в открытом доступе." },
+              { term: "GigaChat", desc: "Модели Сбера 2-го поколения: Lite, Pro, Max. Флагман — GigaChat Ultra с открытым кодом. GigaChat 3 Ultra — MoE на 702 млрд параметров." },
+              { term: "MTS AI / MWS GPT", desc: "Облачная B2B-платформа с агрегатором моделей. Интеграция с Audiogram для речевой аналитики. Инфраструктура ЦОД МТС." },
+              { term: "Open-source on-premise", desc: "DeepSeek, Qwen, Llama, ruGPT, T-lite, GigaChat Ultra — на собственной инфраструктуре через vLLM, LangChain, векторные БД." },
+            ].map((item) => (
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-lg font-bold text-accent mb-2">{item.term}</div>
+                <p class="text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Критерии -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">8&nbsp;критериев объективного сравнения LLM для бизнеса</h2>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { num: "1", title: "Качество русского языка", text: "Деловой текст, терминология, правовой контекст" },
+              { num: "2", title: "Работа с документами", text: "Суммаризация, классификация, длинный контекст" },
+              { num: "3", title: "API и интеграция", text: "OpenAI-совместимость, SDK, function calling" },
+              { num: "4", title: "Закрытый контур / on-premise", text: "Открытые веса, требования к GPU, дообучение" },
+              { num: "5", title: "Безопасность и комплаенс", text: "152-ФЗ, локализация, политика вендора по данным" },
+              { num: "6", title: "Стоимость владения", text: "Токены + инфраструктура + интеграция + дообучение" },
+              { num: "7", title: "Масштабируемость", text: "Тысячи запросов в сутки, квоты, асинхронный режим" },
+              { num: "8", title: "Ограничения и компромиссы", text: "Код, мультиязычность, агентные сценарии" },
+            ].map((item) => (
+              <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-start gap-3">
+                <span class="w-7 h-7 rounded-full bg-accent/20 text-accent font-bold text-xs flex items-center justify-center shrink-0">{item.num}</span>
+                <div>
+                  <div class="text-white font-bold text-sm">{item.title}</div>
+                  <div class="text-xs text-muted-foreground/70 mt-1">{item.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- YandexGPT -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center shrink-0"><span class="text-yellow-400 font-bold text-lg">Y</span></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">YandexGPT 5.1&nbsp;Pro</h2>
+          </div>
+          <h3 class="text-white font-semibold mt-4 mb-2">Сильные стороны</h3>
+          <div class="space-y-4">
+            <p>YandexGPT 5.1&nbsp;Pro на&nbsp;сегодняшний день&nbsp;— одна из&nbsp;наиболее сильных отечественных моделей для задач, связанных с&nbsp;текстом. Версия 5.1&nbsp;Pro значительно снизила частоту галлюцинаций и&nbsp;лучше следует системным промптам. Модель глубоко интегрирована в&nbsp;экосистему Yandex Cloud: AI&nbsp;Studio предоставляет удобную среду, OpenAI-совместимый API (с&nbsp;марта 2026), а&nbsp;эмбеддинг-модели позволяют строить RAG-пайплайны без сторонних компонентов.</p>
+            <p>Для корпоративных клиентов важна связка с&nbsp;Яндекс&nbsp;360 для бизнеса: интеграция с&nbsp;почтой, документами и&nbsp;облачным хранилищем. В&nbsp;линейке есть YandexGPT Lite&nbsp;— быстрая и&nbsp;дешёвая, для массовых операций. YandexGPT&nbsp;5&nbsp;Lite выложена в&nbsp;открытый доступ на&nbsp;HuggingFace.</p>
+          </div>
+          <h3 class="text-white font-semibold mt-6 mb-2">Слабые стороны</h3>
+          <div class="space-y-4">
+            <p>По&nbsp;независимым тестам, модель иногда отказывается отвечать, ссылаясь на&nbsp;«отсутствие актуальных данных»&nbsp;— даже по&nbsp;устоявшимся темам. Может обрывать ответы при работе с&nbsp;длинными инструкциями. Полноценного on-premise для Pro-версии нет&nbsp;— доступ только через Yandex Cloud. Open-source Lite существенно уступает Pro. Стоимость Pro через API выше, чем у&nbsp;GigaChat.</p>
+          </div>
+          <div class="mt-6 p-5 rounded-xl bg-green-500/5 border border-green-500/20">
+            <p class="text-sm"><span class="text-green-400 font-semibold">Где подходит. </span>Компании в&nbsp;экосистеме Yandex Cloud. Суммаризация русскоязычных текстов. RAG с&nbsp;эмбеддингами Яндекса. Быстрые пилоты через AI&nbsp;Studio.</p>
+          </div>
+          <div class="mt-3 p-5 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+            <p class="text-sm"><span class="text-white font-semibold">Ограничения.</span> Не&nbsp;подходит для полностью изолированного контура (Pro недоступна on-premise). Для задач с&nbsp;кодом и&nbsp;сложным рассуждением уступает. Привязка к&nbsp;Yandex Cloud.</p>
+          </div>
+        </div>
+
+        <!-- GigaChat -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0"><span class="text-purple-400 font-bold text-lg">G</span></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">GigaChat 2&nbsp;Max и&nbsp;Ultra</h2>
+          </div>
+          <h3 class="text-white font-semibold mt-4 mb-2">Сильные стороны</h3>
+          <div class="space-y-4">
+            <p>GigaChat в&nbsp;2026&nbsp;году&nbsp;— зрелая платформа с&nbsp;чётким разделением моделей. Линейка второго поколения (Lite, Pro, Max) с&nbsp;контекстом 128&nbsp;000 токенов покрывает весь спектр задач. Мультимодальность «из коробки»&nbsp;— текст, изображения (Кандинский), аудио, видео, веб-поиск&nbsp;— делает GigaChat единственной российской моделью с&nbsp;таким набором.</p>
+            <p>Ключевое преимущество: Сбер опубликовал код и&nbsp;веса GigaChat Ultra для развёртывания в&nbsp;закрытом контуре. Данные не&nbsp;используются для дообучения по&nbsp;умолчанию. Ценовая политика агрессивная: GigaChat&nbsp;2&nbsp;Lite&nbsp;— от&nbsp;190–200&nbsp;₽ за&nbsp;1&nbsp;млн токенов. Миллион бесплатных токенов в&nbsp;год для API-пользователей.</p>
+          </div>
+          <h3 class="text-white font-semibold mt-6 mb-2">Слабые стороны</h3>
+          <div class="space-y-4">
+            <p>Авторизация через API нестандартна&nbsp;— временный токен, собственный формат ответов. Документация уступает Yandex Cloud. В&nbsp;задачах программирования значительно слабее западных моделей. В&nbsp;сложных аналитических задачах Pro может уступать YandexGPT 5.1&nbsp;Pro. Склонность к&nbsp;галлюцинациям.</p>
+          </div>
+          <div class="mt-6 p-5 rounded-xl bg-green-500/5 border border-green-500/20">
+            <p class="text-sm"><span class="text-green-400 font-semibold">Где подходит. </span>Экосистема Сбера (SberID, MAX). Мультимодальные задачи. Массовые операции с&nbsp;текстом при ограниченном бюджете (Lite). Закрытый контур — Ultra с&nbsp;открытыми весами.</p>
+          </div>
+          <div class="mt-3 p-5 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+            <p class="text-sm"><span class="text-white font-semibold">Ограничения.</span> API требует SberID и&nbsp;российский номер. Нестандартный формат увеличивает стоимость интеграции. Для кода и&nbsp;аналитики — рассматривайте альтернативы.</p>
+          </div>
+        </div>
+
+        <!-- MTS AI -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0"><span class="text-red-400 font-bold text-lg">M</span></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">MTS&nbsp;AI и&nbsp;MWS&nbsp;GPT</h2>
+          </div>
+          <div class="space-y-4">
+            <p>МТС запустила MWS&nbsp;GPT&nbsp;— облачную B2B-платформу, объединяющую собственные и&nbsp;open-source модели. Ключевая ценность&nbsp;— агрегатор, позволяющий одновременно работать с&nbsp;разными LLM, дообучать их&nbsp;и&nbsp;использовать function calling. Интеграция с&nbsp;Audiogram даёт готовый пайплайн для транскрипции звонков и&nbsp;видеоконференций с&nbsp;последующей суммаризацией.</p>
+            <p>Собственные LLM пока менее зрелые, чем YandexGPT и&nbsp;GigaChat&nbsp;— платформа больше ориентирована на&nbsp;работу с&nbsp;open-source моделями. Ценообразование менее публичное.</p>
+          </div>
+          <div class="mt-6 p-5 rounded-xl bg-green-500/5 border border-green-500/20">
+            <p class="text-sm"><span class="text-green-400 font-semibold">Где подходит. </span>Агрегатор моделей с&nbsp;единой точкой входа. Речевая аналитика: контакт-центры, совещания, переговоры. Крупный бизнес на&nbsp;инфраструктуре МТС.</p>
+          </div>
+        </div>
+
+        <!-- Open-source -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Open-source модели в&nbsp;приватном контуре</h2>
+          </div>
+          <div class="space-y-4">
+            <p>Для организаций с&nbsp;жёсткими требованиями ИБ&nbsp;— банков, оборонных предприятий, госструктур&nbsp;— развёртывание open-source LLM на&nbsp;собственной инфраструктуре остаётся единственным полностью контролируемым вариантом. Экосистема зрелая: vLLM для инференса, LangChain/LlamaIndex для оркестрации, Qdrant/Milvus для RAG.</p>
+            <p>Наиболее практичные варианты в&nbsp;2026: <strong class="text-white">Qwen3</strong> (14B–235B, сильная мультиязычность), <strong class="text-white">DeepSeek&nbsp;V3</strong> (отличная цена/качество, аналитика), <strong class="text-white">Llama&nbsp;3.1</strong> (8B–70B, хорошая база для дообучения). Из&nbsp;российских&nbsp;— ruGPT, T-lite, GigaChat Ultra, YandexGPT&nbsp;5&nbsp;Lite.</p>
+            <p>По&nbsp;данным аналитиков, open-source модели в&nbsp;среднем в&nbsp;<strong class="text-white">40&nbsp;раз</strong> дешевле проприетарных на&nbsp;уровне стоимости токена&nbsp;— но&nbsp;эта экономия компенсируется затратами на&nbsp;инфраструктуру и&nbsp;дефицитные кадры.</p>
+          </div>
+          <div class="mt-6 p-5 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+            <p class="text-sm"><span class="text-white font-semibold">Требования к&nbsp;ресурсам.</span> Для модели уровня 70B параметров&nbsp;— минимум 2–4 карты A100/H100. Необходима команда с&nbsp;экспертизой в&nbsp;MLOps. Без дообучения качество «из коробки» может не&nbsp;соответствовать ожиданиям.</p>
+          </div>
+        </div>
+
+        <!-- Сводная таблица -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Сводная сравнительная таблица</h2>
+          </div>
+          <div class="overflow-x-auto rounded-2xl border border-white/10">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-white/[0.05] text-white">
+                  <th class="text-left px-4 py-4 font-semibold">Критерий</th>
+                  <th class="text-left px-4 py-4 font-semibold">YandexGPT</th>
+                  <th class="text-left px-4 py-4 font-semibold">GigaChat</th>
+                  <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">MWS GPT</th>
+                  <th class="text-left px-4 py-4 font-semibold hidden lg:table-cell">Open-source</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                {comparisonTable.map((row) => (
+                  <tr class="hover:bg-white/[0.02] transition-colors">
+                    <td class="px-4 py-3 text-white font-medium">{row.criterion}</td>
+                    <td class="px-4 py-3">{row.yandex}</td>
+                    <td class="px-4 py-3">{row.giga}</td>
+                    <td class="px-4 py-3 hidden md:table-cell">{row.mts}</td>
+                    <td class="px-4 py-3 hidden lg:table-cell">{row.oss}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-xs text-muted-foreground/50 italic">Цены ориентировочные по&nbsp;состоянию на&nbsp;начало 2026&nbsp;года, могут отличаться в&nbsp;зависимости от&nbsp;тарифного плана и&nbsp;объёма.</p>
+          <img src="/images/blog/sravnenie-llm-infografika.webp" alt="Инфографика: сводная таблица сравнения YandexGPT, GigaChat, MWS GPT и open-source моделей по ключевым критериям для бизнеса" class="w-full rounded-2xl object-cover mt-6" loading="lazy" />
+          <p class="text-sm text-muted-foreground/60 text-center mt-3 mb-6 italic">Сравнение отечественных LLM по&nbsp;7&nbsp;ключевым критериям для корпоративного использования</p>
+        </div>
+
+        <!-- Выбор под сценарий -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Как выбрать LLM под корпоративный сценарий</h2>
+          </div>
+          <img src="/images/blog/sravnenie-llm-decision-tree.webp" alt="Дерево решений: как выбрать LLM для корпоративной задачи — блок-схема" class="w-full rounded-2xl object-cover mb-3" loading="lazy" />
+          <p class="text-sm text-muted-foreground/60 text-center mb-8 italic">Дерево решений: от&nbsp;задачи к&nbsp;оптимальной модели</p>
+          <div class="space-y-4">
+            {scenarios.map((s) => (
+              <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <div class="flex items-start gap-3">
+                  <span class="text-xl shrink-0 mt-0.5">{s.icon}</span>
+                  <div>
+                    <h3 class="text-white font-bold mb-1">{s.title}</h3>
+                    <p class="text-sm leading-relaxed mb-2">{s.desc}</p>
+                    <p class="text-xs text-accent font-medium">{s.models}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- RAG в закрытом контуре -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Архитектура RAG в&nbsp;закрытом контуре</h2>
+          </div>
+          <p>Для семантического поиска по&nbsp;корпоративным документам критичны три компонента: качество эмбеддингов, способность модели работать с&nbsp;извлечёнными фрагментами и&nbsp;размер контекстного окна. Yandex Cloud предлагает готовые эмбеддинг-модели, GigaChat&nbsp;2&nbsp;Max с&nbsp;контекстом 128K позволяет передавать больше контекста. Для закрытого контура&nbsp;— Qwen3 или DeepSeek с&nbsp;Qdrant и&nbsp;LangChain.</p>
+          <img src="/images/blog/sravnenie-llm-rag-architecture.webp" alt="Архитектура RAG-пайплайна в закрытом контуре: LLM, векторная база данных, корпоративные документы без доступа к внешним API" class="w-full rounded-2xl object-cover mt-6" loading="lazy" />
+          <p class="text-sm text-muted-foreground/60 text-center mt-3 mb-6 italic">RAG в&nbsp;закрытом контуре: корпоративные документы → эмбеддинги → векторная БД → LLM → ответ</p>
+        </div>
+
+        <!-- Практические выводы -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Какую LLM выбрать: практические выводы</h2>
+          </div>
+          <div class="p-5 rounded-xl bg-blue-500/5 border border-blue-500/20 mb-6">
+            <p class="text-sm"><span class="text-blue-400 font-semibold">Главный вывод. </span><strong class="text-white">«Лучшей модели вообще» не&nbsp;существует.</strong> Есть модель, оптимальная для вашей задачи, вашего бюджета и&nbsp;ваших ограничений по&nbsp;безопасности.</p>
+          </div>
+          <div class="space-y-3">
+            {recommendations.map((r) => (
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="flex items-start gap-3">
+                  <svg class="w-5 h-5 text-green-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <div>
+                    <div class="text-white font-bold text-sm mb-1">{r.task} → <span class="text-accent">{r.model}</span></div>
+                    <p class="text-sm leading-relaxed">{r.reason}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Заключение -->
+        <div class="border-t border-white/10 pt-12">
+          <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">Заключение</h2>
+          <div class="space-y-4">
+            <p>Рынок отечественных LLM перешёл от&nbsp;стадии «интересных экспериментов» к&nbsp;стадии практического выбора. YandexGPT и&nbsp;GigaChat конкурируют по&nbsp;ценам, наращивают качество и&nbsp;расширяют корпоративные инструменты. Open-source экосистема предоставляет реальную альтернативу для закрытого контура. Нишевые игроки закрывают специфические сценарии.</p>
+            <p>Но&nbsp;выбор модели&nbsp;— это лишь часть уравнения. Успех определяется архитектурой решения: как построен RAG-пайплайн, как организован доступ к&nbsp;данным, как настроена фильтрация и&nbsp;валидация ответов, как обеспечивается безопасность. Модель&nbsp;— это двигатель. Но&nbsp;без шасси, трансмиссии и&nbsp;системы управления автомобиль никуда не&nbsp;поедет.</p>
+            <p>Определите конкретный бизнес-процесс, где LLM даст измеримый эффект. Проведите пилот на&nbsp;2–3&nbsp;моделях с&nbsp;реальными данными. Оцените не&nbsp;только качество ответов, но&nbsp;и&nbsp;стоимость владения, требования к&nbsp;безопасности и&nbsp;готовность инфраструктуры. И&nbsp;только потом масштабируйте.</p>
+          </div>
+          <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+            <p class="text-white font-medium text-lg leading-relaxed"><strong>AZONE&nbsp;AI</strong> помогает компаниям выбрать, развернуть и&nbsp;интегрировать ИИ-решения с&nbsp;учётом требований информационной безопасности. Если вашей организации нужна экспертная оценка сценариев внедрения LLM&nbsp;— <a href="/contact?product=other" class="text-accent hover:underline">оставьте заявку на&nbsp;пилотный проект</a>.</p>
+          </div>
+        </div>
+
+        <!-- Актуальность -->
+        <div class="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-blue-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <div>
+              <h3 class="text-white font-bold mb-2">Актуальность материала</h3>
+              <ul class="space-y-1.5 text-sm leading-relaxed">
+                <li>Материал подготовлен по&nbsp;состоянию на&nbsp;<strong class="text-white">апрель 2026&nbsp;года</strong>.</li>
+                <li>Рынок LLM меняется быстро: версии моделей, цены и&nbsp;доступные функции могут измениться в&nbsp;течение нескольких месяцев.</li>
+                <li>Перед принятием решения рекомендуем проводить пилотное тестирование на&nbsp;ваших данных и&nbsp;задачах.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <RelatedArticles articles={relatedArticles} />
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <img src="/images/blog/sravnenie-llm-cta.webp" alt="AZONE AI — пилотный проект по внедрению LLM" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy" />
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Не&nbsp;знаете, какую <span class="text-gradient">LLM выбрать?</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За&nbsp;4–8&nbsp;недель мы&nbsp;протестируем 2–3 модели на&nbsp;ваших данных и&nbsp;развернём оптимальное решение на&nbsp;вашей инфраструктуре.</p>
+          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Заказать пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

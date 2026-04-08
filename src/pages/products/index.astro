@@ -1,0 +1,278 @@
+---
+import Base from '../../layouts/Base.astro';
+import { products } from '../../data/products.js';
+
+const productResources = {
+  contentguard: {
+    blogHref: '/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev',
+    blogLabel: 'Статья: ИИ в информационной безопасности',
+  },
+  azonedoc: {
+    blogHref: '/blog/03-azonedoc-case',
+    blogLabel: 'Кейс: как ИИ ускоряет поиск документов',
+  },
+  constructioneye: {
+    blogHref: '/blog/04-construction-eye',
+    blogLabel: 'Статья: AI в строительстве',
+  },
+  predictmaintain: {
+    blogHref: '/blog/05-predict-maintain',
+    blogLabel: 'Статья: предиктивная аналитика оборудования',
+  },
+  contractguard: {
+    blogHref: '/blog/10-sravnenie-llm',
+    blogLabel: 'Материал: как выбирать LLM для корпоративных задач',
+  },
+};
+
+const faqItems = [
+  {
+    q: 'Можно ли развернуть решения AZONE-AI полностью в закрытом контуре?',
+    a: 'Да. Ключевой сценарий AZONE-AI — on-premise или развёртывание в изолированном контуре заказчика без передачи данных во внешние облачные сервисы.',
+    blogHref: '/blog/07-llm-closed-circuit-guide',
+    blogLabel: 'Подробнее о развёртывании LLM в закрытом контуре',
+  },
+  {
+    q: 'Поставляются ли продукты как ПАК или только как программное обеспечение?',
+    a: 'Возможны оба варианта: поставка программного обеспечения, развёртывание в виртуальной среде заказчика или поставка ПАК с GPU под конкретную задачу и нагрузку.',
+    contactHref: '/contact?product=other',
+    contactLabel: 'Запросить формат поставки под ваш сценарий',
+  },
+  {
+    q: 'С какими системами интегрируются решения?',
+    a: 'В зависимости от сценария решения могут интегрироваться с 1С, SAP, Directum, ELMA, SCADA, архивами документов, видеопотоками и внутренними корпоративными сервисами.',
+    contactHref: '/contact?product=other',
+    contactLabel: 'Обсудить интеграцию с вашей инфраструктурой',
+  },
+  {
+    q: 'Можно ли начать не с полного внедрения, а с пилота?',
+    a: 'Да. Для большинства сценариев оптимальный формат старта — пилотный проект на 4–8 недель, который позволяет проверить эффект на ваших данных и инфраструктуре.',
+    blogHref: '/blog/10-sravnenie-llm',
+    blogLabel: 'Посмотреть пример логики выбора и пилота',
+    contactHref: '/contact?product=other',
+    contactLabel: 'Запросить пилотный проект',
+  },
+];
+---
+<Base
+  title="Каталог AI-продуктов"
+  description="Каталог AI-решений AZONE-AI для крупного бизнеса, госсектора и объектов КИИ: on-premise LLM, видеоаналитика, предиктивная аналитика и интеллектуальная обработка документов."
+  image="/images/logo.png"
+>
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Каталог AI-продуктов AZONE-AI",
+      "description": "Каталог AI-решений AZONE-AI для крупного бизнеса, госсектора и объектов КИИ.",
+      "url": "https://azoneai.ru/products/",
+    })}
+  />
+
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "itemListElement": products.map((product, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "url": `https://azoneai.ru/products/${product.id}/`,
+        "name": product.name,
+      })),
+    })}
+  />
+
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqItems.map((item) => ({
+        "@type": "Question",
+        "name": item.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.a,
+        },
+      })),
+    })}
+  />
+
+  <section class="relative pt-24 pb-20 overflow-hidden border-b border-white/5">
+    <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <a href="/" class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-accent transition-colors mb-12">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Назад на главную
+      </a>
+
+      <div class="max-w-4xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-accent text-sm font-medium mb-8">
+          Решения для крупного бизнеса, госсектора и КИИ
+        </div>
+        <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6">Каталог <span class="text-gradient">AI-продуктов</span></h1>
+        <p class="text-xl text-muted-foreground leading-relaxed max-w-3xl">
+          Готовые on-premise AI-решения AZONE-AI для обработки документов, видеоаналитики, предиктивной аналитики
+          и корпоративных сценариев, где критичны безопасность, локализация данных и интеграция с существующей инфраструктурой.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((product) => (
+          <div class="glass-card p-8 h-full flex flex-col group hover:-translate-y-2 glow-border">
+            <a href={`/products/${product.id}`} class="block">
+              <div class="flex justify-between items-start mb-6">
+                <div
+                  class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors text-accent"
+                  set:html={product.iconSvg}
+                ></div>
+                <span class="text-4xl font-heading font-bold text-white/10 group-hover:text-white/20 transition-colors">{product.number}</span>
+              </div>
+
+              <h2 class="text-2xl font-bold text-white mb-3">{product.name}</h2>
+              <p class="text-muted-foreground mb-6 flex-grow">{product.shortDesc}</p>
+
+              <div class="space-y-4 mb-8 pt-6 border-t border-white/10">
+                <div class="text-sm">
+                  <span class="text-white/50 block mb-1">Для кого:</span>
+                  <span class="text-white">{product.targetAudience}</span>
+                </div>
+
+                <div class="text-sm">
+                  <span class="text-white/50 block mb-2">Преимущества:</span>
+                  <ul class="space-y-1">
+                    {product.benefits.map((benefit) => (
+                      <li class="flex items-start gap-2 text-muted-foreground">
+                        <svg class="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span>{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div class="flex items-center text-primary text-sm font-semibold group-hover:text-accent transition-colors mt-auto">
+                Подробнее
+                <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+            </a>
+
+            <div class="mt-6 pt-5 border-t border-white/10 space-y-3">
+              <a href={`/products/${product.id}`} class="block text-sm font-medium text-white hover:text-accent transition-colors">
+                Перейти на страницу продукта
+              </a>
+              <a href={productResources[product.id]?.blogHref} class="block text-sm text-muted-foreground hover:text-white transition-colors">
+                {productResources[product.id]?.blogLabel}
+              </a>
+              <a href={`/contact?product=${product.id}`} class="inline-flex items-center gap-2 text-sm text-accent hover:underline">
+                Обсудить этот продукт
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-black/20 border-y border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-4">Как поставляются решения</h2>
+        <p class="text-xl text-muted-foreground max-w-3xl mx-auto">
+          Мы поставляем не только модель или лицензию, а полный контур внедрения: от обследования и подбора ПАК
+          до интеграции с внутренними системами и пилотного запуска.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="glass-card p-8">
+          <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-4">On-premise и ПАК</h3>
+          <p class="text-muted-foreground leading-relaxed">Развёртывание на инфраструктуре заказчика, в виртуальной среде или на выделенном ПАК с GPU под конкретную нагрузку.</p>
+        </div>
+
+        <div class="glass-card p-8">
+          <div class="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/><path d="M14.5 4l-5 16"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-4">Интеграция</h3>
+          <p class="text-muted-foreground leading-relaxed">Подключение к 1С, SAP, Directum, ELMA, SCADA, архивам документов, видеопотокам и внутренним сервисам без вывода данных наружу.</p>
+        </div>
+
+        <div class="glass-card p-8">
+          <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-4">Пилот и сопровождение</h3>
+          <p class="text-muted-foreground leading-relaxed">Пилотный запуск за 4–8 недель, обучение пользователей, техническая поддержка и развитие решения после внедрения.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Подберём решение под <span class="text-gradient">ваш сценарий</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Если вы выбираете между несколькими продуктами или хотите обсудить пилот в закрытом контуре,
+            мы поможем определить архитектуру, формат поставки и объём работ.
+          </p>
+          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-24">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Частые вопросы</h2>
+      </div>
+
+      <div class="space-y-4">
+        {faqItems.map((item) => (
+          <details class="group rounded-2xl bg-white/[0.03] border border-white/10 overflow-hidden">
+            <summary class="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer text-white font-bold text-[15px] leading-snug [&::-webkit-details-marker]:hidden">
+              <span>{item.q}</span>
+              <svg class="w-5 h-5 shrink-0 text-muted-foreground group-open:rotate-180 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">
+              <p>{item.a}</p>
+              {(item.blogHref || item.contactHref) && (
+                <div class="mt-4 flex flex-col gap-2">
+                  {item.blogHref && (
+                    <a href={item.blogHref} class="text-accent hover:underline">
+                      {item.blogLabel}
+                    </a>
+                  )}
+                  {item.contactHref && (
+                    <a href={item.contactHref} class="text-accent hover:underline">
+                      {item.contactLabel}
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

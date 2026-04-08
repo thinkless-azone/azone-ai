@@ -1,7 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 ---
-<Base title="Страница не найдена">
+<Base
+  title="Страница не найдена"
+  description="Запрошенная страница не существует или была перемещена. Перейдите на главную страницу AZONE-AI или воспользуйтесь навигацией по сайту."
+  noindex={true}
+>
   <div class="min-h-screen flex items-center justify-center pt-24">
     <div class="text-center">
       <h1 class="text-8xl font-heading font-bold text-white/20 mb-4">404</h1>

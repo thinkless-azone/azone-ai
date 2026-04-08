@@ -1,0 +1,334 @@
+---
+import Base from '../../layouts/Base.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
+
+const statusTable = [
+  { aspect: "Требования к защите ИИ в ГИС", status: "active", statusText: "Действует с 01.03.2026", doc: "Приказ ФСТЭК № 117", action: "Провести аудит ИИ-компонентов в ГИС, определить шаблоны запросов/ответов, критерии достоверности" },
+  { aspect: "Запрет иностранных СЗИ на КИИ", status: "active", statusText: "Действует с 01.01.2026", doc: "Указ Президента № 250", action: "Завершить замену иностранных СЗИ, включая компоненты в ИИ-контуре" },
+  { aspect: "Перечень доверенного российского ПО", status: "active", statusText: "Действует с 01.03.2026", doc: "ФЗ-325, ПП РФ № 1931", action: "Убедиться, что используемое ПО включено в перечень доверенного" },
+  { aspect: "Переход на доверенные ПАК для КИИ", status: "active", statusText: "Действует", doc: "187-ФЗ (ред. 2025)", action: "Планировать замену ПАК, закладывать бюджеты" },
+  { aspect: "Реестр доверенных моделей ИИ", status: "draft", statusText: "Проект", doc: "Законопроект Минцифры (март 2026)", action: "Проектировать решения с учётом будущих требований" },
+  { aspect: "Стандарт безопасной разработки ИИ", status: "draft", statusText: "Проект, не опубликован", doc: "Анонс ФСТЭК (сентябрь 2025)", action: "Ориентироваться на ГОСТ Р 56939-2024" },
+  { aspect: "Раскрытие обучающих данных", status: "discussion", statusText: "Обсуждение", doc: "Отраслевая инициатива", action: "Документировать наборы данных и их происхождение" },
+  { aspect: "Критерии отечественности ИИ", status: "discussion", statusText: "Обсуждение", doc: "Аппарат вице-премьера", action: "Анализировать зависимости от зарубежных компонентов" },
+];
+
+const steps = [
+  { num: "1", title: "Провести инвентаризацию ИИ-компонентов", text: "Где в вашей инфраструктуре используются модели ИИ? Какие из них облачные, какие on-premise? Какие данные обрабатывают? Где физически расположены вычислительные ресурсы?" },
+  { num: "2", title: "Оценить зависимость от зарубежных компонентов", text: "Модели, фреймворки, библиотеки, облачные API, средства защиты — проверить весь стек на наличие иностранных элементов." },
+  { num: "3", title: "Спланировать переход на on-premise", text: "Облачные зарубежные сервисы для данных ГИС или КИИ уже запрещены. Локальное развёртывание — не опция, а требование." },
+  { num: "4", title: "Выстроить документирование", text: "Фиксировать происхождение обучающих данных, версии моделей, результаты тестирования, конфигурации безопасности." },
+  { num: "5", title: "Внедрить контроль доступа и журналирование", text: "Кто имеет доступ к модели? Какие запросы обрабатываются? Как логируются ответы? Эти меры уже подразумеваются приказом ФСТЭК № 117." },
+  { num: "6", title: "Провести оценку угроз, специфичных для ИИ", text: "Adversarial-атаки, отравление данных, prompt injection — классические модели угроз их не покрывают." },
+  { num: "7", title: "Привлечь профильного интегратора", text: "Развёртывание ИИ в закрытом контуре с соблюдением требований ФСТЭК и ФСБ — задача, требующая лицензий и экспертизы." },
+  { num: "8", title: "Заложить бюджет на приведение в соответствие", text: "Отечественные ПАК, on-premise, аттестация, тестирование безопасности — закладывайте в бюджетный цикл 2026–2027." },
+];
+
+const faq = [
+  { q: "Реестр доверенных моделей ИИ уже существует?", a: "Нет. По состоянию на апрель 2026 года реестр не создан. Его создание предусмотрено проектом федерального закона, опубликованным Минцифры 18 марта 2026 года. Предполагаемая дата вступления в силу — 1 сентября 2027 года. При этом уже действует перечень доверенного российского ПО (ПП РФ № 1931 от 28.11.2025)." },
+  { q: "Можно ли сейчас использовать зарубежные ИИ-модели в госсекторе?", a: "Прямого запрета именно на зарубежные ИИ-модели пока нет. Однако приказ ФСТЭК № 117 запрещает облачные ИИ-сервисы для данных ограниченного доступа. Указ № 250 запрещает иностранные СЗИ на КИИ. Пространство для зарубежных ИИ в чувствительных средах уже сильно ограничено." },
+  { q: "Нужна ли сертификация ФСТЭК/ФСБ для ИИ-моделей прямо сейчас?", a: "Отдельная процедура сертификации ИИ-моделей не установлена. Законопроект говорит о «подтверждении соответствия», но порядок не утверждён. Если ИИ-система работает как часть ГИС или КИИ, на неё распространяются существующие требования ФСТЭК." },
+  { q: "Кого затронет регулирование в первую очередь?", a: "ГИС и значимые объекты КИИ госорганов. В аппарате вице-премьера Григоренко подчеркнули, что коммерческий сектор напрямую не затронут. Но компании, работающие с госзаказчиками, будут вынуждены соответствовать де-факто." },
+  { q: "Что делать, если мы уже внедряем ИИ?", a: "Проектировать с запасом: локализация данных, on-premise, документирование, контроль доступа, журналирование. Привлечение интегратора с лицензиями ФСТЭК и ФСБ на этапе проектирования — самый надёжный способ не переделывать потом." },
+];
+
+const risks = [
+  { title: "Юридические", text: "Невозможность использовать ИИ-решение в госконтрактах или на объектах КИИ. С 2025 года ФСТЭК провела 700+ проверок КИИ и зафиксировала свыше 1100 нарушений.", color: "red" },
+  { title: "Инфраструктурные", text: "Миграция с облачных ИИ-сервисов на on-premise занимает месяцы. Начинать в момент вступления закона — значит не успеть.", color: "orange" },
+  { title: "ИБ-риски", text: "ИИ-система без защиты — вектор атаки: утечки через промпты, манипуляции обучающими данными, несанкционированный доступ к модели.", color: "red" },
+  { title: "Закупочные", text: "ПО не из перечня доверенного уже приравнивается к иностранному. Модели вне реестра рискуют выпасть из легального применения.", color: "yellow" },
+  { title: "Репутационные", text: "Для компаний с госзаказчиками неготовность к регуляторным требованиям — сигнал ненадёжности.", color: "yellow" },
+];
+const relatedArticles = [
+  { title: "152-ФЗ и нейросети: как внедрить ИИ и не нарушить закон", href: "/blog/06-pdn-ai", category: "Compliance", readTime: "10 мин" },
+  { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii", category: "Безопасность", readTime: "8 мин" },
+  { title: "ИИ в информационной безопасности: 7 практических сценариев", href: "/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev", category: "Регулирование", readTime: "12 мин" },
+];
+---
+<Base title="Реестр доверенных ИИ-моделей в России 2026: что действует, что в проекте и как подготовиться бизнесу" description="Реестр доверенных ИИ-моделей, требования ФСТЭК и ФСБ, законопроект Минцифры 2026 — разбираем регулирование ИИ в России и даём практический чек-лист для бизнеса.">
+
+      <section class="relative pt-28 pb-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div>
+            <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
+            </a>
+            <div class="mb-6 flex items-center gap-3">
+              <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">Регулирование</span>
+              <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">Безопасность</span>
+            </div>
+            <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">Реестр доверенных ИИ&#8209;моделей в&nbsp;России: что&nbsp;уже известно, что&nbsp;действует и&nbsp;как подготовиться бизнесу</h1>
+            <p class="text-xl text-muted-foreground mb-8 leading-relaxed">Законопроект Минцифры, приказ ФСТЭК&nbsp;№&nbsp;117, перечень доверенного ПО&nbsp;— разбираем, какие нормы уже работают, какие на&nbsp;подходе, и&nbsp;что делать бизнесу прямо сейчас.</p>
+            <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 3 апреля 2026</span>
+              <span class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 12 мин чтения</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pb-24">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="space-y-12 text-muted-foreground leading-relaxed text-[17px]">
+
+            <div>
+              <p>18&nbsp;марта 2026&nbsp;года Минцифры опубликовало проект федерального закона «Об&nbsp;основах государственного регулирования применения технологий искусственного интеллекта». Среди ключевых нововведений&nbsp;— создание <strong class="text-white">реестра доверенных моделей ИИ</strong>. Если закон примут в&nbsp;текущей редакции, с&nbsp;1&nbsp;сентября 2027&nbsp;года государственные информационные системы и&nbsp;объекты КИИ смогут работать только с&nbsp;моделями из&nbsp;этого реестра.</p>
+              <p class="mt-4">Одновременно уже с&nbsp;1&nbsp;марта 2026&nbsp;года действуют обновлённые требования ФСТЭК к&nbsp;защите информации в&nbsp;ГИС (приказ&nbsp;№&nbsp;117), впервые затрагивающие системы на&nbsp;основе ИИ. А&nbsp;с&nbsp;1&nbsp;января 2026&nbsp;года вступил в&nbsp;полную силу запрет на&nbsp;иностранные СЗИ на&nbsp;объектах КИИ.</p>
+              <p class="mt-4">Картина складывается из&nbsp;нескольких слоёв: одни нормы уже работают, другие — на&nbsp;стадии законопроекта, третьи&nbsp;— в&nbsp;виде обсуждаемых инициатив. В&nbsp;этом материале мы&nbsp;разделяем эти слои и&nbsp;разбираемся, что конкретно стоит делать бизнесу уже сейчас.</p>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Почему тема доверенного ИИ стала критически важной</h2>
+              </div>
+              <p>Ещё в&nbsp;2024&nbsp;году Президент&nbsp;РФ утвердил обновлённую Национальную стратегию развития ИИ на&nbsp;период до&nbsp;2030&nbsp;года (Указ&nbsp;№&nbsp;124 от&nbsp;15.02.2024). Уже тогда появился раздел о&nbsp;внедрении «доверенных технологий ИИ» и&nbsp;задача формирования на&nbsp;платформе «ГосТех» реестра апробированных решений.</p>
+              <p class="mt-4">К&nbsp;весне 2026&nbsp;года формируется полноценная законодательная рамка: ИИ&nbsp;стремительно входит в&nbsp;критически важные процессы, а&nbsp;методическая база для его безопасного применения существенно отстаёт от&nbsp;практики.</p>
+              <img src="/images/blog/reestr-ii-timeline.webp" alt="Хронология регулирования ИИ в России: от Указа № 490 (2019) до законопроекта о реестре доверенных моделей (2027)" class="w-full rounded-2xl object-cover mt-6" />
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Хронология регуляторных событий: зелёный&nbsp;— действует, жёлтый&nbsp;— проект, серый&nbsp;— обсуждение</p>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что понимается под «доверенным ИИ»</h2>
+              </div>
+              <p>Законопроект Минцифры вводит три ключевых понятия.</p>
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { term: "Суверенная модель", desc: "Все стадии разработки, обучения и эксплуатации — на территории России, гражданами РФ и российскими юрлицами, на отечественных данных." },
+                  { term: "Национальная модель", desc: "Аналогична суверенной, с акцентом на полный цикл «отечественности» от данных до инфраструктуры." },
+                  { term: "Доверенная модель", desc: "Прошла проверку безопасности (ФСТЭК, ФСБ) и качества. Обработка данных — только на территории РФ. Включена в специальный реестр." },
+                ].map((item) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-lg font-bold text-accent mb-2">{item.term}</div>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <p class="mt-6">Именно статус «доверенной» модели станет пропуском в&nbsp;ГИС и&nbsp;на&nbsp;значимые объекты КИИ. Проект закона прямо говорит о&nbsp;допуске только моделей из&nbsp;реестра.</p>
+              <div class="mt-6 p-5 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+                <p class="text-sm"><span class="text-white font-semibold">Важно:</span> пока это именно проект. Документ на&nbsp;стадии общественного обсуждения и&nbsp;межведомственного согласования. Финальная редакция может существенно измениться. Но&nbsp;направление задано, и&nbsp;игнорировать его рискованно.</p>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что уже действует сейчас</h2>
+              </div>
+              <p>Хотя реестр доверенных ИИ-моделей ещё не&nbsp;создан, регуляторная среда уже существует.</p>
+              <div class="mt-6 space-y-4">
+                {[
+                  { title: "Приказ ФСТЭК № 117 (действует с 01.03.2026)", text: "Заменил приказ № 17. Впервые устанавливает требования к защите ИИ в ГИС: шаблоны запросов/ответов, критерии достоверности, запрет облачных ИИ-сервисов для данных ограниченного доступа." },
+                  { title: "Указ Президента № 250 — запрет иностранных СЗИ на КИИ", text: "С 1 января 2026 года. Если в вашем ИИ-контуре зарубежные компоненты защиты — это уже нарушение." },
+                  { title: "187-ФЗ о безопасности КИИ (ред. 2025)", text: "Закрепляет переход на доверенные ПАК и ориентацию на отечественное ПО для объектов КИИ." },
+                  { title: "325-ФЗ + ПП РФ № 1931 от 28.11.2025", text: "Перечень доверенного ПО. ПО не из перечня приравнивается к иностранному при закупках. Прецедент для будущего реестра ИИ-моделей." },
+                  { title: "ГОСТ Р 56939-2024", text: "Стандарт безопасной разработки ПО, на который ссылается приказ ФСТЭК № 117. Базовый ориентир до появления специализированного стандарта для ИИ." },
+                ].map((item) => (
+                  <div class="flex items-start gap-4 p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <svg class="w-6 h-6 text-green-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <div>
+                      <h3 class="text-white font-bold mb-2">{item.title}</h3>
+                      <p class="text-sm leading-relaxed">{item.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что на стадии проекта или обсуждения</h2>
+              </div>
+              <div class="space-y-4">
+                {[
+                  { title: "Законопроект Минцифры об ИИ", badge: "Проект", bc: "yellow", text: "Опубликован 18.03.2026. Вступление в силу — 1 сентября 2027. Реестр доверенных моделей, понятия суверенной и национальной модели, ответственность участников, маркировка контента." },
+                  { title: "Стандарт ФСТЭК по безопасной разработке ИИ", badge: "Проект", bc: "yellow", text: "Анонсирован в сентябре 2025: «галлюцинации», отравление выборок, утечки через промпты, adversarial-атаки. По состоянию на апрель 2026 — не опубликован." },
+                  { title: "Раскрытие обучающих данных", badge: "Обсуждение", bc: "gray", text: "Идея обязать раскрывать сведения о наборах данных. В текущей версии законопроекта требования нет." },
+                  { title: "Критерии «отечественности» нейросетей", badge: "Обсуждение", bc: "gray", text: "Правительство прорабатывает критерии. Вопрос не тривиальный из-за зависимости от зарубежных архитектур и фреймворков." },
+                ].map((item) => (
+                  <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <div class="flex items-center gap-3 mb-2">
+                      <h3 class="text-white font-bold">{item.title}</h3>
+                      <span class={`px-2 py-0.5 rounded-full text-xs font-medium ${item.bc === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-white/10 text-muted-foreground'}`}>{item.badge}</span>
+                    </div>
+                    <p class="text-sm leading-relaxed">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">Сводная таблица: что действует, что в&nbsp;проекте, что делать</h2>
+              <div class="overflow-x-auto rounded-2xl border border-white/10">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-white/[0.05] text-white">
+                      <th class="text-left px-4 py-4 font-semibold">Аспект</th>
+                      <th class="text-left px-4 py-4 font-semibold">Статус</th>
+                      <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Документ</th>
+                      <th class="text-left px-4 py-4 font-semibold">Действия</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-white/5">
+                    {statusTable.map((row) => (
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="px-4 py-3 text-white font-medium">{row.aspect}</td>
+                        <td class="px-4 py-3"><span class={`inline-block px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${row.status === 'active' ? 'bg-green-500/20 text-green-400' : row.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-white/10 text-muted-foreground'}`}>{row.statusText}</span></td>
+                        <td class="px-4 py-3 text-muted-foreground/70 text-xs hidden md:table-cell">{row.doc}</td>
+                        <td class="px-4 py-3 text-sm">{row.action}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что потребуется от участников рынка</h2>
+              </div>
+              <p class="mb-6">Зоны ответственности — с&nbsp;оговоркой, что финальные требования могут измениться.</p>
+              <img src="/images/blog/reestr-ii-architecture.webp" alt="Схема доверенного ИИ-контура: on-premise, отечественный стек, контроль доступа, журналирование, подключение к ГИС/КИИ" class="w-full rounded-2xl object-cover mb-8" />
+              <p class="text-sm text-muted-foreground/60 text-center -mt-5 mb-8 italic">Архитектура «доверенного» ИИ-контура: точки соответствия ФСТЭК, ФСБ и&nbsp;будущего реестра</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { role: "Разработчики моделей ИИ", items: "Подтверждение соответствия ФСТЭК/ФСБ. Обработка данных на территории РФ. Блокирование противоправного контента. Документирование обучающих данных. Маркировка ИИ-контента." },
+                  { role: "Интеграторы", items: "On-premise развёртывание. Отечественный стек. Журналирование, контроль доступа, тестирование безопасности. Ключевое звено между моделью и соответствием требованиям." },
+                  { role: "Заказчики (госорганы, КИИ)", items: "Только модели из реестра. Тестирование ИИ на безопасность. Информирование пользователей. Досудебное обжалование решений ИИ." },
+                  { role: "Владельцы инфраструктуры", items: "Локализация обработки данных. Соответствие требованиям к ПАК. Аудит и журналирование работы ИИ-систем." },
+                ].map((item) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-white font-bold mb-2">{item.role}</div>
+                    <p class="text-sm leading-relaxed">{item.items}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Риски неподготовленности</h2>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {risks.map((r) => (
+                  <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class={`text-${r.color}-400`}>✕</span>
+                      <h3 class="text-white font-bold text-sm">{r.title}</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed">{r.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Чек-лист: как подготовиться уже сейчас</h2>
+              </div>
+              <p class="mb-6">Эти шаги полезны при любом сценарии развития нормативной базы.</p>
+              <img src="/images/blog/reestr-ii-checklist.webp" alt="Визуальный чек-лист: 8 шагов подготовки к требованиям доверенного ИИ" class="w-full rounded-2xl object-cover mb-8" />
+              <p class="text-sm text-muted-foreground/60 text-center -mt-5 mb-8 italic">8&nbsp;шагов подготовки к&nbsp;требованиям доверенного ИИ&nbsp;— <a href="/images/blog/reestr-ii-checklist.webp" download class="text-accent hover:underline">скачать чек-лист</a></p>
+              <div class="space-y-4">
+                {steps.map((step) => (
+                  <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="w-8 h-8 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0">{step.num}</span>
+                      <h3 class="text-white font-bold">{step.title}</h3>
+                    </div>
+                    <p class="text-sm leading-relaxed ml-11">{step.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Часто задаваемые вопросы</h2>
+              </div>
+              <div class="space-y-4">
+                {faq.map((item) => (
+                  <details class="group rounded-2xl bg-white/[0.03] border border-white/10 overflow-hidden">
+                    <summary class="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer text-white font-bold text-[15px] leading-snug [&::-webkit-details-marker]:hidden">
+                      <span>{item.q}</span>
+                      <svg class="w-5 h-5 shrink-0 text-muted-foreground group-open:rotate-180 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </summary>
+                    <div class="px-6 pb-5 text-sm leading-relaxed"><p>{item.a}</p></div>
+                  </details>
+                ))}
+              </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-12">
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-5">Заключение</h2>
+              <p>Регулирование ИИ&nbsp;в&nbsp;России переходит из&nbsp;стадии стратегических деклараций в&nbsp;стадию конкретных нормативных механизмов. Реестр доверенных ИИ-моделей&nbsp;— пока проект, но&nbsp;вектор определён однозначно: государственные системы и&nbsp;критическая инфраструктура будут работать только с&nbsp;проверенными отечественными решениями.</p>
+              <p class="mt-4">Для бизнеса это означает простую вещь: готовиться нужно сейчас, а&nbsp;не&nbsp;после подписания закона. Переход на&nbsp;on-premise, построение ИБ-контура вокруг ИИ, документирование, тестирование&nbsp;— всё это занимает месяцы и&nbsp;требует квалификации.</p>
+              <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+                <p class="text-white font-medium text-lg leading-relaxed">Компания <strong>АЗОН</strong> работает на&nbsp;стыке информационной безопасности и&nbsp;технологий искусственного интеллекта. Мы&nbsp;— системный интегратор с&nbsp;лицензиями ФСТЭК, ФСБ и&nbsp;Минобороны, и&nbsp;одновременно развиваем направление <strong>AZONE-AI</strong>: помогаем компаниям разворачивать ИИ-решения в&nbsp;закрытом контуре, с&nbsp;соблюдением действующих и&nbsp;формирующихся требований к&nbsp;безопасности. Если вы&nbsp;планируете внедрение ИИ в&nbsp;регулируемой среде&nbsp;— <a href="/contact?product=other" class="text-accent hover:underline">мы&nbsp;готовы обсудить ваш проект</a>.</p>
+              </div>
+            </div>
+
+            <!-- Важно знать -->
+            <div class="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-blue-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <div>
+                  <h3 class="text-white font-bold mb-2">Актуальность материала</h3>
+                  <ul class="space-y-1.5 text-sm leading-relaxed">
+                    <li>Материал подготовлен и&nbsp;актуален по&nbsp;состоянию на&nbsp;<strong class="text-white">апрель 2026&nbsp;года</strong>.</li>
+                    <li>Законопроект Минцифры об&nbsp;ИИ находится на&nbsp;стадии общественного обсуждения и&nbsp;межведомственного согласования. Финальная редакция, даты вступления в&nbsp;силу и&nbsp;конкретные требования <strong class="text-white">могут существенно измениться</strong>.</li>
+                    <li>Перед принятием решений о&nbsp;внедрении ИИ в&nbsp;ГИС или на&nbsp;объектах КИИ рекомендуем проводить актуальную юридическую и&nbsp;регуляторную проверку.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Источники -->
+            <div>
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Источники и&nbsp;документы</h2>
+              </div>
+              <ol class="space-y-3 text-sm leading-relaxed list-decimal list-inside marker:text-muted-foreground/50">
+                <li><strong class="text-white">Проект ФЗ «Об&nbsp;основах государственного регулирования применения технологий ИИ»</strong>&nbsp;— опубликован Минцифры 18.03.2026 на&nbsp;портале <a href="https://regulation.gov.ru" target="_blank" rel="noopener" class="text-accent hover:underline">regulation.gov.ru</a></li>
+                <li><strong class="text-white">Указ Президента РФ от&nbsp;10.10.2019 №&nbsp;490</strong> «О&nbsp;развитии искусственного интеллекта в&nbsp;РФ» (с&nbsp;изм. от&nbsp;15.02.2024, Указ&nbsp;№&nbsp;124)&nbsp;— Национальная стратегия развития ИИ до&nbsp;2030&nbsp;года</li>
+                <li><strong class="text-white">Приказ ФСТЭК России от&nbsp;11.04.2025 №&nbsp;117</strong>&nbsp;— требования к&nbsp;защите информации в&nbsp;ГИС, вступил в&nbsp;силу 01.03.2026. Источник: <a href="https://fstec.ru" target="_blank" rel="noopener" class="text-accent hover:underline">fstec.ru</a></li>
+                <li><strong class="text-white">Указ Президента РФ №&nbsp;250</strong>&nbsp;— запрет иностранных СЗИ на&nbsp;объектах КИИ с&nbsp;01.01.2026</li>
+                <li><strong class="text-white">Федеральный закон №&nbsp;187-ФЗ</strong> «О&nbsp;безопасности критической информационной инфраструктуры» (ред.&nbsp;2025)</li>
+                <li><strong class="text-white">Федеральный закон №&nbsp;325-ФЗ от&nbsp;31.07.2025</strong> + <strong class="text-white">Постановление Правительства РФ от&nbsp;28.11.2025 №&nbsp;1931</strong>&nbsp;— перечень доверенного российского ПО</li>
+                <li><strong class="text-white">ГОСТ Р&nbsp;56939-2024</strong>&nbsp;— стандарт безопасной разработки ПО. Источник: <a href="https://fstec.ru" target="_blank" rel="noopener" class="text-accent hover:underline">fstec.ru</a></li>
+                <li><strong class="text-white">Приказ ФСТЭК России от&nbsp;25.12.2017 №&nbsp;239</strong>&nbsp;— требования к&nbsp;защите значимых объектов КИИ</li>
+              </ol>
+              <p class="mt-4 text-xs text-muted-foreground/50">Полный перечень нормативных актов и&nbsp;отраслевых публикаций, использованных при подготовке материала, доступен по&nbsp;запросу.</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+  <RelatedArticles articles={relatedArticles} />
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём ИИ-решение на вашей инфраструктуре с учётом требований регуляторов.</p>
+          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

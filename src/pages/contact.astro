@@ -40,6 +40,7 @@ import Base from '../layouts/Base.astro';
         <!-- Form -->
         <div class="lg:col-span-8 glass-card p-8 md:p-10 glow-border">
           <form id="contactForm" class="space-y-6">
+            <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label class="text-sm font-medium text-white/80">Имя и фамилия *</label>
@@ -111,13 +112,13 @@ import Base from '../layouts/Base.astro';
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        if (res.ok) {
+        const json = await res.json();
+        if (res.ok && json.success) {
           status.style.color = '#06B6D4';
           status.textContent = '✅ Заявка отправлена! Мы свяжемся в течение 1 рабочего дня.';
           form.reset();
         } else {
-          const json = await res.json();
-          throw new Error(json.error || 'Ошибка отправки');
+          throw new Error(json.error || json.message || 'Ошибка отправки');
         }
       } catch (err) {
         status.style.color = '#ef4444';

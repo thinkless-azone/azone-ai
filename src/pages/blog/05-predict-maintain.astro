@@ -1,5 +1,6 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
 
 const comparisonTable = [
   { criterion: "Основание для ремонта", ppr: "Календарный график", cbm: "Фактическое состояние" },
@@ -9,17 +10,21 @@ const comparisonTable = [
   { criterion: "Затраты на ТО", ppr: "Фиксированные, избыточные", cbm: "Снижение на 25–40%" },
   { criterion: "Продление ресурса оборудования", ppr: "Нет", cbm: "Да, обоснованный перенос ТО" },
 ];
+const relatedArticles = [
+  { title: "AI в строительстве: видеоаналитика для контроля безопасности", href: "/blog/04-construction-eye", category: "Продукты", readTime: "7 мин" },
+  { title: "Как развернуть LLM в закрытом контуре: пошаговое руководство", href: "/blog/07-llm-closed-circuit-guide", category: "Технологии", readTime: "10 мин" },
+  { title: "ИИ в информационной безопасности: 7 практических сценариев", href: "/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev", category: "Регулирование", readTime: "12 мин" },
+];
 ---
 <Base title="Предиктивная аналитика: предотвращение аварий до их возникновения" description="Как машинное обучение анализирует данные SCADA-систем и помогает перейти от планово-предупредительного ремонта к обслуживанию по состоянию.">
 
 
-      <section class="relative py-16 overflow-hidden">
+      <section class="relative pt-28 pb-16 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div>
-            <a href="/blog"><span class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8 cursor-pointer">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
-              </span>
+            <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Назад к блогу
             </a>
 
             <div class="mb-6">
@@ -342,6 +347,8 @@ const comparisonTable = [
         </div>
       </section>
 
+  <RelatedArticles articles={relatedArticles} />
+
   <!-- CTA -->
   <section class="py-24 relative">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -352,7 +359,7 @@ const comparisonTable = [
         <div class="relative p-10 md:p-16 text-center">
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
-          <a href="/contact" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>
