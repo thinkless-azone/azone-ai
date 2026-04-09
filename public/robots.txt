@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
+Host: https://azoneai.ru
 Sitemap: https://azoneai.ru/sitemap-index.xml

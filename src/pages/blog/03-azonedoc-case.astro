@@ -1,6 +1,10 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import RelatedProducts from '../../components/RelatedProducts.astro';
+const relatedProducts = [
+  { name: 'AzoneDoc', href: '/products/azonedoc/', tag: 'Документооборот', desc: 'Семантический поиск по архиву на on-premise LLM. Сокращает время поиска с часов до минут. Интеграция с 1С, SAP, ELMA.' },
+];
 
 const resultsTable = [
   { metric: "Среднее время поиска документа", before: "2–4 часа", after: "1–3 минуты", change: "×60–80 быстрее" },
@@ -17,7 +21,7 @@ const relatedArticles = [
   { title: "152-ФЗ и нейросети: как внедрить ИИ и не нарушить закон", href: "/blog/06-pdn-ai", category: "Compliance", readTime: "10 мин" },
 ];
 ---
-<Base title="Как ИИ сокращает время поиска документов с часов до минут" description="Разбор кейса внедрения нейросетевого архива в крупном промышленном холдинге. Семантический поиск по архиву из 5 миллионов скан-копий.">
+<Base title="Как ИИ сокращает время поиска документов с часов до минут" description="Разбор кейса внедрения нейросетевого архива в крупном промышленном холдинге. Семантический поиск по архиву из 5 миллионов скан-копий." articleDate="2025-09-15">
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -344,6 +348,7 @@ const relatedArticles = [
         </div>
       </section>
 
+  <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
 
   <!-- CTA -->

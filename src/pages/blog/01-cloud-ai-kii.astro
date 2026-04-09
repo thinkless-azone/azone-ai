@@ -1,13 +1,18 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import RelatedProducts from '../../components/RelatedProducts.astro';
+const relatedProducts = [
+  { name: 'ContentGuard', href: '/products/contentguard/', tag: 'Безопасность', desc: 'Мониторинг и классификация контента в корпоративных и образовательных сетях. Сертификация ФСТЭК. Данные остаются в периметре.' },
+  { name: 'AzoneDoc', href: '/products/azonedoc/', tag: 'Документооборот', desc: 'Семантический поиск по корпоративному архиву на on-premise LLM. Поиск с часов до минут, интеграция с 1С и СЭД.' },
+];
 const relatedArticles = [
   { title: "Реестр доверенных ИИ-моделей в России: что уже известно", href: "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026", category: "Регулирование", readTime: "12 мин" },
   { title: "152-ФЗ и нейросети: как внедрить ИИ и не нарушить закон", href: "/blog/06-pdn-ai", category: "Compliance", readTime: "10 мин" },
   { title: "ИИ в информационной безопасности: 7 практических сценариев", href: "/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev", category: "Регулирование", readTime: "12 мин" },
 ];
 ---
-<Base title="Почему облачный ИИ не подходит для КИИ и объектов с гостайной" description="Анализируем риски утечки данных через API публичных моделей и рассказываем о требованиях регуляторов к внедрению ИИ на объектах критической инфраструктуры.">
+<Base title="Почему облачный ИИ не подходит для КИИ и объектов с гостайной" description="Анализируем риски утечки данных через API публичных моделей и рассказываем о требованиях регуляторов к внедрению ИИ на объектах критической инфраструктуры." articleDate="2025-10-12">
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -237,6 +242,7 @@ const relatedArticles = [
         </div>
       </section>
 
+  <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
 
   <!-- CTA -->

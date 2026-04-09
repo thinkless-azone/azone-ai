@@ -1,6 +1,11 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import RelatedProducts from '../../components/RelatedProducts.astro';
+const relatedProducts = [
+  { name: 'AzoneDoc', href: '/products/azonedoc/', tag: 'Документооборот', desc: 'Готовое on-premise решение для поиска по корпоративному архиву на базе LLM. Пилот за 4–8 недель.' },
+  { name: 'ContractGuard', href: '/products/contractguard/', tag: 'Юридическая аналитика', desc: 'Compliance-анализ договоров с on-premise LLM, дообученной на корпоративных шаблонах.' },
+];
 
 const modelTable = [
   { criterion: "Рассуждения",    llama: "★★★★★", mistral: "★★★★",  qwen: "★★★★★", note: "Llama и Qwen лидируют на 70B+" },
@@ -16,7 +21,7 @@ const relatedArticles = [
   { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii", category: "Безопасность", readTime: "8 мин" },
 ];
 ---
-<Base title="On-premise LLM: как развернуть языковую модель внутри периметра" description="Технический гайд по выбору open-source моделей, требованиям к железу (GPU) и процессу тонкой настройки (fine-tuning) на корпоративных данных.">
+<Base title="On-premise LLM: как развернуть языковую модель внутри периметра" description="Технический гайд по выбору open-source моделей, требованиям к железу (GPU) и процессу тонкой настройки (fine-tuning) на корпоративных данных." articleDate="2025-09-28">
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -342,6 +347,7 @@ const relatedArticles = [
         </div>
       </section>
 
+  <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
 
   <!-- CTA -->

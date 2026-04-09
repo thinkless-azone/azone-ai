@@ -1,7 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
+const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://functions.yandexcloud.net/d4erei6bq3unc5ficeqm';
 ---
-<Base title="Свяжитесь с нами" description="Оставьте заявку, и мы подготовим персональную презентацию и расчёт стоимости пилотного проекта.">
+<Base
+  title="Обсудить AI-проект: пилот за 4-8 недель"
+  description="Оставьте заявку на внедрение ИИ-решения on-premise. Подготовим архитектуру, оценку сроков и стоимости пилота за 4-8 недель."
+>
 
   <div class="min-h-screen pt-24 pb-24 relative">
     <div class="absolute top-1/4 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
@@ -40,7 +44,9 @@ import Base from '../layouts/Base.astro';
         <!-- Form -->
         <div class="lg:col-span-8 glass-card p-8 md:p-10 glow-border">
           <form id="contactForm" class="space-y-6">
-            <input type="checkbox" name="botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off" />
+            <div style="position:absolute;left:-9999px;" aria-hidden="true">
+              <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label class="text-sm font-medium text-white/80">Имя и фамилия *</label>
@@ -86,8 +92,7 @@ import Base from '../layouts/Base.astro';
     </div>
   </div>
 
-  <script>
-    // Pre-fill product from URL query
+  <script define:vars={{ FUNCTION_URL }}>
     const params = new URLSearchParams(window.location.search);
     const product = params.get('product');
     if (product) {
@@ -106,8 +111,23 @@ import Base from '../layouts/Base.astro';
 
       const data = Object.fromEntries(new FormData(form));
 
+      if (!data.name || data.name.trim().length < 2) {
+        status.style.color = '#ef4444';
+        status.textContent = 'Пожалуйста, укажите имя (минимум 2 символа)';
+        btn.disabled = false;
+        btn.textContent = 'Отправить заявку';
+        return;
+      }
+      if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        status.style.color = '#ef4444';
+        status.textContent = 'Пожалуйста, укажите корректный email';
+        btn.disabled = false;
+        btn.textContent = 'Отправить заявку';
+        return;
+      }
+
       try {
-        const res = await fetch('/.netlify/functions/contact', {
+        const res = await fetch(FUNCTION_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -117,6 +137,7 @@ import Base from '../layouts/Base.astro';
           status.style.color = '#06B6D4';
           status.textContent = '✅ Заявка отправлена! Мы свяжемся в течение 1 рабочего дня.';
           form.reset();
+          if (typeof ym !== 'undefined') ym(108466305, 'reachGoal', 'form_submit');
         } else {
           throw new Error(json.error || json.message || 'Ошибка отправки');
         }

@@ -1,0 +1,215 @@
+---
+// ContactForm.astro — контактная форма AZONE-AI
+// Замена Netlify Functions → Yandex Cloud Functions
+
+interface Props {
+  product?: string;
+}
+
+const { product } = Astro.props;
+
+// URL Cloud Function — вынеси в .env или захардкодь
+const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL 
+  || 'https://functions.yandexcloud.net/d4exxxxxxxxxxxxxxx'; // ← ЗАМЕНИ на свой
+---
+
+<form id="contact-form" class="space-y-6" novalidate>
+  <!-- Honeypot (антиспам, скрытое поле) -->
+  <div style="position: absolute; left: -9999px;" aria-hidden="true">
+    <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <!-- Имя -->
+  <div>
+    <label for="name" class="block text-sm font-medium text-gray-300 mb-1">
+      Имя <span class="text-red-400">*</span>
+    </label>
+    <input
+      type="text"
+      id="name"
+      name="name"
+      required
+      minlength="2"
+      placeholder="Иван Иванов"
+      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+             text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 
+             focus:ring-1 focus:ring-indigo-500 transition-colors"
+    />
+  </div>
+
+  <!-- Компания -->
+  <div>
+    <label for="company" class="block text-sm font-medium text-gray-300 mb-1">
+      Компания
+    </label>
+    <input
+      type="text"
+      id="company"
+      name="company"
+      placeholder="ООО «Название»"
+      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+             text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 
+             focus:ring-1 focus:ring-indigo-500 transition-colors"
+    />
+  </div>
+
+  <!-- Email -->
+  <div>
+    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">
+      Email <span class="text-red-400">*</span>
+    </label>
+    <input
+      type="email"
+      id="email"
+      name="email"
+      required
+      placeholder="ivan@company.ru"
+      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+             text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 
+             focus:ring-1 focus:ring-indigo-500 transition-colors"
+    />
+  </div>
+
+  <!-- Телефон -->
+  <div>
+    <label for="phone" class="block text-sm font-medium text-gray-300 mb-1">
+      Телефон
+    </label>
+    <input
+      type="tel"
+      id="phone"
+      name="phone"
+      placeholder="+7 (___) ___-__-__"
+      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+             text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 
+             focus:ring-1 focus:ring-indigo-500 transition-colors"
+    />
+  </div>
+
+  <!-- Продукт -->
+  <div>
+    <label for="product" class="block text-sm font-medium text-gray-300 mb-1">
+      Интересующий продукт
+    </label>
+    <select
+      id="product"
+      name="product"
+      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+             text-white focus:outline-none focus:border-indigo-500 
+             focus:ring-1 focus:ring-indigo-500 transition-colors"
+    >
+      <option value="other" class="bg-gray-900">Общий запрос</option>
+      <option value="contentguard" class="bg-gray-900">ContentGuard — мониторинг контента</option>
+      <option value="azonedoc" class="bg-gray-900">AzoneDoc — управление документами</option>
+      <option value="constructioneye" class="bg-gray-900">ConstructionEye — видеоаналитика</option>
+      <option value="predictmaintain" class="bg-gray-900">PredictMaintain — предиктивная аналитика</option>
+      <option value="contractguard" class="bg-gray-900">ContractGuard — анализ договоров</option>
+    </select>
+  </div>
+
+  <!-- Сообщение -->
+  <div>
+    <label for="message" class="block text-sm font-medium text-gray-300 mb-1">
+      Сообщение
+    </label>
+    <textarea
+      id="message"
+      name="message"
+      rows="4"
+      maxlength="5000"
+      placeholder="Опишите вашу задачу или вопрос..."
+      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg 
+             text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 
+             focus:ring-1 focus:ring-indigo-500 transition-colors resize-y"
+    ></textarea>
+  </div>
+
+  <!-- Статус -->
+  <div id="form-status" class="hidden rounded-lg p-4 text-sm"></div>
+
+  <!-- Кнопка -->
+  <button
+    type="submit"
+    id="submit-btn"
+    class="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium 
+           rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    Отправить заявку
+  </button>
+</form>
+
+<script define:vars={{ FUNCTION_URL, product }}>
+  // Предвыбрать продукт из URL ?product=azonedoc или из пропса
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const preselect = params.get('product') || product;
+    if (preselect) {
+      const select = document.getElementById('product');
+      if (select) {
+        const option = select.querySelector(`option[value="${preselect}"]`);
+        if (option) select.value = preselect;
+      }
+    }
+  });
+</script>
+
+<script define:vars={{ FUNCTION_URL }}>
+  const form = document.getElementById('contact-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusDiv = document.getElementById('form-status');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Собрать данные
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    // Базовая клиентская валидация
+    if (!data.name || data.name.trim().length < 2) {
+      showStatus('error', 'Пожалуйста, укажите имя');
+      return;
+    }
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      showStatus('error', 'Пожалуйста, укажите корректный email');
+      return;
+    }
+
+    // UI: загрузка
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправка...';
+    statusDiv.classList.add('hidden');
+
+    try {
+      const response = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        showStatus('success', 'Заявка отправлена! Мы свяжемся с вами в ближайшее время.');
+        form.reset();
+      } else {
+        showStatus('error', result.error || 'Произошла ошибка. Попробуйте ещё раз.');
+      }
+    } catch (err) {
+      showStatus('error', 'Не удалось отправить. Проверьте интернет или напишите на order@azone-it.ru');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Отправить заявку';
+    }
+  });
+
+  function showStatus(type, message) {
+    statusDiv.classList.remove('hidden', 'bg-green-900/50', 'text-green-300', 'bg-red-900/50', 'text-red-300');
+    if (type === 'success') {
+      statusDiv.classList.add('bg-green-900/50', 'text-green-300');
+    } else {
+      statusDiv.classList.add('bg-red-900/50', 'text-red-300');
+    }
+    statusDiv.textContent = message;
+  }
+</script>

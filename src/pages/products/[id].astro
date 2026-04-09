@@ -72,7 +72,25 @@ export function getStaticPaths() {
 const { product } = Astro.props;
 const relatedMaterials = productMaterials[product.id] || [];
 ---
-<Base title={product.name} description={product.shortDesc}>
+<Base title={product.seoTitle || product.name} description={product.seoDescription || product.shortDesc} breadcrumbTitle={product.name}>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": product.name,
+    "description": product.seoDescription || product.shortDesc,
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Linux, Windows Server",
+    "url": `https://azoneai.ru/products/${product.id}/`,
+    "featureList": product.benefits,
+    "offers": {
+      "@type": "Offer",
+      "availability": "https://schema.org/InStock",
+      "seller": { "@type": "Organization", "name": "AZONE-AI", "url": "https://azoneai.ru" },
+      "priceSpecification": { "@type": "PriceSpecification", "priceCurrency": "RUB" }
+    },
+    "provider": { "@type": "Organization", "name": "AZONE-AI", "url": "https://azoneai.ru" }
+  })} />
 
   <!-- Hero -->
   <section class="relative pt-24 py-20 overflow-hidden border-b border-white/5">

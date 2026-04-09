@@ -1,13 +1,17 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import RelatedProducts from '../../components/RelatedProducts.astro';
+const relatedProducts = [
+  { name: 'ConstructionEye', href: '/products/constructioneye/', tag: 'Видеоаналитика', desc: 'Автоматический контроль ТБ и СИЗ на стройплощадках. Edge AI на объекте без передачи данных в облако. Интеграция с MS Project.' },
+];
 const relatedArticles = [
   { title: "Предиктивная аналитика: предотвращение аварий до их возникновения", href: "/blog/05-predict-maintain", category: "Технологии", readTime: "9 мин" },
   { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii", category: "Безопасность", readTime: "8 мин" },
   { title: "ИИ в информационной безопасности: 7 практических сценариев", href: "/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev", category: "Регулирование", readTime: "12 мин" },
 ];
 ---
-<Base title="AI в строительстве: видеоаналитика для контроля безопасности" description="Как компьютерное зрение автоматически выявляет нарушения техники безопасности и контролирует использование СИЗ на стройплощадках.">
+<Base title="AI в строительстве: видеоаналитика для контроля безопасности" description="Как компьютерное зрение автоматически выявляет нарушения техники безопасности и контролирует использование СИЗ на стройплощадках." articleDate="2025-09-03">
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -337,6 +341,7 @@ const relatedArticles = [
         </div>
       </section>
 
+  <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
 
   <!-- CTA -->

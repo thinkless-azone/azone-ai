@@ -1,6 +1,10 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import RelatedProducts from '../../components/RelatedProducts.astro';
+const relatedProducts = [
+  { name: 'PredictMaintain', href: '/products/predictmaintain/', tag: 'Предиктивная аналитика', desc: 'Прогноз отказов промышленного оборудования по данным SCADA. Не требует замены техники. Один предотвращённый простой окупает проект.' },
+];
 
 const comparisonTable = [
   { criterion: "Основание для ремонта", ppr: "Календарный график", cbm: "Фактическое состояние" },
@@ -16,7 +20,7 @@ const relatedArticles = [
   { title: "ИИ в информационной безопасности: 7 практических сценариев", href: "/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev", category: "Регулирование", readTime: "12 мин" },
 ];
 ---
-<Base title="Предиктивная аналитика: предотвращение аварий до их возникновения" description="Как машинное обучение анализирует данные SCADA-систем и помогает перейти от планово-предупредительного ремонта к обслуживанию по состоянию.">
+<Base title="Предиктивная аналитика: предотвращение аварий до их возникновения" description="Как машинное обучение анализирует данные SCADA-систем и помогает перейти от планово-предупредительного ремонта к обслуживанию по состоянию." articleDate="2025-08-21">
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -347,6 +351,7 @@ const relatedArticles = [
         </div>
       </section>
 
+  <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
 
   <!-- CTA -->

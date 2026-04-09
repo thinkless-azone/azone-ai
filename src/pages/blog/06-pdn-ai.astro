@@ -1,6 +1,11 @@
 ﻿---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import RelatedProducts from '../../components/RelatedProducts.astro';
+const relatedProducts = [
+  { name: 'ContentGuard', href: '/products/contentguard/', tag: 'Безопасность', desc: 'Мониторинг контента в сетях с соблюдением 152-ФЗ. Обработка данных только в периметре организации, сертификация ФСТЭК.' },
+  { name: 'AzoneDoc', href: '/products/azonedoc/', tag: 'Документооборот', desc: 'Семантический поиск по корпоративному архиву. On-premise LLM — данные не покидают инфраструктуру заказчика.' },
+];
 
 const pdnCategories = [
   { category: "Идентификационные данные", examples: "ФИО, паспорт, СНИЛС, ИНН" },
@@ -33,7 +38,7 @@ const relatedArticles = [
   { title: "ИИ в информационной безопасности: 7 практических сценариев", href: "/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev", category: "Регулирование", readTime: "12 мин" },
 ];
 ---
-<Base title="152-ФЗ и нейросети: как внедрить ИИ и не нарушить закон" description="Юридические аспекты обработки персональных данных с помощью алгоритмов искусственного интеллекта. Практика обезличивания и защиты.">
+<Base title="152-ФЗ и нейросети: как внедрить ИИ и не нарушить закон" description="Юридические аспекты обработки персональных данных с помощью алгоритмов искусственного интеллекта. Практика обезличивания и защиты." articleDate="2025-08-05">
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -318,6 +323,7 @@ const relatedArticles = [
         </div>
       </section>
 
+  <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
 
   <!-- CTA -->

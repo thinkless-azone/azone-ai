@@ -1,6 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import RelatedProducts from '../../components/RelatedProducts.astro';
+const relatedProducts = [
+  { name: 'AzoneDoc', href: '/products/azonedoc/', tag: 'Документооборот', desc: 'Готовое решение для корпоративного архива с on-premise LLM. Быстрый пилот, интеграция с 1С, SAP, ELMA.' },
+  { name: 'ContractGuard', href: '/products/contractguard/', tag: 'Юридическая аналитика', desc: 'LLM в закрытом контуре для compliance-анализа договоров. On-premise, дообучение на данных заказчика.' },
+];
 
 const modelTable = [
   { criterion: "Качество ответов",  llama: "★★★★★", mistral: "★★★★",  qwen: "★★★★★", note: "Llama и Qwen лидируют на 70B+" },
@@ -58,7 +63,7 @@ const relatedArticles = [
   { title: "Реестр доверенных ИИ-моделей в России: что уже известно", href: "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026", category: "Регулирование", readTime: "12 мин" },
 ];
 ---
-<Base title="Как развернуть LLM в закрытом контуре: пошаговое руководство" description="Llama, Mistral или Qwen? Сравнение моделей, квантизация, vLLM vs TGI, требования к железу — полный гайд по развёртыванию LLM on-premise для ИБ-специалистов.">
+<Base title="Как развернуть LLM в закрытом контуре: пошаговое руководство" description="Llama, Mistral или Qwen? Сравнение моделей, квантизация, vLLM vs TGI, требования к железу — полный гайд по развёртыванию LLM on-premise для ИБ-специалистов." articleDate="2026-04-03">
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -554,6 +559,7 @@ const relatedArticles = [
         </div>
       </section>
 
+  <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
 
   <!-- CTA -->

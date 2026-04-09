@@ -1,0 +1,9 @@
+{
+  "name": "azoneai-contact-form",
+  "version": "1.0.0",
+  "description": "Cloud Function для контактной формы AZONE-AI",
+  "main": "index.js",
+  "dependencies": {
+    "nodemailer": "^8.0.5"
+  }
+}
