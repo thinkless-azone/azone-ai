@@ -1,3 +1,90 @@
+# AZONE AI Site
+
+Маркетинговый сайт AZONE AI на `Astro` с блогом, страницами продуктов, поиском (`Pagefind`) и формой обратной связи через Yandex Cloud Function.
+
+## Технологии
+
+- `Astro`
+- `Tailwind CSS`
+- `Pagefind`
+- `Nodemailer` (в облачной функции отправки почты)
+
+## Требования
+
+- `Node.js 20+`
+- `npm`
+- `AWS CLI` (для деплоя в Yandex Object Storage)
+- профиль `yc` в AWS CLI
+
+## Быстрый старт
+
+1. Установить зависимости:
+
+```bash
+npm install
+```
+
+2. Создать локальные переменные окружения:
+
+```bash
+cp .env.example .env
+```
+
+3. Запустить dev-сервер:
+
+```bash
+npm run dev
+```
+
+## Переменные окружения сайта
+
+Файл: `.env`
+
+- `PUBLIC_CONTACT_FUNCTION_URL` — URL облачной функции для формы контактов
+- `PUBLIC_YANDEX_METRIKA_ID` — ID счетчика Яндекс Метрики
+- `PUBLIC_GA4_MEASUREMENT_ID` — ID GA4
+
+## Скрипты
+
+- `npm run dev` — локальная разработка
+- `npm run build` — production-сборка + постобработка sitemap + индекс поиска
+- `npm run preview` — предпросмотр production-сборки
+- `npm run deploy` — сборка и загрузка `dist/` в бакет `s3://azoneai.ru`
+- `npm run deploy:only` — только загрузка уже собранного `dist/`
+
+## Деплой
+
+Проект деплоится как статический сайт в Yandex Object Storage:
+
+```bash
+npm run deploy
+```
+
+Команда использует:
+
+- endpoint: `https://storage.yandexcloud.net`
+- профиль: `yc`
+- синхронизацию с удалением удаленных локально файлов (`--delete`)
+
+## Форма обратной связи (Cloud Function)
+
+Папка `cloud-function-email/` содержит Node.js-функцию для отправки заявок по email.
+
+Базовый запуск в каталоге функции:
+
+```bash
+cd cloud-function-email
+npm install
+node index.js
+```
+
+Для функции используется собственный файл `.env` на основе `cloud-function-email/.env.example`.
+
+## Полезные документы
+
+- `azoneai-yandex-cloud-guide.md` — гайд по облачной инфраструктуре
+- `cloud-function-email-guide.md` — инструкция по функции отправки email
+- `azoneai-audit-v2.md` — аудит сайта
 # AZONE-AI — сайт `azoneai.ru`
 
 Маркетинговый сайт на Astro (SSG) с блогом, страницами продуктов и формой обратной связи через Netlify Function.
