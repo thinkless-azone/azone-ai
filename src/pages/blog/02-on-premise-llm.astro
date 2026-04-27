@@ -16,12 +16,38 @@ const modelTable = [
   { criterion: "Лицензия",       llama: "Community", mistral: "Apache 2.0", qwen: "Apache 2.0", note: "Mistral — максимум свободы" },
 ];
 const relatedArticles = [
-  { title: "Как развернуть LLM в закрытом контуре: пошаговое руководство", href: "/blog/07-llm-closed-circuit-guide", category: "Технологии", readTime: "10 мин" },
-  { title: "Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы", href: "/blog/10-sravnenie-llm", category: "Технологии", readTime: "12 мин" },
-  { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii", category: "Безопасность", readTime: "8 мин" },
+  { title: "Как развернуть LLM в закрытом контуре: пошаговое руководство", href: "/blog/07-llm-closed-circuit-guide/", category: "Технологии", readTime: "10 мин" },
+  { title: "Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы", href: "/blog/10-sravnenie-llm/", category: "Технологии", readTime: "12 мин" },
+  { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii/", category: "Безопасность", readTime: "8 мин" },
+];
+const faqItems = [
+  {
+    q: "Какой минимум железа нужен для старта on-premise LLM?",
+    a: "Для пилота обычно достаточно одного GPU-сервера с видеокартой уровня RTX 4090 и моделью 7–8B в INT4.",
+  },
+  {
+    q: "Что выбрать сначала: fine-tuning или RAG?",
+    a: "Практичнее начинать с RAG и базовой модели, а fine-tuning делать после замеров качества на реальных данных.",
+  },
+  {
+    q: "Можно ли развернуть LLM без передачи данных во внешнее облако?",
+    a: "Да, on-premise архитектура строится так, чтобы все данные и логика обработки оставались внутри периметра организации.",
+  },
 ];
 ---
 <Base title="On-premise LLM: как развернуть языковую модель внутри периметра" description="Технический гайд по выбору open-source моделей, требованиям к железу (GPU) и процессу тонкой настройки (fine-tuning) на корпоративных данных." articleDate="2025-09-28">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map((item) => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a,
+      },
+    })),
+  })} />
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -360,7 +386,7 @@ const relatedArticles = [
         <div class="relative p-10 md:p-16 text-center">
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
-          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>

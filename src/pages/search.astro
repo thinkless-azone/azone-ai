@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 <Base
   title="Поиск по сайту"
   description="Поиск по статьям, продуктам и страницам AZONE-AI."
+  pagefindIgnore={true}
 >
   <section class="pt-28 pb-20 border-b border-white/5">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,6 +36,17 @@ import Base from '../layouts/Base.astro';
     window.addEventListener('DOMContentLoaded', () => {
       const target = document.querySelector('#search-ui');
       if (!target || !window.PagefindUI) return;
+      const initialQuery = new URLSearchParams(window.location.search).get('q')?.trim();
+
+      const applyInitialQuery = () => {
+        if (!initialQuery) return;
+        const input = document.querySelector('.pagefind-ui__search-input');
+        if (!input) return false;
+        input.value = initialQuery;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+      };
+
       // Pagefind indexes static HTML at build time and runs fully client-side.
       new window.PagefindUI({
         element: '#search-ui',
@@ -51,6 +63,16 @@ import Base from '../layouts/Base.astro';
           one_result: '[COUNT] результат',
         },
       });
+
+      if (initialQuery) {
+        let attempts = 0;
+        const timer = window.setInterval(() => {
+          attempts += 1;
+          if (applyInitialQuery() || attempts > 20) {
+            window.clearInterval(timer);
+          }
+        }, 100);
+      }
     });
   </script>
 

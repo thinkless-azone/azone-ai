@@ -23,7 +23,6 @@ const currentPath = Astro.url.pathname;
 const fullTitle = `${title} | AZONE-AI`;
 const absoluteImage = image.startsWith("http") ? image : `https://azoneai.ru${image}`;
 const yandexMetrikaId = import.meta.env.PUBLIC_YANDEX_METRIKA_ID;
-const ga4Id = import.meta.env.PUBLIC_GA4_MEASUREMENT_ID;
 
 // BreadcrumbList — auto-generated from path
 const segments = currentPath.split('/').filter(Boolean);
@@ -80,9 +79,7 @@ const articleJsonLd = articleDate ? {
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" /></noscript>
   <link rel="preconnect" href="https://mc.yandex.ru" />
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
   <link rel="dns-prefetch" href="https://mc.yandex.ru" />
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={`https://azoneai.ru${currentPath}`} />
@@ -94,17 +91,6 @@ const articleJsonLd = articleDate ? {
   <meta property="og:site_name" content="AZONE-AI" />
   <meta property="og:locale" content="ru_RU" />
   <meta property="og:type" content={ogType} />
-  {ga4Id && (
-    <>
-      <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}></script>
-      <script set:html={`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${ga4Id}');
-      `} />
-    </>
-  )}
   {yandexMetrikaId && (
     <>
       <script set:html={`

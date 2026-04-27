@@ -42,7 +42,6 @@ npm run dev
 
 - `PUBLIC_CONTACT_FUNCTION_URL` — URL облачной функции для формы контактов
 - `PUBLIC_YANDEX_METRIKA_ID` — ID счетчика Яндекс Метрики
-- `PUBLIC_GA4_MEASUREMENT_ID` — ID GA4
 
 ## Скрипты
 

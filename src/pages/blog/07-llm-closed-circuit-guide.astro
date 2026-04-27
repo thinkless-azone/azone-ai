@@ -58,12 +58,38 @@ const mistakes = [
   { title: "Путать пилот с продакшеном", text: "Ноутбук с RTX 4090 — это проверка гипотезы. Продакшен — сервер с резервированием, SLA и мониторингом." },
 ];
 const relatedArticles = [
-  { title: "On-premise LLM: как развернуть языковую модель внутри периметра", href: "/blog/02-on-premise-llm", category: "Технологии", readTime: "12 мин" },
-  { title: "Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы", href: "/blog/10-sravnenie-llm", category: "Технологии", readTime: "12 мин" },
-  { title: "Реестр доверенных ИИ-моделей в России: что уже известно", href: "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026", category: "Регулирование", readTime: "12 мин" },
+  { title: "On-premise LLM: как развернуть языковую модель внутри периметра", href: "/blog/02-on-premise-llm/", category: "Технологии", readTime: "12 мин" },
+  { title: "Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы", href: "/blog/10-sravnenie-llm/", category: "Технологии", readTime: "12 мин" },
+  { title: "Реестр доверенных ИИ-моделей в России: что уже известно", href: "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026/", category: "Регулирование", readTime: "12 мин" },
+];
+const faqItems = [
+  {
+    q: "Какую модель лучше брать для первого пилота в закрытом контуре?",
+    a: "Обычно начинают с моделей 7–8B в INT4, чтобы быстро проверить бизнес-гипотезу без избыточных затрат на инфраструктуру.",
+  },
+  {
+    q: "Что выбрать для инференса в новом проекте: vLLM или TGI?",
+    a: "Для новых внедрений чаще выбирают vLLM из-за более активного развития и широкой поддержки моделей.",
+  },
+  {
+    q: "Обязательно ли сразу покупать дорогой кластер GPU?",
+    a: "Нет, для старта достаточно одного сервера под пилот, а масштабирование планируется после подтверждения результата.",
+  },
 ];
 ---
 <Base title="Как развернуть LLM в закрытом контуре: пошаговое руководство" description="Llama, Mistral или Qwen? Сравнение моделей, квантизация, vLLM vs TGI, требования к железу — полный гайд по развёртыванию LLM on-premise для ИБ-специалистов." articleDate="2026-04-03">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map((item) => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.a,
+      },
+    })),
+  })} />
 
 
       <section class="relative pt-28 pb-16 overflow-hidden">
@@ -115,7 +141,7 @@ const relatedArticles = [
             <!-- ★ КАРТИНКА: Блок-схема архитектуры -->
             <div>
               <img
-                src="/images/blog/llm-deploy-architecture.webp"
+                src="/images/blog/07/llm-deploy-architecture.webp"
                 alt="Архитектура развёртывания LLM в закрытом контуре: пользователь → API-gateway → vLLM → модель → ответ"
                 class="w-full rounded-2xl object-cover"
               />
@@ -274,7 +300,7 @@ const relatedArticles = [
               <!-- ★ КАРТИНКА: Дерево решений по выбору модели -->
               <div class="mt-6">
                 <img
-                  src="/images/blog/llm-model-decision-tree.webp"
+                  src="/images/blog/07/llm-model-decision-tree.webp"
                   alt="Дерево решений по выбору LLM-модели для закрытого контура"
                   class="w-full rounded-2xl object-cover"
                 />
@@ -351,7 +377,7 @@ const relatedArticles = [
               <!-- ★ КАРТИНКА: VRAM-калькулятор -->
               <div class="mt-6">
                 <img
-                  src="/images/blog/llm-vram-calculator.webp"
+                  src="/images/blog/07/llm-vram-calculator.webp"
                   alt="VRAM-калькулятор: сколько видеопамяти нужно для моделей 7B, 13B и 70B в FP16, INT8 и INT4"
                   class="w-full rounded-2xl object-cover"
                 />
@@ -572,7 +598,7 @@ const relatedArticles = [
         <div class="relative p-10 md:p-16 text-center">
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
-          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>

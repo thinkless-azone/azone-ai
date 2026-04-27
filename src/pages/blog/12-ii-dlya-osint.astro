@@ -1,0 +1,516 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const title = 'ИИ для конкурентной разведки и OSINT: что изменилось';
+const description = 'Как ИИ меняет конкурентную разведку на открытых данных: где даёт выигрыш, где галлюцинирует и как выстроить рабочий контур OSINT с обязательной верификацией первоисточников.';
+const publishDate = '2026-04-23';
+const readTime = '10 мин';
+const tags = ['OSINT', 'конкурентная разведка', 'LLM', 'ИИ', 'мониторинг', 'верификация', 'on-premise'];
+const slug = '12-ii-dlya-osint';
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": description,
+  "image": "https://azoneai.ru/images/blog/12/funnel.webp",
+  "datePublished": publishDate,
+  "author": {
+    "@type": "Organization",
+    "name": "AZONE AI",
+    "url": "https://azoneai.ru"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AZONE AI",
+    "url": "https://azoneai.ru"
+  }
+};
+---
+
+<Base title={title} description={description}>
+
+  <main class="flex-grow">
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+
+  <!-- Hero -->
+  <section class="relative pt-28 pb-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div>
+        <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Назад к блогу
+        </a>
+
+        <div class="mb-6 flex items-center gap-3 flex-wrap">
+          {tags.map((tag) => (
+            <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">{tag}</span>
+          ))}
+        </div>
+
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+          Открытые данные и&nbsp;ИИ: что за&nbsp;последние пару лет действительно изменилось в&nbsp;конкурентной разведке
+        </h1>
+
+        <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+          Вакансии, тендеры, пресс-релизы, технологический стек&nbsp;— что машина уже читает хорошо, а&nbsp;что пока читать за&nbsp;ней
+        </p>
+
+        <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            23 апреля 2026
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            {readTime}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="prose prose-invert prose-lg max-w-none space-y-12 text-muted-foreground">
+
+        <!-- Cover -->
+        <div class="mb-4">
+          <img src="/images/blog/12/funnel.webp" alt="Воронка OSINT-сигналов: сырой поток источников проходит через ИИ-обработку, верификацию и превращается в аналитический вывод" class="w-full rounded-2xl object-cover" loading="eager">
+        </div>
+
+        <!-- Intro -->
+        <div class="space-y-4">
+          <p>Открытых сигналов о&nbsp;конкурентах стало слишком много, чтобы обрабатывать их&nbsp;руками. ИИ здесь действительно выручает. Но&nbsp;та&nbsp;же модель, которая за&nbsp;минуту перескажет пятьдесят пресс-релизов, с&nbsp;такой&nbsp;же уверенностью придумает сделку, которой не&nbsp;было. Ниже&nbsp;— о&nbsp;том, где ИИ в&nbsp;OSINT реально помогает, где он&nbsp;опасен и&nbsp;как собрать процесс, в&nbsp;котором ошибки успевают всплыть до&nbsp;того, как попадут в&nbsp;отчёт руководству.</p>
+        </div>
+
+        <!-- Почему OSINT перестал помещаться в голову -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Почему OSINT перестал помещаться в&nbsp;голову аналитика</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Ещё десять лет назад конкурентная разведка в&nbsp;средней компании выглядела так: один человек, подписка на&nbsp;пару отраслевых дайджестов, папка с&nbsp;вырезками и&nbsp;квартальный отчёт. Сегодня этот подход уже не&nbsp;работает&nbsp;— и&nbsp;не&nbsp;потому, что кто-то перестал его ценить. О&nbsp;любой зрелой компании в&nbsp;открытом доступе лежат десятки тысяч сигналов: сайт и&nbsp;блог, вакансии, истории тендеров и&nbsp;закупок, пресс-релизы, выступления на&nbsp;конференциях, соцсети сотрудников, GitHub, патенты, судебные дела, сведения из&nbsp;госреестров, кэш старых версий страниц в&nbsp;Web Archive. Проблема давно не&nbsp;в&nbsp;доступе. Проблема в&nbsp;том, что читать всё это некому, а&nbsp;связи между фрагментами никто не&nbsp;удерживает в&nbsp;голове.</p>
+
+            <p>Отсюда и&nbsp;интерес к&nbsp;ИИ. Языковые модели умеют быстро читать и&nbsp;обобщать, вытаскивать из&nbsp;текста факты, кластеризовать повторы, собирать сравнительные таблицы. На&nbsp;рутине это выручает сильно. Интерпретация и&nbsp;стратегические выводы пока остаются за&nbsp;человеком, и&nbsp;с&nbsp;заметным отрывом.</p>
+
+            <p>У&nbsp;этой автоматизации есть оборотная сторона, которую обычно вспоминают во&nbsp;вторую очередь. ИИ выдаёт ответ с&nbsp;одинаково уверенной интонацией, когда он&nbsp;прав, и&nbsp;когда галлюцинирует. Поэтому честный разговор о&nbsp;качестве конкурентной разведки с&nbsp;ИИ&nbsp;— это не&nbsp;про «какую модель выбрать», а&nbsp;про дисциплину процесса. На&nbsp;этом и&nbsp;сосредоточимся.</p>
+          </div>
+        </div>
+
+        <!-- Термины -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Термины и&nbsp;где проходит граница</h2>
+          </div>
+
+          <div class="space-y-4 mb-6">
+            <p>В&nbsp;корпоративных разговорах «конкурентная разведка», «OSINT» и&nbsp;«мониторинг» часто перемешиваются, а&nbsp;граница между нормальной работой и&nbsp;сомнительными практиками теряется. Несколько определений, чтобы дальше не&nbsp;путаться.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Конкурентная разведка</div>
+              <p class="text-sm leading-relaxed">Процесс, а&nbsp;не&nbsp;отчёт. Компания регулярно собирает и&nbsp;интерпретирует информацию о&nbsp;рынке, конкурентах, клиентах и&nbsp;технологиях, чтобы принимать решения раньше, чем ситуация ударит по&nbsp;выручке. Разовое исследование разведкой не&nbsp;является, сколь&nbsp;бы хорошо оно ни&nbsp;было сделано.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">OSINT</div>
+              <p class="text-sm leading-relaxed">Open Source Intelligence&nbsp;— работа только с&nbsp;данными, полученными из&nbsp;открытых источников законным способом. Корпоративные сайты, СМИ, соцсети, госреестры, открытые API, патентные базы, картотеки судебных дел. Взломы, социальная инженерия и&nbsp;инсайдеры в&nbsp;чужих компаниях сюда не&nbsp;относятся.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Цифровой след компании</div>
+              <p class="text-sm leading-relaxed">Всё, что компания и&nbsp;её&nbsp;сотрудники оставляют наружу намеренно или ненамеренно. От&nbsp;вакансий и&nbsp;публичных выступлений до&nbsp;резюме бывших сотрудников и&nbsp;коммитов в&nbsp;открытых репозиториях. Та&nbsp;самая область, где автоматизация даёт самый очевидный выигрыш.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Граница легальности</div>
+              <p class="text-sm leading-relaxed">Собирать и&nbsp;обрабатывать то, что компания выложила сама,&nbsp;— в&nbsp;порядке вещей. Массово выгружать персональные данные, обходить платные доступы, нарушать пользовательские соглашения, подкупать информаторов&nbsp;— уже нет. ИИ в&nbsp;этой разметке ничего не&nbsp;меняет.</p>
+            </div>
+          </div>
+
+          <div class="mt-6 p-5 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+            <p class="text-sm"><span class="text-yellow-400 font-semibold">152-ФЗ и&nbsp;агрегация. </span>Даже публично размещённое резюме остаётся персональными данными. Массовая их&nbsp;агрегация&nbsp;— например, сбор всех резюме сотрудников конкурента по&nbsp;Москве&nbsp;— легко создаёт состав нарушения. Это надо учитывать на&nbsp;старте, а&nbsp;не&nbsp;после первого письма от&nbsp;юриста.</p>
+          </div>
+        </div>
+
+        <!-- Что ИИ действительно меняет -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что ИИ действительно меняет в&nbsp;OSINT</h2>
+          </div>
+
+          <div class="space-y-4 mb-6">
+            <p>Выигрыш складывается из&nbsp;разных по&nbsp;природе эффектов. Если их&nbsp;не&nbsp;разделять, легко либо переоценить пользу, либо, наоборот, пройти мимо чего-то важного.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Скорость</div>
+              <p class="text-sm leading-relaxed">Самый понятный слой. Модель за&nbsp;двадцать минут читает годовую подшивку блога конкурента, возвращает хронологию ключевых тем, и&nbsp;аналитик дальше идёт читать в&nbsp;оригинал только то, что того стоит. Экономия времени&nbsp;— в&nbsp;разы, и&nbsp;это воспроизводимо.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Очистка шума</div>
+              <p class="text-sm leading-relaxed">Одно и&nbsp;то&nbsp;же событие обычно звучит в&nbsp;десятках источников: перепечатки, цитаты, пересказы. ИИ кластеризует сообщения по&nbsp;событиям&nbsp;— и&nbsp;когда из&nbsp;ленты уходят повторы, становится видно то, что раньше в&nbsp;ней тонуло.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Извлечение фактов и&nbsp;связей</div>
+              <p class="text-sm leading-relaxed">Модели превращают сплошной текст в&nbsp;структуру: компании, люди, продукты, технологии, даты, суммы, роли. После этого становятся возможны запросы другого класса: кто нанял больше всего ML-инженеров, у&nbsp;кого общие подрядчики, какая технология впервые засветилась в&nbsp;вакансиях.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Сравнение</div>
+              <p class="text-sm leading-relaxed">Продукты, позиционирование, команды, география, ценовая политика там, где она открыта. Результат надо перечитывать глазами&nbsp;— таблицы почти всегда содержат одну-две неточности. Но&nbsp;как стартовый черновик сравнительный срез делается за&nbsp;минуты, а&nbsp;не&nbsp;за&nbsp;дни.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Обнаружение изменений</div>
+              <p class="text-sm leading-relaxed">Если регулярно снимать снимки сайтов, документации, магазина приложений, вакансий,&nbsp;— ИИ покажет, что за&nbsp;неделю поменялось. Поодиночке такие микросигналы ничего не&nbsp;значат. Вместе они иногда складываются в&nbsp;стратегию, о&nbsp;которой конкурент ещё не&nbsp;объявил.</p>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-lg font-bold text-accent mb-2">Формирование гипотез</div>
+              <p class="text-sm leading-relaxed">Формально не&nbsp;анализ, но&nbsp;неожиданно полезно. Модель получает набор сигналов за&nbsp;квартал и&nbsp;предлагает: компания готовится к&nbsp;выходу в&nbsp;новый сегмент, перестраивает команду, сворачивает направление. Это догадка, а&nbsp;не&nbsp;вывод. Но&nbsp;одна удачная гипотеза экономит дни ручной работы.</p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <img src="/images/blog/12/matrix.webp" alt="Матрица распределения работы между ИИ и аналитиком по этапам OSINT-разведки: сбор, очистка, структурирование, сравнение, гипотезы, интерпретация, решение" class="w-full rounded-2xl object-cover" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Практические сценарии -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Практические сценарии</h2>
+          </div>
+
+          <div class="space-y-4 mb-6">
+            <p>Теория без задач остаётся теорией. Ниже&nbsp;— набор сценариев, где ИИ уже сейчас даёт измеримый эффект.</p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Сайт и&nbsp;публичные материалы конкурента</div>
+              <p class="text-sm leading-relaxed">Типовой запрос: «разберись, что компания X говорит о&nbsp;себе публично». ИИ-ассистент проходит по&nbsp;корпоративному сайту, блогу, разделу для инвесторов, партнёрским страницам, кейсам&nbsp;— и&nbsp;выдаёт позиционирование, целевые сегменты, заявленные продукты, отраслевые референсы, технологические упоминания, географию. Отдельно полезно просить модель зафиксировать разницу между маркетинговой декларацией и&nbsp;тем, что реально подтверждается кейсами. Нестыковки здесь&nbsp;— сами по&nbsp;себе ценный сигнал.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Вакансии, новости, тендеры, соцсети</div>
+              <p class="text-sm leading-relaxed">Вакансии&nbsp;— самый недооценённый источник. Из&nbsp;них восстанавливается технологический стек, приоритеты роста, география экспансии, иногда продуктовые планы. Тендеры и&nbsp;закупки в&nbsp;российском контексте&nbsp;— богатая и&nbsp;юридически чистая поляна: история участия восстанавливает клиентскую базу, типовые суммы контрактов, отраслевую специализацию. Соцсети и&nbsp;конференции дают срез публичной повестки; подкасты и&nbsp;YouTube-выступления модели сегодня неплохо расшифровывают и&nbsp;реферируют.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Продукт и&nbsp;технологический стек</div>
+              <p class="text-sm leading-relaxed">Регулярное сопоставление снимков продуктовых страниц, документации, публичных API, описаний в&nbsp;магазинах приложений&nbsp;— плюс пресс-релизы о&nbsp;релизах&nbsp;— даёт картину изменений продукта. Модель не&nbsp;просто показывает дифф, а&nbsp;интерпретирует: появилась функция X, исчезло упоминание сегмента Y, изменилась тарифная логика. Часть этих сигналов значимее, чем годовой отчёт о&nbsp;стратегии.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Партнёрства, подрядчики, экспансия</div>
+              <p class="text-sm leading-relaxed">Пресс-релизы о&nbsp;партнёрствах, совместные кейсы, упоминания на&nbsp;сайтах интеграторов и&nbsp;вендоров восстанавливают экосистему вокруг конкурента. ИИ агрегирует такие сигналы в&nbsp;карту связей: кто с&nbsp;кем работает, где общие клиенты, где компания опирается на&nbsp;подрядчиков, а&nbsp;где развивает собственную экспертизу. Такая карта часто объясняет больше, чем публичная стратегия.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Сильные и&nbsp;слабые стороны</div>
+              <p class="text-sm leading-relaxed">Когда сигналов накапливается достаточно, ИИ выдаёт черновик SWOT-подобного разбора. Повторяющиеся темы удачных кейсов, устойчивый найм, публичные признания&nbsp;— правдоподобные плюсы. Жалобы клиентов в&nbsp;открытых источниках, судебные разбирательства, уход ключевых людей, хронически не&nbsp;закрывающиеся вакансии&nbsp;— минусы. Ещё раз: черновик. Перечитывать обязательно.</p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <img src="/images/blog/12/footprint.webp" alt="Карта цифрового следа компании: сайт, вакансии, тендеры, пресс-релизы, патенты, соцсети, госреестры, репозитории, судебные дела" class="w-full rounded-2xl object-cover" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Где ИИ ломается -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Где ИИ ломается</h2>
+          </div>
+
+          <div class="space-y-4 mb-6">
+            <p>У&nbsp;языковых моделей есть родовая особенность, которую не&nbsp;исправить правильным промптом: они возвращают вероятностный текст, а&nbsp;не&nbsp;проверенную истину. В&nbsp;OSINT-задачах это проявляется в&nbsp;нескольких типичных неприятностях.</p>
+          </div>
+
+          <div class="space-y-3">
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 shrink-0 w-5 h-5 text-red-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </span>
+                <div>
+                  <div class="text-white font-bold text-sm mb-1">Галлюцинации с&nbsp;видом факта</div>
+                  <p class="text-sm leading-relaxed">Модель уверенно называет сумму сделки, дату назначения, технологию, которую компания якобы использует,&nbsp;— и&nbsp;всё это может оказаться склейкой из&nbsp;похожих контекстов. Особенно неприятны галлюцинации со&nbsp;ссылками на&nbsp;несуществующие источники: выглядит убедительно, а&nbsp;URL ведёт в&nbsp;никуда.</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 shrink-0 w-5 h-5 text-red-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </span>
+                <div>
+                  <div class="text-white font-bold text-sm mb-1">Сглаживание противоречий</div>
+                  <p class="text-sm leading-relaxed">Если два источника говорят разное&nbsp;— там и&nbsp;начинается настоящая аналитическая работа. Какой источник надёжнее? Что стоит за&nbsp;расхождением? Модель по&nbsp;умолчанию стремится выдать согласованный ответ и&nbsp;противоречия прячет. Отчёт выглядит стройно&nbsp;— ровно до&nbsp;того момента, как кто-то сверит его с&nbsp;первоисточниками.</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 shrink-0 w-5 h-5 text-red-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </span>
+                <div>
+                  <div class="text-white font-bold text-sm mb-1">Подтверждение ожиданий</div>
+                  <p class="text-sm leading-relaxed">Если в&nbsp;запрос зашита гипотеза, модель с&nbsp;высокой вероятностью найдёт ей&nbsp;«подтверждение» в&nbsp;тексте. Это делает ИИ плохим инструментом для проверки собственных идей и&nbsp;хорошим&nbsp;— для первичного сбора материала.</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 shrink-0 w-5 h-5 text-red-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </span>
+                <div>
+                  <div class="text-white font-bold text-sm mb-1">Устаревание</div>
+                  <p class="text-sm leading-relaxed">Модели без подключения к&nbsp;актуальным данным дают аккуратную, но&nbsp;вчерашнюю картину. Для OSINT, где важна именно свежесть, контур без интеграции с&nbsp;живыми источниками почти бесполезен.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <img src="/images/blog/12/fact-check.webp" alt="Цикл проверки факта в ИИ-разведке: утверждение модели, проверка первоисточника, сверка с независимым источником, фиксация в отчёте со ссылкой" class="w-full rounded-2xl object-cover" loading="lazy">
+          </div>
+
+          <div class="mt-6 p-5 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+            <p class="text-sm"><span class="text-yellow-400 font-semibold">Рабочий принцип. </span>Вывод не&nbsp;«не&nbsp;пользоваться», а&nbsp;«не&nbsp;пользоваться без контура проверки». Первоисточник должен оставаться проверяемым: каждое утверждение в&nbsp;итоговом отчёте&nbsp;— со&nbsp;ссылкой, каждая ключевая цифра&nbsp;— подтверждена человеком в&nbsp;оригинале. Без этого любая разведка с&nbsp;ИИ рано или поздно превращается в&nbsp;генератор правдоподобного вымысла.</p>
+          </div>
+        </div>
+
+        <!-- Риски и ограничения -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Риски и&nbsp;ограничения</h2>
+          </div>
+
+          <div class="space-y-4 mb-6">
+            <p>Помимо ошибок самой модели у&nbsp;автоматизированной конкурентной разведки есть ещё несколько родовых рисков, про которые в&nbsp;маркетинговых материалах обычно молчат.</p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Право</div>
+              <p class="text-sm leading-relaxed">Открытый доступ ещё не&nbsp;означает свободу действий. Пользовательские соглашения сайтов, требования закона о&nbsp;персональных данных, авторские права на&nbsp;публикации остаются в&nbsp;силе. В&nbsp;российской практике это в&nbsp;первую очередь 152-ФЗ и&nbsp;сопутствующие нормы: даже публично размещённое резюме&nbsp;— персональные данные, и&nbsp;массовая их&nbsp;агрегация несёт юридические риски. Парсинг в&nbsp;нарушение правил сервиса&nbsp;— отдельный сюжет, к&nbsp;которому стоит подходить так&nbsp;же внимательно, как к&nbsp;вопросу об&nbsp;авторском праве.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Этика</div>
+              <p class="text-sm leading-relaxed">Конкурентная разведка и&nbsp;промышленный шпионаж&nbsp;— разные вещи. Разница должна удерживаться не&nbsp;только юридически, но&nbsp;и&nbsp;культурно. Простое правило: если методику нельзя спокойно объяснить собственному юристу, клиенту и&nbsp;регулятору&nbsp;— её&nbsp;не&nbsp;надо применять. Публичные данные о&nbsp;сотрудниках конкурента тоже не&nbsp;повод для навязчивых коммуникаций или социальной инженерии.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Нерелевантный и&nbsp;чувствительный массив</div>
+              <p class="text-sm leading-relaxed">Автоматизация соблазняет собирать «всё». Резюме, личные посты, контакты, утечки&nbsp;— всё это легко оказывается в&nbsp;периметре, если заранее его не&nbsp;ограничить. Работающий способ&nbsp;— заранее описать конкретные источники и&nbsp;сущности, которые интересны, и&nbsp;не&nbsp;расширять периметр без явного повода. Иначе компания получает не&nbsp;разведку, а&nbsp;юридическую проблему с&nbsp;отложенным взрывом.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Иллюзия полноты</div>
+              <p class="text-sm leading-relaxed">OSINT видит только то, что конкурент показывает наружу. Существенная часть стратегии в&nbsp;открытые источники не&nbsp;попадает никогда. Самый опасный когнитивный эффект&nbsp;— когда объём собранных данных создаёт ощущение, что картина собрана. На&nbsp;практике слепая зона есть всегда. Любой вывод лучше формулировать с&nbsp;пометкой об&nbsp;этой зоне, а&nbsp;не&nbsp;скрывать её&nbsp;за&nbsp;стройностью отчёта.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="text-white font-bold mb-2">Переоценка точности</div>
+              <p class="text-sm leading-relaxed">Чем аккуратнее выглядит ответ модели, тем сильнее искушение принять его без проверки. Отчёты с&nbsp;графиками и&nbsp;стройной аргументацией вызывают больше доверия, чем заслуживают. Рабочая привычка&nbsp;— относиться к&nbsp;любому выходу модели как к&nbsp;материалу от&nbsp;стажёра: понятно, структурно, иногда талантливо, но&nbsp;перед передачей наверх обязательно перечитать.</p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <img src="/images/blog/12/legality.webp" alt="Шкала легальности OSINT-практик: от мониторинга пресс-релизов до работы с утечками и инсайдерами" class="w-full rounded-2xl object-cover" loading="lazy">
+          </div>
+        </div>
+
+        <!-- Как собрать рабочий контур -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Как собрать рабочий контур OSINT с&nbsp;ИИ</h2>
+          </div>
+
+          <div class="space-y-4 mb-6">
+            <p>Если спуститься с&nbsp;теории на&nbsp;землю и&nbsp;говорить о&nbsp;том, с&nbsp;чего разумно начинать, получается простая последовательность.</p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-3">
+                <span class="w-8 h-8 rounded-full bg-accent/20 text-accent font-bold text-sm flex items-center justify-center shrink-0">1</span>
+                <div>
+                  <div class="text-white font-bold mb-2">С&nbsp;чего начинать</div>
+                  <p class="text-sm leading-relaxed">Попытка «автоматизировать всю конкурентную разведку» на&nbsp;старте проваливается примерно всегда. Рабочая конфигурация пилота&nbsp;— один-два ключевых конкурента и&nbsp;два-три приоритетных источника. Например: вакансии, пресс-релизы и&nbsp;тендеры. На&nbsp;таком периметре за&nbsp;две-три недели собирается полный цикл&nbsp;— сбор, обработка, проверка, отчёт,&nbsp;— и&nbsp;становится видно, что модель делает хорошо, а&nbsp;где нужна ручная доводка.</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-3">
+                <span class="w-8 h-8 rounded-full bg-accent/20 text-accent font-bold text-sm flex items-center justify-center shrink-0">2</span>
+                <div>
+                  <div class="text-white font-bold mb-2">Что автоматизировать первым</div>
+                  <p class="text-sm leading-relaxed">Автоматизируется то, что регулярно повторяется и&nbsp;не&nbsp;требует интерпретации: сбор новых материалов, дедупликация, извлечение сущностей, сводки за&nbsp;период. Сравнения и&nbsp;дифф-отчёты&nbsp;— следующий слой, уже с&nbsp;аккуратной ручной проверкой. Стратегические выводы автоматизировать не&nbsp;надо. Попытки обычно заканчиваются красивой презентацией, которая при первом разборе начинает сыпаться.</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-3">
+                <span class="w-8 h-8 rounded-full bg-accent/20 text-accent font-bold text-sm flex items-center justify-center shrink-0">3</span>
+                <div>
+                  <div class="text-white font-bold mb-2">Закрытый контур&nbsp;— когда он&nbsp;нужен</div>
+                  <p class="text-sm leading-relaxed">Если запросы к&nbsp;модели содержат чувствительную для компании информацию&nbsp;— внутренние гипотезы о&nbsp;конкурентах, клиентские пересечения, инсайдерские наблюдения&nbsp;— отправлять это в&nbsp;публичное облако рискованно. Запросы сами по&nbsp;себе становятся утечкой: по&nbsp;ним видно, кого компания изучает и&nbsp;что ищет. Для таких сценариев используются LLM в&nbsp;закрытом контуре&nbsp;— on-premise или в&nbsp;частном облаке под контролем самой компании.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8">
+            <div class="text-white font-bold text-lg mb-4">KPI качества</div>
+            <p class="mb-5">Единой метрики, по&nbsp;которой можно сказать «контур работает», не&nbsp;существует. Но&nbsp;есть пять осей, которые вместе дают честную картину.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Покрытие</div>
+                <p class="text-sm leading-relaxed">Какая доля приоритетных источников реально мониторится. Если из&nbsp;заявленных шести работает два&nbsp;— это не&nbsp;контур, а&nbsp;декорация.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Время до&nbsp;сигнала</div>
+                <p class="text-sm leading-relaxed">Сколько проходит от&nbsp;появления события в&nbsp;открытых источниках до&nbsp;момента, когда оно появляется в&nbsp;ленте аналитика.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Точность сигналов</div>
+                <p class="text-sm leading-relaxed">Доля алертов, которые оказываются одновременно истинными и&nbsp;релевантными. Шумный алерт хуже пропущенного.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Верификация первоисточников</div>
+                <p class="text-sm leading-relaxed">Доля утверждений в&nbsp;итоговых отчётах, подтверждённых ссылкой на&nbsp;оригинал. Главная метрика зрелости контура.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10 md:col-span-2">
+                <div class="text-accent font-bold mb-2">Качество гипотез</div>
+                <p class="text-sm leading-relaxed">Сколько выдвинутых гипотез удалось подтвердить или опровергнуть в&nbsp;разумные сроки. Ни&nbsp;одна из&nbsp;этих осей по&nbsp;отдельности не&nbsp;говорит всей правды. Вместе они показывают, что именно происходит: контур помогает принимать решения&nbsp;— или генерирует аккуратный шум.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Вывод -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Вывод</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>ИИ действительно ускоряет и&nbsp;углубляет конкурентную разведку. OSINT, который ещё недавно упирался во&nbsp;внимание одного человека, становится управляемым процессом. Компании, которые собрали такой контур раньше конкурентов, получают преимущество просто за&nbsp;счёт того, что видят рынок чётче.</p>
+
+            <p>Но&nbsp;выигрыш в&nbsp;итоге достаётся не&nbsp;тем, кто подключил модель, а&nbsp;тем, кто выстроил вокруг неё методику. Что собираем. Где границы. Как проверяем. Кто отвечает за&nbsp;решение. Модель&nbsp;— сильный инструмент, но&nbsp;она не&nbsp;умеет за&nbsp;компанию решать, что с&nbsp;этой разведкой делать дальше. И&nbsp;в&nbsp;ближайшее время научится вряд&nbsp;ли.</p>
+          </div>
+
+          <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+            <p class="text-white font-medium text-lg leading-relaxed"><strong>AZONE&nbsp;AI</strong> помогает выстраивать работу с&nbsp;LLM там, где запросы и&nbsp;данные не&nbsp;должны покидать периметр компании: от&nbsp;контура конкурентной разведки на&nbsp;открытых данных до&nbsp;развёртывания моделей on-premise с&nbsp;учётом требований ФСТЭК и&nbsp;ФСБ. Если вы&nbsp;оцениваете, как собрать такой процесс у&nbsp;себя&nbsp;— <a href="/contact?product=other" class="text-accent hover:underline">оставьте заявку на&nbsp;консультацию</a>.</p>
+          </div>
+        </div>
+
+        <!-- Актуальность -->
+        <div class="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-blue-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <div>
+              <h3 class="text-white font-bold mb-2">Актуальность материала</h3>
+              <ul class="space-y-1.5 text-sm leading-relaxed">
+                <li>Материал подготовлен по&nbsp;состоянию на&nbsp;<strong class="text-white">апрель 2026&nbsp;года</strong>.</li>
+                <li>Упоминание требований 152-ФЗ и&nbsp;сопутствующих норм даётся в&nbsp;общем виде. Для конкретных сценариев обработки персональных данных рекомендуем отдельную юридическую оценку.</li>
+                <li>Рекомендации по&nbsp;архитектуре контура OSINT носят общий характер. Подбор источников, метрик и&nbsp;модели развёртывания зависит от&nbsp;отрасли, модели угроз и&nbsp;зрелости процессов компании.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Похожие статьи -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Похожие статьи</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <a href="/blog/11-prompt-perturbation-privacy-llm" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Безопасность</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Зашумить, чтобы защитить: можно ли маскировать персональные данные в запросах к нейросетям</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            10 мин
+          </span>
+        </a>
+        <a href="/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Регулирование</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">ИИ в информационной безопасности: 7 практических сценариев — SIEM, DLP, SOAR</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            12 мин
+          </span>
+        </a>
+        <a href="/blog/07-llm-closed-circuit-guide" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Как развернуть LLM в закрытом контуре: пошаговое руководство</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            10 мин
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <img src="/images/blog/12/funnel.webp" alt="Воронка OSINT с ИИ: от сырых источников к проверенному аналитическому выводу" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Соберите контур разведки <span class="text-gradient">под свой периметр</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За&nbsp;4–8&nbsp;недель мы&nbsp;спроектируем архитектуру OSINT с&nbsp;автоматической обработкой и&nbsp;обязательным контуром верификации&nbsp;— с&nbsp;возможностью развёртывания LLM on-premise, если данные не&nbsp;должны покидать инфраструктуру.</p>
+          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+</Base>

@@ -44,8 +44,9 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
         <!-- Form -->
         <div class="lg:col-span-8 glass-card p-8 md:p-10 glow-border">
           <form id="contactForm" class="space-y-6">
+            <!-- Honeypot: чекбокс вне экрана; боты отмечают, люди не видят — не в FormData если не отмечен -->
             <div style="position:absolute;left:-9999px;" aria-hidden="true">
-              <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+              <input type="checkbox" name="bot_trap" value="1" tabindex="-1" autocomplete="off" />
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
@@ -132,7 +133,13 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
-        const json = await res.json();
+        const raw = await res.text();
+        let json;
+        try {
+          json = raw ? JSON.parse(raw) : {};
+        } catch {
+          throw new Error('Сервер вернул неожиданный ответ. Попробуйте позже или напишите на order@azone-it.ru');
+        }
         if (res.ok && json.success) {
           status.style.color = '#06B6D4';
           status.textContent = '✅ Заявка отправлена! Мы свяжемся в течение 1 рабочего дня.';

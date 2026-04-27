@@ -8,7 +8,7 @@ const meta = {
   slug: 'ii-v-informacionnoy-bezopasnosti-7-scenariev',
   date: '2026-03-04',
   author: 'AZONE-AI',
-  image: '/images/blog/ai-ib-cover.webp',
+  image: '/images/blog/09/ai-ib-cover.webp',
   tags: ['ИИ в ИБ', 'SIEM', 'DLP', 'SOAR', 'SOC', 'UEBA', 'автоматизация ИБ', 'on-premise'],
 };
 
@@ -55,7 +55,7 @@ const scenarioDetails = [
     benefit: 'Аналитик тратит меньше времени на очевидный шум и получает предварительно обогащённый контекст. Время реакции на реальные угрозы сокращается. Меньше вероятность пропустить критичное событие, «утонувшее» в потоке low-severity алертов.',
     limitations: 'Качество модели напрямую зависит от качества исторических данных. Если инциденты исторически размечались небрежно, модель унаследует эти ошибки. Кроме того, модель не понимает бизнес-контекст, который известен только команде ИБ: например, что конкретный сервер на этой неделе участвует в миграции и его поведение ожидаемо аномально.',
     humanControl: 'Финальное решение об эскалации остаётся за аналитиком. Модель предлагает приоритет — человек его подтверждает, корректирует или отклоняет. Регулярный аудит решений модели необходим, чтобы отслеживать дрейф качества.',
-    image: '/images/blog/ai-ib-siem-funnel.webp',
+    image: '/images/blog/09/ai-ib-siem-funnel.webp',
     imageAlt: 'Схема ML-приоритизации алертов в SIEM',
     imageCaption: 'Воронка: поток событий → ML-фильтр → обогащённые алерты → аналитик SOC',
   },
@@ -84,7 +84,7 @@ const scenarioDetails = [
     benefit: 'Обнаружение угроз, которые невозможно поймать правилами. Раннее выявление компрометации учётных записей. Возможность приоритизировать расследования по risk score, а не по потоку однотипных алертов.',
     limitations: 'UEBA на основе ML генерирует собственные ложные срабатывания — особенно в период обучения и при изменениях в бизнес-процессах (реорганизация, смена проектов, сезонные пики). Модель может «привыкнуть» к постепенно нарастающей аномалии, если та развивается достаточно медленно. Кроме того, качество профилей критически зависит от полноты источников данных: если часть активности пользователя не попадает в модель, профиль будет неполным.',
     humanControl: 'Интерпретация аномалий. Высокий risk score — это повод для расследования, а не доказательство инцидента. Аналитик должен оценить контекст: может быть, сотрудник перешёл в другой отдел, или это штатная активность в рамках проекта. Регулярная калибровка порогов и пересмотр базовых профилей — тоже задача для людей.',
-    image: '/images/blog/ai-ib-ueba-radar.webp',
+    image: '/images/blog/09/ai-ib-ueba-radar.webp',
     imageAlt: 'UEBA-диаграмма: нормальный и аномальный профиль пользователя',
     imageCaption: 'Радарный график: нормальный профиль (синий) vs аномальное поведение (красный)',
   },
@@ -215,9 +215,9 @@ const faqItems = [
   },
 ];
 const relatedArticles = [
-  { title: "Реестр доверенных ИИ-моделей в России: что уже известно", href: "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026", category: "Регулирование", readTime: "12 мин" },
-  { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii", category: "Безопасность", readTime: "8 мин" },
-  { title: "Как развернуть LLM в закрытом контуре: пошаговое руководство", href: "/blog/07-llm-closed-circuit-guide", category: "Технологии", readTime: "10 мин" },
+  { title: "Реестр доверенных ИИ-моделей в России: что уже известно", href: "/blog/08-reestr-doverennyh-ii-modelej-rossiya-2026/", category: "Регулирование", readTime: "12 мин" },
+  { title: "Почему облачный ИИ не подходит для КИИ и объектов с гостайной", href: "/blog/01-cloud-ai-kii/", category: "Безопасность", readTime: "8 мин" },
+  { title: "Как развернуть LLM в закрытом контуре: пошаговое руководство", href: "/blog/07-llm-closed-circuit-guide/", category: "Технологии", readTime: "10 мин" },
 ];
 ---
 
@@ -281,7 +281,7 @@ const relatedArticles = [
 
         <!-- Обложка -->
         <div>
-          <img src="/images/blog/ai-ib-cover.webp" alt="ИИ в информационной безопасности: нейросетевой граф и щит — обложка статьи AZONE AI" class="w-full rounded-2xl object-cover" loading="eager" />
+          <img src="/images/blog/09/ai-ib-cover.webp" alt="ИИ в информационной безопасности: нейросетевой граф и щит — обложка статьи AZONE AI" class="w-full rounded-2xl object-cover" loading="eager" />
         </div>
 
         <!-- Почему сейчас -->
@@ -373,7 +373,7 @@ const relatedArticles = [
             <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
             <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Где нейросети полезны, а&nbsp;где их&nbsp;переоценивают</h2>
           </div>
-          <img src="/images/blog/ai-ib-human-ai.webp" alt="Распределение задач между ИИ и аналитиком в ИБ" class="w-full rounded-2xl object-cover" loading="lazy" />
+          <img src="/images/blog/09/ai-ib-human-ai.webp" alt="Распределение задач между ИИ и аналитиком в ИБ" class="w-full rounded-2xl object-cover" loading="lazy" />
           <p class="text-sm text-muted-foreground/60 text-center mt-3 mb-8 italic">ИИ + человек: распределение задач в&nbsp;ИБ</p>
           <div class="space-y-4">
             <p>ИИ полезен там, где есть большой объём однотипных задач, где важна скорость первичной обработки и где ошибка модели может быть быстро скорректирована человеком. Приоритизация алертов, triage, поведенческий анализ, суммаризация — всё это задачи, где ИИ даёт реальный выигрыш.</p>
@@ -413,7 +413,7 @@ const relatedArticles = [
               </div>
             ))}
           </div>
-          <img src="/images/blog/ai-ib-checklist.webp" alt="Чеклист: 6 принципов внедрения ИИ в ИБ" class="w-full rounded-2xl object-cover mt-6" loading="lazy" />
+          <img src="/images/blog/09/ai-ib-checklist.webp" alt="Чеклист: 6 принципов внедрения ИИ в ИБ" class="w-full rounded-2xl object-cover mt-6" loading="lazy" />
           <p class="text-sm text-muted-foreground/60 text-center mt-3 mb-2 italic">Чеклист внедрения&nbsp;— можно сохранить и&nbsp;переслать коллегам</p>
         </div>
 
@@ -462,7 +462,7 @@ const relatedArticles = [
         <div class="relative p-10 md:p-16 text-center">
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы внедрим ИИ-решение для вашего SOC на вашей инфраструктуре.</p>
-          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>

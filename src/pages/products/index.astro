@@ -4,23 +4,23 @@ import { products } from '../../data/products.js';
 
 const productResources = {
   contentguard: {
-    blogHref: '/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev',
+    blogHref: '/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev/',
     blogLabel: 'Статья: ИИ в информационной безопасности',
   },
   azonedoc: {
-    blogHref: '/blog/03-azonedoc-case',
+    blogHref: '/blog/03-azonedoc-case/',
     blogLabel: 'Кейс: как ИИ ускоряет поиск документов',
   },
   constructioneye: {
-    blogHref: '/blog/04-construction-eye',
+    blogHref: '/blog/04-construction-eye/',
     blogLabel: 'Статья: AI в строительстве',
   },
   predictmaintain: {
-    blogHref: '/blog/05-predict-maintain',
+    blogHref: '/blog/05-predict-maintain/',
     blogLabel: 'Статья: предиктивная аналитика оборудования',
   },
   contractguard: {
-    blogHref: '/blog/10-sravnenie-llm',
+    blogHref: '/blog/10-sravnenie-llm/',
     blogLabel: 'Материал: как выбирать LLM для корпоративных задач',
   },
 };
@@ -29,27 +29,27 @@ const faqItems = [
   {
     q: 'Можно ли развернуть решения AZONE-AI полностью в закрытом контуре?',
     a: 'Да. Ключевой сценарий AZONE-AI — on-premise или развёртывание в изолированном контуре заказчика без передачи данных во внешние облачные сервисы.',
-    blogHref: '/blog/07-llm-closed-circuit-guide',
+    blogHref: '/blog/07-llm-closed-circuit-guide/',
     blogLabel: 'Подробнее о развёртывании LLM в закрытом контуре',
   },
   {
     q: 'Поставляются ли продукты как ПАК или только как программное обеспечение?',
     a: 'Возможны оба варианта: поставка программного обеспечения, развёртывание в виртуальной среде заказчика или поставка ПАК с GPU под конкретную задачу и нагрузку.',
-    contactHref: '/contact?product=other',
+    contactHref: '/contact/?product=other',
     contactLabel: 'Запросить формат поставки под ваш сценарий',
   },
   {
     q: 'С какими системами интегрируются решения?',
     a: 'В зависимости от сценария решения могут интегрироваться с 1С, SAP, Directum, ELMA, SCADA, архивами документов, видеопотоками и внутренними корпоративными сервисами.',
-    contactHref: '/contact?product=other',
+    contactHref: '/contact/?product=other',
     contactLabel: 'Обсудить интеграцию с вашей инфраструктурой',
   },
   {
     q: 'Можно ли начать не с полного внедрения, а с пилота?',
     a: 'Да. Для большинства сценариев оптимальный формат старта — пилотный проект на 4–8 недель, который позволяет проверить эффект на ваших данных и инфраструктуре.',
-    blogHref: '/blog/10-sravnenie-llm',
+    blogHref: '/blog/10-sravnenie-llm/',
     blogLabel: 'Посмотреть пример логики выбора и пилота',
-    contactHref: '/contact?product=other',
+    contactHref: '/contact/?product=other',
     contactLabel: 'Запросить пилотный проект',
   },
 ];
@@ -127,7 +127,7 @@ const faqItems = [
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <div class="glass-card p-8 h-full flex flex-col group hover:-translate-y-2 glow-border">
-            <a href={`/products/${product.id}`} class="block">
+            <a href={`/products/${product.id}/`} class="block">
               <div class="flex justify-between items-start mb-6">
                 <div
                   class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors text-accent"
@@ -165,13 +165,13 @@ const faqItems = [
             </a>
 
             <div class="mt-6 pt-5 border-t border-white/10 space-y-3">
-              <a href={`/products/${product.id}`} class="block text-sm font-medium text-white hover:text-accent transition-colors">
+              <a href={`/products/${product.id}/`} class="block text-sm font-medium text-white hover:text-accent transition-colors">
                 Перейти на страницу продукта
               </a>
               <a href={productResources[product.id]?.blogHref} class="block text-sm text-muted-foreground hover:text-white transition-colors">
                 {productResources[product.id]?.blogLabel}
               </a>
-              <a href={`/contact?product=${product.id}`} class="inline-flex items-center gap-2 text-sm text-accent hover:underline">
+              <a href={`/contact/?product=${product.id}`} class="inline-flex items-center gap-2 text-sm text-accent hover:underline">
                 Обсудить этот продукт
               </a>
             </div>
@@ -231,7 +231,7 @@ const faqItems = [
             Если вы выбираете между несколькими продуктами или хотите обсудить пилот в закрытом контуре,
             мы поможем определить архитектуру, формат поставки и объём работ.
           </p>
-          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>

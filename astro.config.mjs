@@ -5,6 +5,7 @@ import tailwind from '@astrojs/tailwind';
 export default defineConfig({
   site: 'https://azoneai.ru',
   output: 'static',
+  trailingSlash: 'always',
   integrations: [tailwind({ applyBaseStyles: false }), sitemap()],
   build: { format: 'directory' },
 });

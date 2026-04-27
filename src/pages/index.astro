@@ -24,9 +24,9 @@ import { products } from '../data/products.js';
           Внедряем нейросети и LLM on-premise. Данные не покидают вашу инфраструктуру. Лицензии ФСТЭК, ФСБ, МО РФ.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
-          <a href="/contact" class="premium-btn w-full sm:w-auto text-lg">Обсудить проект</a>
+          <a href="/contact/" class="premium-btn w-full sm:w-auto text-lg">Обсудить проект</a>
           <a href="#products" class="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-center text-lg">Смотреть продукты</a>
-          <a href="/AZONE_AI_presentation.pdf" download="AZONE_AI_presentation.pdf" onclick="if(typeof ym!=='undefined')ym(108466305,'reachGoal','pdf_download')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+          <a href="/AZONE_AI_presentation.pdf" download="AZONE_AI_presentation.pdf" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Скачать презентацию
           </a>
@@ -79,7 +79,7 @@ import { products } from '../data/products.js';
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <a href={`/products/${product.id}`} class="block">
+          <a href={`/products/${product.id}/`} class="block">
             <div class="glass-card p-8 h-full flex flex-col group cursor-pointer hover:-translate-y-2 glow-border">
               <div class="flex justify-between items-start mb-6">
                 <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors text-accent" set:html={product.iconSvg}></div>
@@ -157,7 +157,7 @@ import { products } from '../data/products.js';
             ))}
           </ul>
           <div class="mt-12">
-            <a href="/about" class="text-accent hover:text-white transition-colors font-medium flex items-center gap-2">
+            <a href="/about/" class="text-accent hover:text-white transition-colors font-medium flex items-center gap-2">
               Узнать больше о компании <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
           </div>
@@ -188,8 +188,8 @@ import { products } from '../data/products.js';
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре. Фиксированный результат, один подрядчик, один контракт.</p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
-            <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4 inline-flex items-center gap-2">Обсудить пилот</a>
-            <a href="/AZONE_AI_presentation.pdf" download onclick="if(typeof ym!=='undefined')ym(108466305,'reachGoal','pdf_download')" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+            <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4 inline-flex items-center gap-2">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Скачать презентацию
             </a>

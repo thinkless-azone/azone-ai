@@ -5,60 +5,60 @@ import { products } from '../../data/products.js';
 const productMaterials = {
   contentguard: [
     {
-      href: '/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev',
+      href: '/blog/09-ii-v-informacionnoy-bezopasnosti-7-scenariev/',
       title: 'ИИ в информационной безопасности: 7 практических сценариев',
       desc: 'Практические сценарии применения ИИ в SOC, SIEM, DLP и смежных ИБ-процессах.',
     },
     {
-      href: '/blog/01-cloud-ai-kii',
+      href: '/blog/01-cloud-ai-kii/',
       title: 'Почему облачный ИИ не подходит для КИИ и объектов с гостайной',
       desc: 'Разбор ограничений облачного AI для чувствительных инфраструктур и regulated-сред.',
     },
   ],
   azonedoc: [
     {
-      href: '/blog/03-azonedoc-case',
+      href: '/blog/03-azonedoc-case/',
       title: 'Как ИИ сокращает время поиска документов с часов до минут',
       desc: 'Кейс внедрения интеллектуального архива и семантического поиска по документам.',
     },
     {
-      href: '/blog/10-sravnenie-llm',
+      href: '/blog/10-sravnenie-llm/',
       title: 'Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы',
       desc: 'Как выбирать корпоративную LLM для RAG, документооборота и аналитики.',
     },
   ],
   constructioneye: [
     {
-      href: '/blog/04-construction-eye',
+      href: '/blog/04-construction-eye/',
       title: 'AI в строительстве: видеоаналитика для контроля безопасности',
       desc: 'Как компьютерное зрение помогает контролировать ТБ, СИЗ и ход работ на объекте.',
     },
     {
-      href: '/blog/01-cloud-ai-kii',
+      href: '/blog/01-cloud-ai-kii/',
       title: 'Почему облачный ИИ не подходит для КИИ и объектов с гостайной',
       desc: 'Почему edge/on-premise подход критичен для объектов с повышенными требованиями к безопасности.',
     },
   ],
   predictmaintain: [
     {
-      href: '/blog/05-predict-maintain',
+      href: '/blog/05-predict-maintain/',
       title: 'Предиктивная аналитика: предотвращение аварий до их возникновения',
       desc: 'Разбор сценариев ML для телеметрии, оборудования и промышленной инфраструктуры.',
     },
     {
-      href: '/blog/01-cloud-ai-kii',
+      href: '/blog/01-cloud-ai-kii/',
       title: 'Почему облачный ИИ не подходит для КИИ и объектов с гостайной',
       desc: 'Как требования к ИБ и локализации данных влияют на архитектуру промышленного AI.',
     },
   ],
   contractguard: [
     {
-      href: '/blog/10-sravnenie-llm',
+      href: '/blog/10-sravnenie-llm/',
       title: 'Сравнение отечественных LLM: YandexGPT, GigaChat и альтернативы',
       desc: 'Как подобрать модель для анализа документов, договоров и корпоративных знаний.',
     },
     {
-      href: '/blog/07-llm-closed-circuit-guide',
+      href: '/blog/07-llm-closed-circuit-guide/',
       title: 'Как развернуть LLM в закрытом контуре: пошаговое руководство',
       desc: 'Практический гид по выбору стека, железа и архитектуры для on-premise LLM.',
     },
@@ -109,7 +109,7 @@ const relatedMaterials = productMaterials[product.id] || [];
           </div>
           <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6">{product.name}</h1>
           <p class="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-8">{product.shortDesc}</p>
-          <a href={`/contact?product=${encodeURIComponent(product.name)}`} class="premium-btn">Обсудить внедрение</a>
+          <a href={`/contact/?product=${encodeURIComponent(product.name)}`} class="premium-btn">Обсудить внедрение</a>
         </div>
         <div class="glass-card p-8 relative overflow-hidden animate-fade-up animate-delay-200">
           <h3 class="text-2xl font-bold text-white mb-6 relative z-10">Что делает</h3>
@@ -191,7 +191,7 @@ const relatedMaterials = productMaterials[product.id] || [];
         <div class="relative p-10 md:p-16 text-center">
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
-          <a href="/contact?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>

@@ -14,9 +14,9 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL
 ---
 
 <form id="contact-form" class="space-y-6" novalidate>
-  <!-- Honeypot (антиспам, скрытое поле) -->
+  <!-- Honeypot: скрытый чекбокс; не попадает в FormData, пока не отмечен -->
   <div style="position: absolute; left: -9999px;" aria-hidden="true">
-    <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+    <input type="checkbox" name="bot_trap" value="1" tabindex="-1" autocomplete="off" />
   </div>
 
   <!-- Имя -->
