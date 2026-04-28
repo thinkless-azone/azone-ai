@@ -60,30 +60,7 @@ const faqItems = [
 ];
 ---
 
-<Base title={meta.title} description={meta.description}>
-
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": meta.title,
-    "description": meta.description,
-    "image": `https://azoneai.ru${meta.image}`,
-    "datePublished": meta.date,
-    "author": { "@type": "Organization", "name": "AZONE AI", "url": "https://azoneai.ru" },
-    "publisher": { "@type": "Organization", "name": "AZONE AI", "url": "https://azoneai.ru" },
-  })} />
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": faqItems.map((item) => ({
-      "@type": "Question",
-      "name": item.q,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": item.a,
-      },
-    })),
-  })} />
+<Base title={meta.title} description={meta.description} articleDate={meta.date} image={meta.image}>
 
   <!-- HERO -->
   <section class="relative pt-28 pb-16 overflow-hidden">

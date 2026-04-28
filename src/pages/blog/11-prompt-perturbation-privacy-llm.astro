@@ -6,33 +6,12 @@ const description = 'Как маскировать персональные да
 const publishDate = '2026-04-13';
 const readTime = '10 мин';
 const tags = ['Privacy', 'LLM', 'ПДн', 'InferDPT', 'on-premise', 'комплаенс', 'безопасность данных'];
-const slug = '11-prompt-perturbation-privacy-llm';
-
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Защита персональных данных в нейросетях: зашумление промптов и его пределы",
-  "description": description,
-  "image": "https://azoneai.ru/images/logo.png",
-  "datePublished": publishDate,
-  "author": {
-    "@type": "Organization",
-    "name": "AZONE AI",
-    "url": "https://azoneai.ru"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "AZONE AI",
-    "url": "https://azoneai.ru"
-  }
-};
+const coverImage = '/images/blog/11/cover.webp';
 ---
 
-<Base title={title} description={description}>
+<Base title={title} description={description} articleDate={publishDate} image={coverImage}>
 
   <main class="flex-grow">
-
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 
   <!-- Hero -->
   <section class="relative pt-28 pb-16 overflow-hidden">

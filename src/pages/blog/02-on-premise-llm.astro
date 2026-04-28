@@ -36,20 +36,6 @@ const faqItems = [
 ];
 ---
 <Base title="On-premise LLM: как развернуть языковую модель внутри периметра" description="Технический гайд по выбору open-source моделей, требованиям к железу (GPU) и процессу тонкой настройки (fine-tuning) на корпоративных данных." articleDate="2025-09-28">
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": faqItems.map((item) => ({
-      "@type": "Question",
-      "name": item.q,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": item.a,
-      },
-    })),
-  })} />
-
-
       <section class="relative pt-28 pb-16 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -74,10 +74,6 @@ const articleJsonLd = articleDate ? {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" /></noscript>
   <link rel="preconnect" href="https://mc.yandex.ru" />
   <link rel="dns-prefetch" href="https://mc.yandex.ru" />
   <title>{fullTitle}</title>
@@ -141,11 +137,11 @@ const articleJsonLd = articleDate ? {
 
         <nav class="hidden md:flex items-center gap-8">
           <a href="/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/" ? "text-white" : "text-muted-foreground"]}>Главная</a>
-          <a href="/products" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/products") ? "text-white" : "text-muted-foreground"]}>Продукты</a>
-          <a href="/about" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/about/" ? "text-white" : "text-muted-foreground"]}>О компании</a>
-          <a href="/blog" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/blog") ? "text-white" : "text-muted-foreground"]}>Блог</a>
-          <a href="/search" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/search") ? "text-white" : "text-muted-foreground"]}>Поиск</a>
-          <a href="/contact" class="premium-btn py-2 px-5 text-sm">Обсудить проект</a>
+          <a href="/products/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/products") ? "text-white" : "text-muted-foreground"]}>Продукты</a>
+          <a href="/about/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/about/" ? "text-white" : "text-muted-foreground"]}>О компании</a>
+          <a href="/blog/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/blog") ? "text-white" : "text-muted-foreground"]}>Блог</a>
+          <a href="/search/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/search") ? "text-white" : "text-muted-foreground"]}>Поиск</a>
+          <a href="/contact/" class="premium-btn py-2 px-5 text-sm">Обсудить проект</a>
         </nav>
 
         <button id="burger" class="md:hidden text-white p-2" aria-label="Меню">
@@ -157,11 +153,11 @@ const articleJsonLd = articleDate ? {
     <div id="mobileMenu" class="hidden md:hidden bg-background border-b border-white/10">
       <div class="px-4 pt-2 pb-6 space-y-4 flex flex-col">
         <a href="/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Главная</a>
-        <a href="/products" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Продукты</a>
-        <a href="/about" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">О компании</a>
-        <a href="/blog" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Блог</a>
-        <a href="/search" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Поиск</a>
-        <a href="/contact" class="w-full text-center premium-btn py-3 mt-4">Обсудить проект</a>
+        <a href="/products/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Продукты</a>
+        <a href="/about/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">О компании</a>
+        <a href="/blog/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Блог</a>
+        <a href="/search/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Поиск</a>
+        <a href="/contact/" class="w-full text-center premium-btn py-3 mt-4">Обсудить проект</a>
       </div>
     </div>
   </header>
@@ -187,19 +183,19 @@ const articleJsonLd = articleDate ? {
         <div>
           <h4 class="text-white font-semibold mb-6">Продукты</h4>
           <ul class="space-y-3 text-sm text-muted-foreground">
-            <li><a href="/products/contentguard" class="hover:text-primary transition-colors">ContentGuard</a></li>
-            <li><a href="/products/azonedoc" class="hover:text-primary transition-colors">AzoneDoc</a></li>
-            <li><a href="/products/constructioneye" class="hover:text-primary transition-colors">ConstructionEye</a></li>
-            <li><a href="/products/predictmaintain" class="hover:text-primary transition-colors">PredictMaintain</a></li>
-            <li><a href="/products/contractguard" class="hover:text-primary transition-colors">ContractGuard</a></li>
+            <li><a href="/products/contentguard/" class="hover:text-primary transition-colors">ContentGuard</a></li>
+            <li><a href="/products/azonedoc/" class="hover:text-primary transition-colors">AzoneDoc</a></li>
+            <li><a href="/products/constructioneye/" class="hover:text-primary transition-colors">ConstructionEye</a></li>
+            <li><a href="/products/predictmaintain/" class="hover:text-primary transition-colors">PredictMaintain</a></li>
+            <li><a href="/products/contractguard/" class="hover:text-primary transition-colors">ContractGuard</a></li>
           </ul>
         </div>
         <div>
           <h4 class="text-white font-semibold mb-6">Компания</h4>
           <ul class="space-y-3 text-sm text-muted-foreground">
-            <li><a href="/about" class="hover:text-primary transition-colors">О нас</a></li>
-            <li><a href="/blog" class="hover:text-primary transition-colors">Блог и материалы</a></li>
-            <li><a href="/contact" class="hover:text-primary transition-colors">Контакты</a></li>
+            <li><a href="/about/" class="hover:text-primary transition-colors">О нас</a></li>
+            <li><a href="/blog/" class="hover:text-primary transition-colors">Блог и материалы</a></li>
+            <li><a href="/contact/" class="hover:text-primary transition-colors">Контакты</a></li>
           </ul>
         </div>
         <div>
@@ -223,8 +219,8 @@ const articleJsonLd = articleDate ? {
       <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <p class="text-sm text-muted-foreground">© 2026 AZONE-AI. Все права защищены.</p>
         <div class="flex gap-6 text-sm text-muted-foreground">
-          <a href="/privacy" class="hover:text-white transition-colors">Политика конфиденциальности</a>
-          <a href="/terms" class="hover:text-white transition-colors">Пользовательское соглашение</a>
+          <a href="/privacy/" class="hover:text-white transition-colors">Политика конфиденциальности</a>
+          <a href="/terms/" class="hover:text-white transition-colors">Пользовательское соглашение</a>
         </div>
       </div>
     </div>
