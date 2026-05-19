@@ -15,10 +15,12 @@
     "dev": "astro dev",
     "build": "astro build && node scripts/add-sitemap-lastmod.mjs && pagefind --site dist",
     "preview": "astro preview",
-    "deploy": "npm run build && aws s3 sync dist/ s3://azoneai.ru --endpoint-url=https://storage.yandexcloud.net --profile yc --delete",
-    "deploy:only": "aws s3 sync dist/ s3://azoneai.ru --endpoint-url=https://storage.yandexcloud.net --profile yc --delete"
+    "deploy": "npm run build && node scripts/deploy-s3.mjs",
+    "deploy:only": "node scripts/deploy-s3.mjs"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.750.0",
+    "@aws-sdk/credential-providers": "^3.750.0",
     "pagefind": "^1.5.0"
   }
 }

@@ -1,0 +1,206 @@
+---
+import { faqCategories } from '../data/faq.js';
+---
+
+<section id="faq" class="py-24 bg-black/20 border-y border-white/5">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-4">Часто задаваемые вопросы</h2>
+      <p class="text-lg text-muted-foreground">
+        Ответы на главные вопросы о внедрении корпоративного ИИ, безопасности и стоимости.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[300px,1fr] gap-8 lg:gap-10">
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div class="glass-card p-3">
+          <div class="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+            {faqCategories.map((category, index) => (
+              <button
+                type="button"
+                class:list={[
+                  'faq-category-btn text-left whitespace-nowrap lg:whitespace-normal rounded-xl px-4 py-3 text-sm md:text-base transition-colors border border-transparent',
+                  index === 0
+                    ? 'bg-primary/15 text-white border-primary/40'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/50',
+                ]}
+                data-faq-category={category.id}
+                aria-selected={index === 0 ? 'true' : 'false'}
+              >
+                {category.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      <div>
+        {faqCategories.map((category, categoryIndex) => (
+          <div
+            class:list={['faq-panel space-y-3', categoryIndex === 0 ? 'block' : 'hidden']}
+            data-faq-panel={category.id}
+          >
+            {category.items.map((item, itemIndex) => {
+              const answerId = `faq-answer-${category.id}-${itemIndex}`;
+              const isOpenByDefault = itemIndex === 0;
+              return (
+                <article class="group rounded-2xl border border-slate-800 bg-slate-900/30 transition-colors hover:bg-slate-800/50">
+                  <button
+                    type="button"
+                    class="faq-trigger flex w-full items-start justify-between gap-4 px-5 py-4 text-left md:px-6 md:py-5"
+                    data-faq-trigger
+                    aria-expanded={isOpenByDefault ? 'true' : 'false'}
+                    aria-controls={answerId}
+                  >
+                    <span class="text-base md:text-lg font-medium text-slate-100">{item.question}</span>
+                    <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-700 text-slate-300 transition-colors group-hover:border-slate-500 group-hover:text-white">
+                      <svg
+                        class:list={['faq-icon h-3.5 w-3.5 transition-transform duration-300', isOpenByDefault ? 'rotate-180' : 'rotate-0']}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </span>
+                  </button>
+                  <div
+                    id={answerId}
+                    class:list={[
+                      'faq-answer overflow-hidden px-5 md:px-6 transition-[max-height,opacity] duration-300 ease-out',
+                      isOpenByDefault ? 'opacity-100 pb-5 md:pb-6' : 'opacity-0',
+                    ]}
+                    data-faq-answer
+                    style={isOpenByDefault ? 'max-height: 0px;' : 'max-height: 0px;'}
+                  >
+                    <p class="text-sm md:text-base text-slate-400 leading-relaxed">{item.answer}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-12">
+      <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-8 md:p-10">
+        <div class="absolute -top-20 right-0 h-56 w-56 rounded-full bg-primary/20 blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-20 left-10 h-56 w-56 rounded-full bg-accent/10 blur-3xl pointer-events-none"></div>
+        <div class="relative">
+          <h3 class="text-2xl md:text-3xl font-heading font-bold text-white mb-4">Готовы обсудить ваш проект?</h3>
+          <p class="text-slate-300 max-w-3xl mb-6 leading-relaxed">
+            Скачайте наш опросник для предварительной оценки ИИ-проекта. Заполните его, и мы подготовим расчёт стоимости и архитектуры для вашей задачи.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <a
+              href="/oprosnik_azoneai.pdf"
+              download
+              class="premium-btn inline-flex items-center justify-center gap-2 text-base"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Скачать опросник
+            </a>
+            <a
+              href="https://azoneai.ru/contact/"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3 font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              Обсудить проект
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const categoryButtons = Array.from(document.querySelectorAll('[data-faq-category]'));
+  const categoryPanels = Array.from(document.querySelectorAll('[data-faq-panel]'));
+
+  const openAnswer = (answerEl, triggerEl) => {
+    const icon = triggerEl.querySelector('.faq-icon');
+    triggerEl.setAttribute('aria-expanded', 'true');
+    icon?.classList.add('rotate-180');
+    icon?.classList.remove('rotate-0');
+    answerEl.classList.remove('opacity-0');
+    answerEl.classList.add('opacity-100', 'pb-5', 'md:pb-6');
+    answerEl.style.maxHeight = `${answerEl.scrollHeight + 8}px`;
+  };
+
+  const closeAnswer = (answerEl, triggerEl) => {
+    const icon = triggerEl.querySelector('.faq-icon');
+    triggerEl.setAttribute('aria-expanded', 'false');
+    icon?.classList.remove('rotate-180');
+    icon?.classList.add('rotate-0');
+    answerEl.classList.remove('opacity-100', 'pb-5', 'md:pb-6');
+    answerEl.classList.add('opacity-0');
+    answerEl.style.maxHeight = '0px';
+  };
+
+  const bindAccordion = (panel) => {
+    const triggers = Array.from(panel.querySelectorAll('[data-faq-trigger]'));
+    triggers.forEach((trigger) => {
+      const answer = panel.querySelector(`#${trigger.getAttribute('aria-controls')}`);
+      if (!(answer instanceof HTMLElement)) return;
+
+      if (trigger.getAttribute('aria-expanded') === 'true') {
+        openAnswer(answer, trigger);
+      } else {
+        closeAnswer(answer, trigger);
+      }
+
+      trigger.addEventListener('click', () => {
+        const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+        triggers.forEach((otherTrigger) => {
+          if (otherTrigger === trigger) return;
+          const otherAnswer = panel.querySelector(`#${otherTrigger.getAttribute('aria-controls')}`);
+          if (!(otherAnswer instanceof HTMLElement)) return;
+          closeAnswer(otherAnswer, otherTrigger);
+        });
+
+        if (isOpen) {
+          closeAnswer(answer, trigger);
+        } else {
+          openAnswer(answer, trigger);
+        }
+      });
+    });
+  };
+
+  categoryPanels.forEach((panel) => bindAccordion(panel));
+
+  const setActiveCategory = (categoryId) => {
+    categoryButtons.forEach((button) => {
+      const isActive = button.getAttribute('data-faq-category') === categoryId;
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      button.classList.toggle('bg-primary/15', isActive);
+      button.classList.toggle('text-white', isActive);
+      button.classList.toggle('border-primary/40', isActive);
+      button.classList.toggle('text-slate-300', !isActive);
+    });
+
+    categoryPanels.forEach((panel) => {
+      const isActive = panel.getAttribute('data-faq-panel') === categoryId;
+      panel.classList.toggle('hidden', !isActive);
+      panel.classList.toggle('block', isActive);
+    });
+  };
+
+  categoryButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const categoryId = button.getAttribute('data-faq-category');
+      if (!categoryId) return;
+      setActiveCategory(categoryId);
+    });
+  });
+</script>

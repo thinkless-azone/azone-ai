@@ -1,182 +1,171 @@
-# AZONE AI Site
+# AZONE-AI — сайт `azoneai.ru`
 
-Маркетинговый сайт AZONE AI на `Astro` с блогом, страницами продуктов, поиском (`Pagefind`) и формой обратной связи через Yandex Cloud Function.
+Маркетинговый сайт на `Astro 5` с продуктовыми лендингами, блогом, полнотекстовым поиском (`Pagefind`) и контактной формой через `Yandex Cloud Function`.
 
-## Технологии
+## Архитектура
 
-- `Astro`
-- `Tailwind CSS`
-- `Pagefind`
-- `Nodemailer` (в облачной функции отправки почты)
+- **Frontend**: статическая генерация (`Astro`, `output: static`, `trailingSlash: always`).
+- **Хостинг**: `Yandex Object Storage` (бакет `s3://azoneai.ru`) через S3-совместимый API.
+- **Форма заявок**: клиентский `POST` на `PUBLIC_CONTACT_FUNCTION_URL`.
+- **Backend формы**: `cloud-function-email/index.js` (Node.js + `nodemailer`) с CORS и валидацией.
+- **Поиск**: индекс `Pagefind` генерируется при `npm run build`, UI на странице `/search/`.
+- **Аналитика**: Яндекс.Метрика (ID из `PUBLIC_YANDEX_METRIKA_ID` + дополнительный счетчик в `Base.astro`).
+
+## Технологический стек
+
+- `astro` + `@astrojs/tailwind` + `@astrojs/sitemap`
+- `tailwindcss`
+- `pagefind`
+- `@aws-sdk/client-s3`, `@aws-sdk/credential-providers` (кастомный деплой)
+- `nodemailer` (в Cloud Function)
+
+## Актуальная структура проекта
+
+```text
+azoneai/
+  src/
+    layouts/
+      Base.astro
+    pages/
+      index.astro
+      about.astro
+      contact.astro
+      search.astro
+      privacy.astro
+      terms.astro
+      404.astro
+      blog/
+        index.astro
+        *.astro
+      products/
+        index.astro
+        [id].astro
+    components/
+      *.astro
+    data/
+      products.js
+      faq.js
+    styles/
+      global.css
+  public/
+    images/
+    favicon*
+    robots.txt
+    AZONE_AI_presentation.pdf
+    oprosnik_azoneai.pdf
+  scripts/
+    add-sitemap-lastmod.mjs
+    deploy-s3.mjs
+  cloud-function-email/
+    index.js
+    package.json
+    .env.example
+  astro.config.mjs
+  tailwind.config.mjs
+  package.json
+```
 
 ## Требования
 
 - `Node.js 20+`
 - `npm`
-- `AWS CLI` (для деплоя в Yandex Object Storage)
-- профиль `yc` в AWS CLI
+- доступ к Yandex Cloud Object Storage (через S3 API-ключи или профиль AWS credentials)
 
 ## Быстрый старт
 
-1. Установить зависимости:
+1) Установить зависимости:
 
 ```bash
 npm install
 ```
 
-2. Создать локальные переменные окружения:
+2) Создать локальный `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Запустить dev-сервер:
+3) Запустить локально:
 
 ```bash
 npm run dev
 ```
 
-## Переменные окружения сайта
+Сайт поднимется на `http://localhost:4321`.
 
-Файл: `.env`
+## Переменные окружения сайта (`.env`)
 
-- `PUBLIC_CONTACT_FUNCTION_URL` — URL облачной функции для формы контактов
-- `PUBLIC_YANDEX_METRIKA_ID` — ID счетчика Яндекс Метрики
+- `PUBLIC_CONTACT_FUNCTION_URL` — URL Yandex Cloud Function для отправки формы.
+- `PUBLIC_YANDEX_METRIKA_ID` — основной ID счетчика Метрики.
+- `AWS_ACCESS_KEY_ID` — ключ для деплоя в Object Storage (опционально, если не используете профиль).
+- `AWS_SECRET_ACCESS_KEY` — секрет для деплоя в Object Storage (опционально, если не используете профиль).
+- `AWS_REGION` — по умолчанию `ru-central1`.
+- `AWS_PROFILE` — по умолчанию `yc`.
+- `S3_BUCKET` — по умолчанию `azoneai.ru`.
+- `S3_ENDPOINT` — по умолчанию `https://storage.yandexcloud.net`.
 
-## Скрипты
+## NPM-скрипты
 
-- `npm run dev` — локальная разработка
-- `npm run build` — production-сборка + постобработка sitemap + индекс поиска
-- `npm run preview` — предпросмотр production-сборки
-- `npm run deploy` — сборка и загрузка `dist/` в бакет `s3://azoneai.ru`
-- `npm run deploy:only` — только загрузка уже собранного `dist/`
+- `npm run dev` — dev-сервер.
+- `npm run build` — сборка `dist/` + `lastmod` в sitemap + индексация `Pagefind`.
+- `npm run preview` — локальный просмотр production-сборки.
+- `npm run deploy` — `build` + загрузка `dist/` в Object Storage.
+- `npm run deploy:only` — только загрузка уже собранного `dist/`.
 
-## Деплой
+## Деплой в Yandex Cloud
 
-Проект деплоится как статический сайт в Yandex Object Storage:
+Базовый путь:
 
 ```bash
 npm run deploy
 ```
 
-Команда использует:
+Что делает `scripts/deploy-s3.mjs`:
 
-- endpoint: `https://storage.yandexcloud.net`
-- профиль: `yc`
-- синхронизацию с удалением удаленных локально файлов (`--delete`)
+- загружает все файлы из `dist/` в S3-совместимый бакет;
+- выставляет `Content-Type` по расширениям;
+- удаляет из бакета файлы, которых больше нет локально;
+- использует credentials из `.env` или профиля (`AWS_PROFILE`, по умолчанию `yc`).
 
-## Форма обратной связи (Cloud Function)
+## Контактная форма и Cloud Function
 
-Папка `cloud-function-email/` содержит Node.js-функцию для отправки заявок по email.
+### Фронтенд
 
-Базовый запуск в каталоге функции:
+- страница `src/pages/contact.astro`;
+- отправка JSON на `PUBLIC_CONTACT_FUNCTION_URL`;
+- client-side валидация + обработка ответа;
+- поддержка параметра `?product=...` для предвыбора продукта.
 
-```bash
-cd cloud-function-email
-npm install
-node index.js
-```
+### Функция
 
-Для функции используется собственный файл `.env` на основе `cloud-function-email/.env.example`.
+Код: `cloud-function-email/index.js`
 
-## Полезные документы
+Функция:
 
-- `azoneai-yandex-cloud-guide.md` — гайд по облачной инфраструктуре
-- `cloud-function-email-guide.md` — инструкция по функции отправки email
-- `azoneai-audit-v2.md` — аудит сайта
-# AZONE-AI — сайт `azoneai.ru`
+- принимает `POST` JSON;
+- валидирует поля (`name`, `email`, `product`, `message`);
+- фильтрует ботов через honeypot `bot_trap`;
+- отправляет письмо через SMTP (`nodemailer`);
+- возвращает JSON (`success`/`error`) с CORS-заголовками.
 
-Маркетинговый сайт на Astro (SSG) с блогом, страницами продуктов и формой обратной связи через Netlify Function.
+Переменные функции (см. `cloud-function-email/.env.example`):
 
-## Технологии
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`
+- `SMTP_USER`, `SMTP_PASS`
+- `MAIL_TO`, `MAIL_CC`
+- `ALLOWED_ORIGINS` (или `ALLOWED_ORIGIN`)
 
-- `Astro 5`
-- `Tailwind CSS`
-- `@astrojs/sitemap`
-- `Netlify Functions` (`nodemailer` + Gmail SMTP)
-
-## Быстрый старт
-
-```bash
-npm install
-npm run dev
-```
-
-Локально сайт поднимается на `http://localhost:4321`.
-
-## Скрипты
-
-- `npm run dev` — запуск dev-сервера
-- `npm run build` — production build в `dist`
-- `npm run preview` — локальный просмотр собранного `dist`
-
-## Структура проекта
-
-```text
-src/
-  layouts/
-    Base.astro
-  pages/
-    index.astro
-    about.astro
-    contact.astro
-    blog/
-      index.astro
-      *.astro
-    products/
-      [id].astro
-  data/
-    products.js
-  styles/
-    global.css
-netlify/
-  functions/
-    contact.js
-```
-
-## Маршруты
+## Маршруты продукта
 
 - `/` — главная
-- `/about` — о компании
-- `/contact` — форма заявки
-- `/blog` — список статей
-- `/blog/*` — статьи
-- `/products/:id` — карточка продукта (`contentguard`, `azonedoc`, `constructioneye`, `predictmaintain`, `contractguard`)
+- `/products/` — каталог продуктов
+- `/products/:id/` — продуктовые страницы (данные из `src/data/products.js`)
+- `/blog/` и `/blog/*` — блог
+- `/search/` — поиск по сайту (`Pagefind`)
+- `/contact/` — форма заявки
+- `/about/`, `/privacy/`, `/terms/`
 
-## Форма обратной связи
+## Важно
 
-Фронтенд отправляет POST-запрос на:
-
-- `/.netlify/functions/contact`
-
-Функция: `netlify/functions/contact.js`.
-
-### Переменные окружения (Netlify)
-
-- `GMAIL_USER` — email отправителя Gmail
-- `GMAIL_APP_PASS` — app password Gmail
-- `NOTIFY_TO` — email получателя уведомлений
-
-## Деплой (Netlify)
-
-Проект уже настроен через `netlify.toml`:
-
-- build command: `npm run build`
-- publish directory: `dist`
-- functions directory: `netlify/functions`
-- `NODE_VERSION=20`
-
-Стандартный процесс:
-1. Подключить репозиторий в Netlify.
-2. Добавить переменные окружения.
-3. Выполнить deploy.
-
-## Важно по статике
-
-- В статьях используются изображения по путям вида `/images/*.webp`.
-- Для корректного отображения файлов эти ассеты должны лежать в `public/images/` (или пути в статьях должны быть изменены).
-
-## SEO
-
-- Sitemap генерируется автоматически (`@astrojs/sitemap`).
-- Базовый `site` указан в `astro.config.mjs`: `https://azoneai.ru`.
+- Сайт полностью размещается в Yandex Cloud.
+- Перед релизом проверяйте, что в `.env.example` и других шаблонах нет реальных секретов.

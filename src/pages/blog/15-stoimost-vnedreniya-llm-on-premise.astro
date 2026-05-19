@@ -1,0 +1,759 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const title = 'Сколько стоит LLM on-premise: разбор бюджета пилота';
+const description = 'Из чего складывается бюджет LLM on-premise: железо, ПО, данные, интеграция, поддержка. Три сценария пилота с реалистичными диапазонами стоимости в РФ в 2026 году.';
+const publishDate = '2026-05-08';
+const readTime = '11 мин';
+const tags = ['Стоимость LLM', 'Бюджет ИИ', 'GPU-сервер', 'on-premise', 'ROI', 'Пилотный проект'];
+const coverImage = '/images/blog/15/cover.webp';
+
+const budgetCategories = [
+  {
+    title: 'Инфраструктура',
+    desc: 'Сервер, GPU, СХД, сетевое оборудование, при необходимости — средства защиты информации и резервное копирование. Основная капитальная статья (CAPEX). Сюда же — электроэнергия и место в стойке.',
+  },
+  {
+    title: 'Модели и ПО',
+    desc: 'Open-source-модели формально бесплатны, но обвязка — сервер инференса (vLLM, TGI, llama.cpp), векторная БД (Qdrant, Weaviate, pgvector), оркестрация, мониторинг — требует настройки.',
+  },
+  {
+    title: 'Данные и RAG',
+    desc: 'Корпус документов нужно собрать, очистить, разметить, разрезать на чанки, проиндексировать и поддерживать индекс актуальным. На реальных пилотах это до 30–40% бюджета.',
+  },
+  {
+    title: 'Интеграция',
+    desc: 'Подключение к Active Directory или Keycloak, к корпоративному файловому хранилищу, к 1С, Bitrix24, СЭД, почте. Каждое подключение — отдельная задача.',
+  },
+  {
+    title: 'Опытная эксплуатация',
+    desc: 'После запуска кто-то должен следить за качеством ответов, обновлять модель и базу знаний, чинить сбои, вести регламенты. Это OPEX, который часто забывают заложить.',
+  },
+  {
+    title: 'Информационная безопасность',
+    desc: 'Сегментация сети, журналирование обращений, разграничение доступа, при необходимости — сертифицированные средства. Для регулируемых отраслей выделяется в отдельную статью.',
+  },
+];
+
+const licensesTable = [
+  { model: 'Llama 3.x', license: 'Llama Community License', commercial: 'Да', notes: 'Запрет при > 700 млн MAU; согласие с политикой' },
+  { model: 'Qwen 2.5 / 3', license: 'Apache 2.0', commercial: 'Да', notes: 'Без существенных ограничений' },
+  { model: 'DeepSeek V3 / R1', license: 'MIT-подобная', commercial: 'Да', notes: 'Без существенных ограничений' },
+  { model: 'GLM-4', license: 'Условно открытая', commercial: 'С условиями', notes: 'Регистрация для отдельных версий' },
+  { model: 'Mistral / Mixtral', license: 'Apache 2.0 (часть моделей)', commercial: 'Зависит', notes: 'Для последних версий — коммерческая лицензия' },
+  { model: 'GigaChat', license: 'Проприетарная', commercial: 'По договору', notes: 'Только API, не on-premise' },
+  { model: 'YandexGPT', license: 'Проприетарная', commercial: 'По договору', notes: 'Только API, не on-premise' },
+];
+
+const rolesTable = [
+  { role: 'Архитектор решения', responsibility: 'Выбор модели, схема развёртывания, разграничение доступа', when: 'С первого дня' },
+  { role: 'ML-инженер', responsibility: 'RAG, промпты, метрики качества', when: 'После выбора модели' },
+  { role: 'MLOps / DevOps', responsibility: 'Развёртывание, CI/CD, мониторинг', when: 'Параллельно с ML' },
+  { role: 'Специалист по ИБ', responsibility: 'Защита данных, журналирование, соответствие требованиям', when: 'С первого дня' },
+  { role: 'Аналитик данных', responsibility: 'Корпус документов, очистка, индексация', when: 'На обследовании' },
+  { role: 'Интегратор', responsibility: 'AD, СЭД, 1С, файловые источники', when: 'После архитектуры' },
+  { role: 'Тестировщик', responsibility: 'Качество ответов, нагрузка', when: 'Перед опытной эксплуатацией' },
+  { role: 'Руководитель проекта', responsibility: 'Сроки, согласования, отчётность', when: 'Сквозная роль' },
+];
+
+const scenariosTable = [
+  { param: 'Пользователи', minimal: '5–20', optimal: '20–100', secured: '100+, регулируемая отрасль' },
+  { param: 'Модель', minimal: '7B / 13B (квантизация)', optimal: '13B–34B FP16', secured: '13B–70B, защищённое окружение' },
+  { param: 'Железо', minimal: '1× RTX A6000 или существующий сервер', optimal: '1× A100 80GB или 2× RTX A6000', secured: '2–4× A100/H100, отказоустойчивость, реестр МПТ' },
+  { param: 'Источники данных', minimal: '1–2, до нескольких тысяч документов', optimal: '3–5 источников, СЭД, файловое хранилище', secured: 'Множественные источники, КИИ, разграничение доступа' },
+  { param: 'Интеграции', minimal: 'Базовые: AD, файлы', optimal: 'СЭД, 1С, чат, портал', secured: 'Полный комплект, журналирование, аудит' },
+  { param: 'CAPEX (железо)', minimal: '0,7–1,5 млн ₽', optimal: '4–7 млн ₽', secured: '12–30+ млн ₽' },
+  { param: 'Проектные работы', minimal: '1–2 млн ₽', optimal: '3–6 млн ₽', secured: '8–20+ млн ₽' },
+  { param: 'Год эксплуатации (OPEX)', minimal: '0,5–1,5 млн ₽', optimal: '1,5–4 млн ₽', secured: '5–15+ млн ₽' },
+];
+
+const purchaseErrors = [
+  { title: 'Максимальный кластер «на вырост»', desc: 'GPU-платформа за десятки миллионов рублей, которая через полгода загружена на 10–15%: сервер выбрали под перспективную задачу, которая так и не вышла за стадию обсуждения.' },
+  { title: 'Закупка железа до обследования данных', desc: 'Бывает, что задача решается без LLM вовсе — обычным полнотекстовым поиском или правильно настроенной СЭД. Бывает, что требуется другая архитектура: классификатор плюс поиск, без генеративной модели.' },
+  { title: 'Иллюзия «бесплатного» open-source', desc: 'Лицензия — да; инженеры, инфраструктура и эксплуатация — нет. По стоимости владения open-source-стек на низких нагрузках может оказаться дороже коммерческого API.' },
+];
+
+const architectureErrors = [
+  { title: 'Старт с 70B без проверенного сценария', desc: '13B на нормальном RAG чаще даёт лучший ответ, чем 70B без него: модель может быть мощнее, но если она не знает корпоративный контекст, разница в параметрах не помогает.' },
+  { title: 'ИБ и права доступа «потом»', desc: 'Переделывать всегда дороже, чем сразу спроектировать. Особенно если контур попадает под требования по защите персональных данных или объектов КИИ.' },
+  { title: 'Отсутствие метрик качества', desc: 'Без них непонятно, работает ли пилот: «вроде отвечает» — это не результат. Минимум — тестовый набор из 50–100 реальных вопросов с эталонными документами.' },
+];
+
+const managementErrors = [
+  { title: 'Не закладывать поддержку в бюджет', desc: 'Через полгода без сопровождения база знаний устаревает, ответы деградируют, пользователи теряют доверие. Восстанавливать доверие сложнее, чем удерживать.' },
+  { title: 'Путать пилот с промышленной системой', desc: 'Пилот — управляемый эксперимент с понятной гипотезой и метриками. Промышленная система строится после пилота, на основе его выводов.' },
+];
+---
+
+<Base title={title} description={description} articleDate={publishDate} image={coverImage}>
+
+  <main class="flex-grow">
+
+  <!-- Hero -->
+  <section class="relative pt-28 pb-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div>
+        <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Назад к блогу
+        </a>
+
+        <div class="mb-6 flex items-center gap-3 flex-wrap">
+          {tags.map((tag) => (
+            <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">{tag}</span>
+          ))}
+        </div>
+
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+          Сколько стоит LLM on-premise: разбор бюджета пилотного проекта
+        </h1>
+
+        <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+          Железо, лицензии, команда, эксплуатация: из&nbsp;чего реально складывается бюджет корпоративного пилота нейросети в&nbsp;закрытом контуре в&nbsp;2026&nbsp;году
+        </p>
+
+        <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            8 мая 2026
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            {readTime}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="prose prose-invert prose-lg max-w-none space-y-12 text-muted-foreground">
+
+        <!-- Cover -->
+        <div class="mb-4">
+          <img src="/images/blog/15/cover.webp" alt="Стоимость внедрения LLM on-premise: разбор статей бюджета корпоративного пилота — железо, лицензии, команда, эксплуатация" class="w-full rounded-2xl object-cover" loading="eager">
+        </div>
+
+        <!-- Intro -->
+        <div class="space-y-4">
+          <p>Заказчик спрашивает «сколько стоит внедрить нейросеть в&nbsp;нашем контуре» и&nbsp;ждёт одну цифру. Назвать её&nbsp;можно&nbsp;— но&nbsp;это будет цифра наугад. Десять юристов, которые ищут пункты в&nbsp;договорах, и&nbsp;колл-центр на&nbsp;тысячу человек с&nbsp;интеграцией в&nbsp;CRM&nbsp;— два разных проекта с&nbsp;разницей в&nbsp;порядок по&nbsp;бюджету. Прежде чем считать, нужно разобрать задачу.</p>
+
+          <p>Сама модель в&nbsp;большинстве случаев бесплатна: Llama, Qwen, GLM, DeepSeek и&nbsp;десятки других открытых моделей доступны под свободными лицензиями или близко к&nbsp;ним. Бюджет складывается из&nbsp;того, что вокруг модели: инфраструктура, подготовка данных, интеграция с&nbsp;корпоративными системами, требования по&nbsp;информационной безопасности, эксплуатация. Каждая из&nbsp;этих статей зависит от&nbsp;десятков параметров, и&nbsp;сумма получается широкой&nbsp;— от&nbsp;относительно скромного пилота на&nbsp;одной GPU до&nbsp;десятков миллионов рублей за&nbsp;<a href="/blog/07-llm-closed-circuit-guide/" class="text-accent hover:underline">защищённый контур, аттестованный по&nbsp;требованиям ФСТЭК</a>.</p>
+
+          <p>Ниже&nbsp;— разбор статей бюджета пилотного проекта on-premise LLM: что в&nbsp;них реально входит, какие диапазоны цен встречаются на&nbsp;рынке РФ в&nbsp;2026&nbsp;году и&nbsp;какие сценарии пилота имеют смысл для разных задач. Без публичного прайса, но&nbsp;с&nbsp;практическими ориентирами.</p>
+        </div>
+
+        <!-- Пять статей бюджета -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что входит в&nbsp;бюджет пилота</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Любой пилот корпоративной LLM раскладывается на&nbsp;шесть категорий затрат. Пропустить любую&nbsp;— значит получить неприятный сюрприз через три месяца после старта.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {budgetCategories.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-accent font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Пропорции между этими статьями сильно различаются. На&nbsp;скромном пилоте основной вес у&nbsp;железа и&nbsp;инженерных работ; в&nbsp;крупном корпоративном внедрении заметно растёт доля интеграции и&nbsp;эксплуатации. ИБ-расходы выделяются отдельно практически всегда, когда контур попадает под требования регулятора.</p>
+          </div>
+        </div>
+
+        <!-- Железо -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"></rect><rect x="2" y="14" width="20" height="8" rx="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Железо: GPU-сервер для&nbsp;LLM 7B, 13B, 70B</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Размер модели определяет объём памяти GPU и, как следствие, бюджет на&nbsp;железо. Практическое правило для FP16: модель занимает примерно 2&nbsp;ГБ на&nbsp;каждый миллиард параметров. К&nbsp;этому добавляется память под контекст и&nbsp;KV-кэш&nbsp;— реально ещё 30–50%. Квантизация в&nbsp;INT8 или INT4 уменьшает требования в&nbsp;2–4&nbsp;раза, но&nbsp;даёт компромисс между скоростью и&nbsp;качеством, который надо тестировать на&nbsp;конкретных задачах.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/15/gpu-tiers.webp" alt="Сравнение GPU-конфигураций для LLM 7B, 13B и 70B: RTX A6000, A100 80GB и H100 — память, цена, типовой сценарий" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Три тира GPU-конфигураций для&nbsp;корпоративных LLM-пилотов</p>
+            </div>
+
+            <h3 class="text-xl font-bold text-white mt-6">LLM 7B — минимальный пилот</h3>
+            <p>Модель в&nbsp;FP16 помещается на&nbsp;GPU с&nbsp;24&nbsp;ГБ памяти. Подходит для рабочей группы 5–20 человек и&nbsp;базового RAG по&nbsp;ограниченной базе документов. Стартовать можно на&nbsp;одной RTX A6000 48GB или паре потребительских карт класса RTX 4090 24GB, если бюджет совсем сжат и&nbsp;контур позволяет работать без сертифицированных решений. Розница в&nbsp;РФ на&nbsp;RTX A6000&nbsp;— ориентировочно 500–730&nbsp;тыс.&nbsp;₽ за&nbsp;карту, цифру нужно уточнять у&nbsp;поставщика на&nbsp;дату закупки.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">LLM 13B — устойчивый пилот</h3>
+            <p>Стандартный рабочий вариант для большинства корпоративных задач: поиск по&nbsp;документам, ассистент юриста, помощь в&nbsp;подготовке КП. В&nbsp;FP16 модель просит около 30&nbsp;ГБ памяти, в&nbsp;INT8&nbsp;— 15–20&nbsp;ГБ. Хороший вариант&nbsp;— одна A100 80GB или 2×&nbsp;RTX A6000. На&nbsp;рынке РФ A100 80GB сейчас стоит в&nbsp;коридоре 1,5–2,5&nbsp;млн&nbsp;₽ в&nbsp;зависимости от&nbsp;партии и&nbsp;поставщика. Полная сборка GPU-сервера с&nbsp;1–2 A100, процессором, 256–512&nbsp;ГБ ОЗУ и&nbsp;SSD-хранилищем&nbsp;— ориентировочно 3,5–5&nbsp;млн&nbsp;₽.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">LLM 70B — производственный контур</h3>
+            <p>Модели такого класса в&nbsp;FP16 требуют 140+&nbsp;ГБ памяти, что означает минимум 2×&nbsp;A100 80GB или 4×&nbsp;RTX A6000 с&nbsp;распределением весов через NVLink. С&nbsp;квантизацией можно уложиться в&nbsp;одну H100 80GB, но&nbsp;H100 в&nbsp;РФ&nbsp;— товар дефицитный, ценник около 3&nbsp;млн&nbsp;₽ за&nbsp;карту, доступность нестабильна. Полноценная сборка под 70B&nbsp;— это бюджет от&nbsp;8–12&nbsp;млн&nbsp;₽ за&nbsp;платформу с&nbsp;двумя A100 и&nbsp;от&nbsp;15–25&nbsp;млн&nbsp;₽ за&nbsp;конфигурацию из&nbsp;4&nbsp;карт с&nbsp;резервированием.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Российский сервер из&nbsp;реестра Минпромторга</h3>
+            <p>Если пилот идёт в&nbsp;государственной структуре или на&nbsp;объекте КИИ, требование «оборудование из&nbsp;реестра» становится почти обязательным. В&nbsp;реестре есть подходящие платформы Aquarius, Гравитон, Тринити, OpenYard, Delta Computers и&nbsp;других вендоров. Важный нюанс: «российский сервер» в&nbsp;реальности означает российскую платформу с&nbsp;импортными GPU&nbsp;— теми&nbsp;же NVIDIA A100, H100, L40S или RTX 6000 Ada. Полностью отечественных ускорителей, которые гарантированно тянут LLM 70B с&nbsp;поддержкой vLLM/TGI и&nbsp;стабильными драйверами, на&nbsp;массовом рынке пока нет.</p>
+
+            <p>Перед закупкой такого сервера обязательно проверять совместимость с&nbsp;конкретными фреймворками, наличие драйверов под выбранную ОС (Astra&nbsp;Linux, Альт, РЕД&nbsp;ОС), производительность на&nbsp;ваших задачах, сроки поставки и&nbsp;гарантию. Один из&nbsp;частых сюрпризов&nbsp;— несовместимость новой версии CUDA-драйвера с&nbsp;сертифицированной версией ОС.</p>
+
+            <div class="p-5 rounded-xl bg-amber-500/5 border border-amber-500/20 mt-4">
+              <p class="text-sm leading-relaxed flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span>Ценовые ориентиры по&nbsp;GPU&nbsp;— коридоры на&nbsp;май 2026&nbsp;года. Курс рубля, доступность партий и&nbsp;санкционная логистика двигают цены ощутимо. Точную сумму нужно фиксировать в&nbsp;момент закупки, а&nbsp;не&nbsp;на&nbsp;этапе планирования.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ПО и лицензии -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">ПО&nbsp;и&nbsp;лицензии: «бесплатный» open-source стоит денег</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Здесь чаще всего возникает иллюзия экономии. Логика «возьмём Llama, она&nbsp;же открытая, и&nbsp;сэкономим миллионы» работает ровно до&nbsp;момента, когда модель надо запустить в&nbsp;продуктиве.</p>
+
+            <p>Open-source даёт три преимущества: данные не&nbsp;уходят за&nbsp;периметр, нет привязки к&nbsp;вендору, нет посекундной оплаты за&nbsp;токены. Но&nbsp;за&nbsp;это приходится платить инженерным временем&nbsp;— настройка инференс-сервера, профилирование под нагрузку, мониторинг, обновления, сопровождение. По&nbsp;стоимости одного токена open-source-модели заметно дешевле проприетарных API, однако эта экономия проявляется только при стабильной высокой нагрузке. На&nbsp;малых объёмах TCO open-source-стека может оказаться выше: фиксированные расходы на&nbsp;инженеров и&nbsp;инфраструктуру не&nbsp;масштабируются вниз вместе с&nbsp;трафиком.</p>
+
+            <p>Коммерческие модели в&nbsp;РФ&nbsp;— это GigaChat от&nbsp;Сбера, YandexGPT, доступ через корпоративные тарифы российских облаков (см.&nbsp;<a href="/blog/10-sravnenie-llm/" class="text-accent hover:underline">сравнение отечественных LLM</a>). Они снимают с&nbsp;заказчика инфраструктурную головную боль, но&nbsp;возвращают вопрос комплаенса: можно&nbsp;ли отдавать конкретные данные стороннему API? Для регулируемых отраслей и&nbsp;КИИ ответ почти всегда отрицательный.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Лицензии популярных моделей</h3>
+
+            <div class="overflow-x-auto rounded-2xl border border-white/10 mt-4">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05] text-white">
+                    <th class="text-left px-4 py-4 font-semibold">Модель</th>
+                    <th class="text-left px-4 py-4 font-semibold">Лицензия</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Коммерч. использование</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden lg:table-cell">Особенности</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {licensesTable.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-4 py-3 text-white font-medium">{row.model}</td>
+                      <td class="px-4 py-3">{row.license}</td>
+                      <td class="px-4 py-3 hidden md:table-cell">{row.commercial}</td>
+                      <td class="px-4 py-3 hidden lg:table-cell">{row.notes}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-5 rounded-xl bg-red-500/5 border border-red-500/20 mt-4">
+              <p class="text-sm leading-relaxed flex items-start gap-3">
+                <svg class="w-5 h-5 text-red-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Meta признана экстремистской организацией и&nbsp;запрещена на&nbsp;территории РФ. При выборе Llama для корпоративного контура согласовывайте использование с&nbsp;юридической службой.</span>
+              </p>
+            </div>
+
+            <h3 class="text-xl font-bold text-white mt-6">Архитектура типового стека</h3>
+
+            <div class="my-6">
+              <img src="/images/blog/15/llm-stack.webp" alt="Архитектура корпоративного LLM-стека on-premise: источники документов, ETL, векторная БД, сервер инференса, шлюз и журналирование" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Минимальный набор компонентов корпоративного LLM-стека в&nbsp;закрытом контуре</p>
+            </div>
+
+            <p>В&nbsp;защищённом контуре к&nbsp;этому набору добавляются СЗИ, отдельный сегмент сети, сертифицированные средства аутентификации и&nbsp;журналирования. Реалистичный ориентир по&nbsp;программному стеку: open-source-обвязка (vLLM или TGI + Qdrant + LangChain/LlamaIndex + Prometheus/Grafana) сама по&nbsp;себе бесплатна, но&nbsp;настройка и&nbsp;интеграция в&nbsp;корпоративный контур&nbsp;— это десятки и&nbsp;сотни человеко-часов работы команды. Их&nbsp;и&nbsp;нужно закладывать в&nbsp;бюджет.</p>
+          </div>
+        </div>
+
+        <!-- Работа команды -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Работа команды</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Для пилота уровня «всерьёз» нужны как минимум восемь ролей. В&nbsp;небольшой компании они часто совмещаются&nbsp;— три-четыре человека делают всё. В&nbsp;корпоративном пилоте состав почти всегда полный.</p>
+
+            <div class="overflow-x-auto rounded-2xl border border-white/10 mt-4">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05] text-white">
+                    <th class="text-left px-4 py-4 font-semibold">Роль</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Зона ответственности</th>
+                    <th class="text-left px-4 py-4 font-semibold">Когда подключается</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {rolesTable.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-4 py-3 text-white font-medium">{row.role}</td>
+                      <td class="px-4 py-3 hidden md:table-cell">{row.responsibility}</td>
+                      <td class="px-4 py-3">{row.when}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p class="mt-4">Состав работ внутри пилота: предпроектное обследование, выбор модели и&nbsp;сравнение альтернатив, развёртывание инфраструктуры, настройка <a href="/blog/14-rag-arhitektura/" class="text-accent hover:underline">RAG и&nbsp;индексации</a>, подключение источников документов, настройка ролей доступа, тестирование качества ответов, нагрузочное тестирование, подготовка регламентов эксплуатации, обучение пользователей и&nbsp;администраторов.</p>
+
+            <p>Ставки на&nbsp;российском рынке сильно разнятся: фриланс-инженер обходится дешевле, но&nbsp;без гарантий и&nbsp;сопровождения; интегратор берёт дороже, но&nbsp;даёт SLA и&nbsp;команду. Усреднённая стоимость инженерного часа в&nbsp;подрядной модели&nbsp;— 4–8&nbsp;тыс.&nbsp;₽, на&nbsp;руководящих и&nbsp;архитектурных ролях выше. Объём работ типового пилота&nbsp;— от&nbsp;400–600 человеко-часов для минимального сценария до&nbsp;2&nbsp;000–3&nbsp;500 для корпоративного.</p>
+          </div>
+        </div>
+
+        <!-- OPEX -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Опытная эксплуатация: что считается в&nbsp;годовом OPEX</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Это та&nbsp;статья, которую любят забывать на&nbsp;этапе согласования бюджета. После запуска пилот не&nbsp;работает сам по&nbsp;себе.</p>
+
+            <p>В&nbsp;состав годового OPEX входят: техническая поддержка инфраструктуры и&nbsp;модели, мониторинг работоспособности и&nbsp;качества ответов, обновление модели на&nbsp;новые версии, обновление и&nbsp;переиндексация базы знаний, устранение ошибок, доработка промптов под обнаруженные сценарии, сопровождение интеграций при изменениях в&nbsp;смежных системах, резервное копирование, поддержание контура информационной безопасности (включая защиту&nbsp;<a href="/blog/06-pdn-ai/" class="text-accent hover:underline">персональных данных</a>), электроэнергия и&nbsp;охлаждение.</p>
+
+            <p>Точная пропорция зависит от&nbsp;инфраструктуры, состава команды и&nbsp;требований по&nbsp;SLA. Для типовой ИТ-инфраструктуры годовой OPEX обычно укладывается в&nbsp;15–20% от&nbsp;CAPEX; для LLM-стека эта цифра шире&nbsp;— расходы на&nbsp;инженерное сопровождение, переиндексацию базы знаний и&nbsp;обновления моделей плохо предсказываются заранее. Для пилота с&nbsp;одним GPU-сервером и&nbsp;базовой поддержкой годовая эксплуатация ориентировочно 1,5–4&nbsp;млн&nbsp;₽; для контура с&nbsp;круглосуточной поддержкой и&nbsp;регулярным дообучением&nbsp;— в&nbsp;разы выше. Точную цифру всегда считают индивидуально.</p>
+          </div>
+        </div>
+
+        <!-- Три сценария -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Реалистичные диапазоны бюджета: три&nbsp;сценария</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Заказчики AZONE-AI чаще всего попадают в&nbsp;один из&nbsp;трёх типовых сценариев. Они отличаются не&nbsp;только размером бюджета, но&nbsp;и&nbsp;логикой принятия решений: в&nbsp;минимальном пилоте экономят на&nbsp;всём, в&nbsp;корпоративном считают TCO на&nbsp;три года, в&nbsp;защищённом&nbsp;— первым делом смотрят на&nbsp;соответствие требованиям регулятора.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/15/scenarios.webp" alt="Три сценария пилота LLM on-premise: минимальный пилот, оптимальный корпоративный и защищённый контур — пользователи, модель, железо, бюджет" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Три типовых сценария пилота: от&nbsp;рабочей группы до&nbsp;аттестованного контура</p>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-white/10 mt-4">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05] text-white">
+                    <th class="text-left px-4 py-4 font-semibold">Параметр</th>
+                    <th class="text-left px-4 py-4 font-semibold">Минимальный пилот</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Оптимальный корпоративный</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden lg:table-cell">Защищённый контур</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {scenariosTable.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-4 py-3 text-white font-medium">{row.param}</td>
+                      <td class="px-4 py-3">{row.minimal}</td>
+                      <td class="px-4 py-3 hidden md:table-cell">{row.optimal}</td>
+                      <td class="px-4 py-3 hidden lg:table-cell">{row.secured}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p class="mt-4">Все цифры&nbsp;— ориентировочные коридоры, требующие уточнения под конкретный состав работ, оборудования, требований по&nbsp;ИБ и&nbsp;SLA. На&nbsp;итог влияют курс, доступность GPU на&nbsp;момент закупки, состав команды, наличие у&nbsp;заказчика собственной инфраструктуры, требования регулятора и&nbsp;десятки других факторов. Подробнее о&nbsp;подготовке контура&nbsp;— в&nbsp;материале о&nbsp;<a href="/blog/02-on-premise-llm/" class="text-accent hover:underline">промышленном развёртывании on-premise LLM</a>.</p>
+          </div>
+        </div>
+
+        <!-- Калькулятор бюджета -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                <line x1="8" y1="6" x2="16" y2="6"></line>
+                <line x1="8" y1="10" x2="16" y2="10"></line>
+                <line x1="8" y1="14" x2="10" y2="14"></line>
+                <line x1="13" y1="14" x2="16" y2="14"></line>
+                <line x1="8" y1="18" x2="10" y2="18"></line>
+                <line x1="13" y1="18" x2="16" y2="18"></line>
+              </svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Калькулятор бюджета пилота</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Выберите параметры&nbsp;— получите ориентировочный диапазон бюджета на&nbsp;пилот и&nbsp;первый год эксплуатации. Расчёт строится на&nbsp;коридорах из&nbsp;таблицы сценариев выше. Это не&nbsp;коммерческое предложение, а&nbsp;первая прикидка для разговора с&nbsp;коллегами.</p>
+
+            <div class="glass-card p-6 md:p-8 mt-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <div>
+                  <label class="block text-white font-semibold mb-2 text-sm" for="calc-users">Количество пользователей</label>
+                  <select id="calc-users" class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white">
+                    <option value="small">5–20 человек (рабочая группа)</option>
+                    <option value="medium" selected>20–100 человек (подразделение)</option>
+                    <option value="large">100+ человек (корпоративный масштаб)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-white font-semibold mb-2 text-sm" for="calc-model">Размер модели</label>
+                  <select id="calc-model" class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white">
+                    <option value="7b">7B / 13B с квантизацией</option>
+                    <option value="13b" selected>13B–34B (FP16)</option>
+                    <option value="70b">70B+ или несколько моделей</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-white font-semibold mb-2 text-sm" for="calc-security">Требования по ИБ</label>
+                  <select id="calc-security" class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white">
+                    <option value="basic">Базовые: AD, журнал доступа</option>
+                    <option value="corporate" selected>Корпоративные: аудит, разграничение</option>
+                    <option value="regulated">Регулируемые: ФСТЭК / КИИ / аттестация</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-white font-semibold mb-2 text-sm" for="calc-integrations">Источники данных и&nbsp;интеграции</label>
+                  <select id="calc-integrations" class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white">
+                    <option value="basic">1–2 источника: файлы, AD</option>
+                    <option value="medium" selected>3–5 источников: СЭД, 1С, портал</option>
+                    <option value="full">Полный комплект: множественные источники</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mt-7 pt-7 border-t border-white/10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                  <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-xs text-muted-foreground mb-1.5">CAPEX (железо, ПО)</div>
+                    <div id="calc-capex" class="text-xl md:text-2xl font-bold text-white">— млн&nbsp;₽</div>
+                  </div>
+                  <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-xs text-muted-foreground mb-1.5">Проектные работы</div>
+                    <div id="calc-work" class="text-xl md:text-2xl font-bold text-white">— млн&nbsp;₽</div>
+                  </div>
+                  <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                    <div class="text-xs text-muted-foreground mb-1.5">OPEX за&nbsp;год</div>
+                    <div id="calc-opex" class="text-xl md:text-2xl font-bold text-white">— млн&nbsp;₽</div>
+                  </div>
+                </div>
+
+                <div class="p-5 rounded-xl bg-accent/10 border border-accent/30">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <div class="text-xs text-muted-foreground mb-1">Итого первый год (CAPEX + работы + OPEX)</div>
+                      <div id="calc-total" class="text-2xl md:text-3xl font-bold text-gradient">— млн&nbsp;₽</div>
+                    </div>
+                    <a id="calc-cta" href="/contact/?product=other&utm_source=blog&utm_medium=calculator&utm_campaign=article-15" class="premium-btn whitespace-nowrap">Уточнить расчёт</a>
+                  </div>
+                </div>
+
+                <p class="text-xs text-muted-foreground/80 mt-4 italic">Диапазон ориентировочный: курс рубля, доступность GPU, состав работ и&nbsp;требования регулятора двигают итоговую цифру. Для точного расчёта&nbsp;— обсуждение с&nbsp;архитектором AZONE-AI.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script is:inline>
+          (function () {
+            const factors = {
+              users: {
+                small: { capex: [0.5, 0.8], work: [0.8, 1.2], opex: [0.4, 0.8] },
+                medium: { capex: [2.0, 3.5], work: [1.5, 2.5], opex: [0.8, 1.8] },
+                large: { capex: [4.0, 12.0], work: [3.0, 8.0], opex: [2.0, 6.0] }
+              },
+              model: {
+                '7b': { capex: [0.2, 0.4], work: [0.2, 0.4], opex: [0.1, 0.3] },
+                '13b': { capex: [0.5, 1.5], work: [0.5, 1.0], opex: [0.3, 0.6] },
+                '70b': { capex: [3.0, 10.0], work: [1.5, 4.0], opex: [1.0, 3.0] }
+              },
+              security: {
+                basic: { capex: [0, 0.2], work: [0.2, 0.5], opex: [0.1, 0.3] },
+                corporate: { capex: [0.3, 0.8], work: [0.5, 1.5], opex: [0.3, 0.8] },
+                regulated: { capex: [2.0, 8.0], work: [2.0, 6.0], opex: [1.0, 4.0] }
+              },
+              integrations: {
+                basic: { capex: [0, 0], work: [0.3, 0.7], opex: [0.2, 0.4] },
+                medium: { capex: [0, 0.2], work: [0.8, 2.0], opex: [0.4, 1.0] },
+                full: { capex: [0.2, 0.5], work: [2.0, 5.0], opex: [1.0, 3.0] }
+              }
+            };
+
+            const fmt = (n) => {
+              if (n >= 10) return Math.round(n).toString();
+              return n.toFixed(1).replace('.', ',');
+            };
+
+            const fmtRange = (min, max) => `${fmt(min)}–${fmt(max)} млн ₽`;
+            const $ = (id) => document.getElementById(id);
+
+            function calc() {
+              const u = $('calc-users').value;
+              const m = $('calc-model').value;
+              const s = $('calc-security').value;
+              const i = $('calc-integrations').value;
+
+              const sumKey = (key) => {
+                return [factors.users[u][key], factors.model[m][key], factors.security[s][key], factors.integrations[i][key]]
+                  .reduce((acc, [lo, hi]) => [acc[0] + lo, acc[1] + hi], [0, 0]);
+              };
+
+              const [capexMin, capexMax] = sumKey('capex');
+              const [workMin, workMax] = sumKey('work');
+              const [opexMin, opexMax] = sumKey('opex');
+              const totalMin = capexMin + workMin + opexMin;
+              const totalMax = capexMax + workMax + opexMax;
+
+              $('calc-capex').textContent = fmtRange(capexMin, capexMax);
+              $('calc-work').textContent = fmtRange(workMin, workMax);
+              $('calc-opex').textContent = fmtRange(opexMin, opexMax);
+              $('calc-total').textContent = fmtRange(totalMin, totalMax);
+
+              $('calc-cta').href = '/contact/?product=other'
+                + '&utm_source=blog&utm_medium=calculator&utm_campaign=article-15'
+                + '&calc_users=' + u
+                + '&calc_model=' + m
+                + '&calc_security=' + s
+                + '&calc_integrations=' + i;
+            }
+
+            ['calc-users', 'calc-model', 'calc-security', 'calc-integrations'].forEach((id) => {
+              $(id).addEventListener('change', calc);
+            });
+
+            $('calc-cta').addEventListener('click', function () {
+              if (typeof ym === 'function') ym(108466305, 'reachGoal', 'calculator_cta_click');
+            });
+
+            calc();
+          })();
+        </script>
+
+        <!-- ROI -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">ROI: как&nbsp;считать эффект</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Условный кейс&nbsp;— без раскрытия реальных клиентов. В&nbsp;компании 30&nbsp;сотрудников регулярно ищут информацию в&nbsp;договорах, регламентах, ТЗ, КП, инструкциях и&nbsp;переписке. До&nbsp;внедрения средний поиск ответа занимает 30–60&nbsp;минут&nbsp;— листать СЭД, спрашивать коллег, поднимать архив. После пилота с&nbsp;RAG по&nbsp;корпоративным документам тот&nbsp;же поиск занимает 3–7&nbsp;минут.</p>
+
+            <p>Если каждый сотрудник делает 3–5 таких поисков в&nbsp;день и&nbsp;средняя экономия&nbsp;— 30&nbsp;минут на&nbsp;запрос, это 1,5–2,5&nbsp;часа в&nbsp;день на&nbsp;человека. На&nbsp;30&nbsp;сотрудниках&nbsp;— 45–75 часов в&nbsp;день, около 900–1&nbsp;500 часов в&nbsp;месяц. При стоимости рабочего часа специалиста с&nbsp;накладными в&nbsp;1&nbsp;500–2&nbsp;500&nbsp;₽ месячная экономия рабочего времени оценивается в&nbsp;1,3–3,8&nbsp;млн&nbsp;₽.</p>
+
+            <p>К&nbsp;этому добавляются эффекты, которые сложнее посчитать в&nbsp;деньгах: меньше нагрузки на&nbsp;экспертов, к&nbsp;которым перестают идти с&nbsp;типовыми вопросами; быстрее подготовка КП и&nbsp;ответов на&nbsp;запросы; меньше ошибок при работе со&nbsp;сложными документами; быстрее ввод новых сотрудников в&nbsp;курс дела.</p>
+
+            <div class="p-5 rounded-xl bg-amber-500/5 border border-amber-500/20 mt-4">
+              <p class="text-sm leading-relaxed flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span>Эти цифры&nbsp;— методика, а&nbsp;не&nbsp;обещание. Реальный ROI зависит от&nbsp;качества внедрения, дисциплины пользователей, актуальности базы знаний и&nbsp;десятка организационных факторов. Гарантировать конкретный срок окупаемости заранее некорректно. Корректно&nbsp;— показать, как считать и&nbsp;за&nbsp;счёт каких эффектов окупаемость складывается.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Где обычно ошибаются -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Где обычно ошибаются</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Самые дорогие ошибки в&nbsp;LLM-пилотах не&nbsp;относятся к&nbsp;технике. Они управленческие.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">На&nbsp;закупке</h3>
+            <div class="space-y-3">
+              {purchaseErrors.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <h3 class="text-xl font-bold text-white mt-6">В&nbsp;архитектуре</h3>
+            <div class="space-y-3">
+              {architectureErrors.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <h3 class="text-xl font-bold text-white mt-6">В&nbsp;управлении</h3>
+            <div class="space-y-3">
+              {managementErrors.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <!-- Заключение -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Выводы</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Стоимость LLM on-premise&nbsp;— это бюджет проекта целиком: инфраструктура, данные, интеграция, безопасность, сопровождение. Каждая статья считается отдельно, и&nbsp;каждая зависит от&nbsp;десятков параметров, которые становятся ясны только после предпроектного обследования.</p>
+
+            <p>Разумный пилот не&nbsp;требует «миллиардного» бюджета и&nbsp;кластера на&nbsp;8&nbsp;H100. Минимальный сценарий укладывается в&nbsp;несколько миллионов рублей и&nbsp;даёт ответ на&nbsp;главный вопрос: имеет&nbsp;ли смысл двигаться дальше. Корпоративный пилот стоит больше, но&nbsp;и&nbsp;эффект масштабируется. Защищённый контур для регулируемых отраслей&nbsp;— отдельная история со&nbsp;своими требованиями и&nbsp;бюджетом.</p>
+
+            <p>Главное&nbsp;— не&nbsp;покупать железо до&nbsp;того, как стало понятно, что именно вы&nbsp;решаете. Пилот должен ответить на&nbsp;вопрос «работает&nbsp;ли это в&nbsp;нашей конкретной обстановке», а&nbsp;не&nbsp;закрыть всю задачу автоматизации сразу.</p>
+          </div>
+
+          <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+            <p class="text-white font-medium text-lg leading-relaxed">Если нужен ориентир по&nbsp;бюджету под конкретную задачу, <strong>AZONE-AI</strong> может провести экспресс-оценку: разобрать сценарий, прикинуть требования к&nbsp;инфраструктуре и&nbsp;собрать диапазон CAPEX/OPEX&nbsp;— <a href="/contact?product=other" class="text-accent hover:underline">оставьте заявку на&nbsp;консультацию</a>.</p>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Частые вопросы</h2>
+          </div>
+
+          <div class="space-y-4">
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Сколько GPU нужно для&nbsp;запуска LLM 70B on-premise?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">В&nbsp;FP16&nbsp;— минимум 2×&nbsp;A100 80GB или 4×&nbsp;RTX A6000 с&nbsp;распределением весов через NVLink. С&nbsp;квантизацией в&nbsp;INT8/INT4 модель помещается на&nbsp;одну H100 80GB, но&nbsp;это компромисс по&nbsp;качеству, который надо тестировать на&nbsp;конкретных задачах.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Можно&nbsp;ли запустить корпоративную LLM без&nbsp;сервера с&nbsp;A100?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Да. Для рабочей группы 5–20 человек на&nbsp;модели 7B достаточно одной RTX A6000 48GB или пары RTX 4090. Это рабочий вариант для пилота, но&nbsp;не&nbsp;для боевого контура с&nbsp;десятками одновременных сессий и&nbsp;требованиями по&nbsp;отказоустойчивости.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Что включается в&nbsp;эксплуатационные расходы on-premise LLM?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Техническая поддержка инфраструктуры, мониторинг качества ответов, обновление моделей и&nbsp;базы знаний, доработка промптов, сопровождение интеграций, резервное копирование, поддержание контура ИБ, электроэнергия и&nbsp;охлаждение. Ориентировочно 15–25% от&nbsp;CAPEX в&nbsp;год для типового пилота.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Чем пилот отличается от&nbsp;промышленного внедрения LLM?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Пилот&nbsp;— управляемый эксперимент на&nbsp;ограниченной задаче с&nbsp;понятными метриками и&nbsp;фиксированным сроком (обычно 2–4 месяца). Его задача&nbsp;— проверить гипотезу, а&nbsp;не&nbsp;закрыть всю автоматизацию. Промышленная система строится после пилота, с&nbsp;учётом его результатов и&nbsp;накопленных данных.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Подойдёт&nbsp;ли GigaChat или YandexGPT вместо on-premise?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Для нерегулируемых задач&nbsp;— часто да: проще, дешевле в&nbsp;старте, не&nbsp;нужно содержать команду эксплуатации. Для работы с&nbsp;персональными данными, коммерческой тайной, объектами КИИ или другой чувствительной информацией ответ почти всегда отрицательный&nbsp;— данные нельзя отдавать стороннему API.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Сколько занимает пилотный проект LLM по&nbsp;времени?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Минимальный пилот&nbsp;— 6–10 недель от&nbsp;старта обследования до&nbsp;первых ответов в&nbsp;тестовом режиме. Корпоративный&nbsp;— 3–5 месяцев. Защищённый контур с&nbsp;сертифицированной инфраструктурой&nbsp;— от&nbsp;6 месяцев и&nbsp;больше; основная задержка обычно на&nbsp;закупке и&nbsp;согласованиях, а&nbsp;не&nbsp;на&nbsp;технической части.</p>
+            </details>
+          </div>
+        </div>
+
+        <!-- Дисклеймер -->
+        <div>
+          <div class="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <div>
+                <h3 class="text-white font-bold mb-2">Актуальность материала</h3>
+                <ul class="space-y-1.5 text-sm leading-relaxed">
+                  <li>Материал подготовлен по&nbsp;состоянию на&nbsp;<strong class="text-white">май 2026&nbsp;года</strong>.</li>
+                  <li>Ценовые ориентиры по&nbsp;GPU и&nbsp;серверным платформам&nbsp;— коридоры рыночной розницы в&nbsp;РФ. Курс рубля, доступность партий и&nbsp;санкционная логистика двигают цены ощутимо: уточняйте у&nbsp;поставщиков на&nbsp;дату закупки.</li>
+                  <li>Лицензионные условия моделей могут меняться. Перед коммерческим использованием проверяйте актуальную лицензию у&nbsp;разработчика и&nbsp;согласовывайте с&nbsp;юридической службой.</li>
+                  <li>Расчёт ROI&nbsp;— иллюстративная методика. Реальные результаты зависят от&nbsp;качества данных, дисциплины пользователей и&nbsp;организационных факторов.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Похожие статьи -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Похожие статьи</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <a href="/blog/07-llm-closed-circuit-guide/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Как развернуть LLM в&nbsp;закрытом контуре: пошаговое руководство</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            10 мин
+          </span>
+        </a>
+        <a href="/blog/14-rag-arhitektura/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">RAG-архитектура для&nbsp;корпоративных данных: подключение LLM к&nbsp;документам</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            11 мин
+          </span>
+        </a>
+        <a href="/blog/02-on-premise-llm/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">On-premise LLM: когда корпоративная нейросеть должна остаться внутри периметра</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            10 мин
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <img src="/images/blog/15/cover.webp" alt="AZONE-AI: экспресс-оценка бюджета LLM-пилота под задачу заказчика" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Получите ориентир <span class="text-gradient">по&nbsp;бюджету пилота</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За&nbsp;1–2&nbsp;недели разберём задачу, прикинем требования к&nbsp;инфраструктуре и&nbsp;соберём диапазон CAPEX/OPEX под ваш сценарий. Лицензии ФСТЭК, ФСБ и&nbsp;МО&nbsp;РФ. Опыт с&nbsp;2003&nbsp;года.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/contact/?product=other&utm_source=blog&utm_medium=cta-bottom&utm_campaign=article-15" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Скачать презентацию
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+</Base>

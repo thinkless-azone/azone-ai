@@ -42,7 +42,8 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
         </div>
 
         <!-- Form -->
-        <div class="lg:col-span-8 glass-card p-8 md:p-10 glow-border">
+        <div class="lg:col-span-8 space-y-6">
+          <div class="glass-card p-8 md:p-10 glow-border">
           <form id="contactForm" class="space-y-6">
             <!-- Honeypot: чекбокс вне экрана; боты отмечают, люди не видят — не в FormData если не отмечен -->
             <div style="position:absolute;left:-9999px;" aria-hidden="true">
@@ -88,6 +89,19 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
             <div id="formStatus" class="text-center text-sm mt-2"></div>
             <p class="text-xs text-muted-foreground text-center mt-4">Нажимая кнопку, вы соглашаетесь с политикой обработки персональных данных.</p>
           </form>
+          </div>
+          <div class="glass-card p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 class="text-white text-xl font-bold mb-1">Опросник для предварительной оценки ИИ-проекта</h3>
+            </div>
+            <a
+              href="/oprosnik_azoneai.pdf"
+              download
+              class="premium-btn inline-flex items-center justify-center px-5 py-3 whitespace-nowrap"
+            >
+              Скачать опросник (PDF)
+            </a>
+          </div>
         </div>
       </div>
     </div>

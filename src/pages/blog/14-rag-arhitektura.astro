@@ -1,0 +1,587 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const title = 'RAG-архитектура для корпоративных данных: как подключить LLM к документам';
+const description = 'Как устроена RAG-архитектура, из каких компонентов состоит, где ломается на пилотах и почему чувствительные корпоративные данные требуют закрытого контура.';
+const publishDate = '2026-05-04';
+const readTime = '11 мин';
+const tags = ['RAG', 'retrieval augmented generation', 'LLM', 'векторная база', 'on-premise', 'корпоративный поиск'];
+const coverImage = '/images/blog/14/cover.webp';
+
+const componentsTable = [
+  {
+    component: 'Embedding-модель',
+    options: 'bge-m3, multilingual-e5, Yandex Embeddings, sbert-large-nlu-ru, кастомные',
+    pros: 'Локальный запуск, поддержка русского',
+    cons: 'Качество на узкой доменной лексике',
+    when: 'Open-source — для закрытого контура; внешние API — если данные не чувствительны',
+  },
+  {
+    component: 'Vector store',
+    options: 'Qdrant, OpenSearch, Milvus, FAISS',
+    pros: 'Быстрый поиск по сходству, фильтры по метаданным',
+    cons: 'Эксплуатация на больших объёмах нетривиальна',
+    when: 'Qdrant для пилотов и средних корпусов, OpenSearch — для гибридного поиска',
+  },
+  {
+    component: 'Reranker',
+    options: 'bge-reranker-v2-m3, cross-encoder на ru',
+    pros: 'Резкий рост точности на похожих документах',
+    cons: 'Дополнительная задержка и GPU/CPU нагрузка',
+    when: 'Большие корпуса, юридические и регламентные документы',
+  },
+  {
+    component: 'LLM',
+    options: 'Open-source в контуре, коммерческие API, гибрид',
+    pros: 'Контроль данных или скорость внедрения',
+    cons: 'Качество vs стоимость vs контур',
+    when: 'По требованиям ИБ и характеру данных',
+  },
+];
+
+const pitfallsTable = [
+  { problem: 'Слишком крупные чанки', symptom: 'Ответ «размазан», в выдаче лишние темы', fix: 'Резать по разделам, держать 300–800 токенов' },
+  { problem: 'Дубликаты документов', symptom: 'Старая версия попадает в ответ', fix: 'Дедупликация на ingestion, маркировка актуальной версии' },
+  { problem: 'Нет метаданных', symptom: 'Невозможно фильтровать по правам и подразделениям', fix: 'Обязательные поля: владелец, тип, дата, гриф' },
+  { problem: 'Разрыв языка запросов и документов', symptom: 'Поиск не находит очевидно нужное', fix: 'Гибридный поиск, синонимы, расширение запроса' },
+  { problem: 'Нет reranker', symptom: 'Top-3 содержит мусор', fix: 'Cross-encoder reranker поверх первичной выдачи' },
+  { problem: 'Перегруженный контекст', symptom: 'LLM путается, смешивает источники', fix: 'Жёстко ограничить число фрагментов' },
+  { problem: 'Нет ссылок и метрик', symptom: 'Невозможно проверить и улучшать', fix: 'Цитирование источников, тестовый набор и регулярные замеры' },
+];
+
+const pilotSteps = [
+  { n: '01', title: 'Один бизнес-сценарий', desc: 'Поиск по регламентам HR, ответы по договорной библиотеке, помощь техподдержке по базе знаний — что-то одно.' },
+  { n: '02', title: 'Ограниченный корпус', desc: '500–5 000 документов достаточно, чтобы проверить архитектуру и не утонуть в подготовке.' },
+  { n: '03', title: 'Дубликаты и старые версии', desc: 'Отдельный шаг, который часто пропускают и потом жалеют. Хеши, нормализация, маркировка актуальной версии.' },
+  { n: '04', title: 'Права доступа', desc: 'Кто и какие документы может видеть, какие метаданные нужны для фильтрации на этапе retrieval.' },
+  { n: '05', title: 'Извлечение и chunking', desc: 'Подобрать параметры под структуру документов: договоры режутся иначе, чем инструкции.' },
+  { n: '06', title: 'Embedding и vector store', desc: 'Под закрытый контур, с учётом языка документов и готовности команды эксплуатировать стек.' },
+  { n: '07', title: 'Retrieval и reranking', desc: 'Подобрать число кандидатов, протестировать с reranker и без, замерить разницу на реальных вопросах.' },
+  { n: '08', title: 'Тестовые вопросы', desc: '50–100 реальных формулировок от пользователей с эталонными документами для каждого вопроса.' },
+  { n: '09', title: 'Метрики качества', desc: 'Top-k accuracy для retrieval, экспертная оценка ответов, время ответа, доля цитированных источников.' },
+  { n: '10', title: 'Опытная эксплуатация', desc: 'Ограниченная группа реальных пользователей, обратная связь, итеративные улучшения корпуса и параметров.' },
+];
+---
+
+<Base title={title} description={description} articleDate={publishDate} image={coverImage}>
+
+  <main class="flex-grow">
+
+  <!-- Hero -->
+  <section class="relative pt-28 pb-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div>
+        <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Назад к блогу
+        </a>
+
+        <div class="mb-6 flex items-center gap-3 flex-wrap">
+          {tags.map((tag) => (
+            <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">{tag}</span>
+          ))}
+        </div>
+
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+          RAG-архитектура для&nbsp;корпоративных данных: как&nbsp;подключить LLM к&nbsp;внутренним документам
+        </h1>
+
+        <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+          Из&nbsp;чего собирается RAG, где он&nbsp;ломается на&nbsp;пилотах и&nbsp;почему чувствительные документы остаются в&nbsp;закрытом контуре
+        </p>
+
+        <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            12 мая 2026
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            {readTime}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="prose prose-invert prose-lg max-w-none space-y-12 text-muted-foreground">
+
+        <!-- Cover -->
+        <div class="mb-4">
+          <img src="/images/blog/14/cover.webp" alt="RAG-архитектура: LLM, подключённая к корпоративным документам в закрытом контуре" class="w-full rounded-2xl object-cover" loading="eager">
+        </div>
+
+        <!-- Intro -->
+        <div class="space-y-4">
+          <p>Сотрудник спрашивает у&nbsp;LLM, как согласовать договор на&nbsp;поставку оборудования сверх лимита в&nbsp;5&nbsp;миллионов рублей. Модель отвечает уверенно: маршрут согласования, состав визирующих, сроки. Всё звучит правдоподобно. Только регламент в&nbsp;компании пересматривали полгода назад, лимит давно подняли, а&nbsp;часть визирующих переехала в&nbsp;другой блок.</p>
+
+          <p>Это типовой сценарий, который объясняет, зачем нужен RAG. Языковая модель умеет хорошо рассуждать, но&nbsp;она не&nbsp;видит ваши договоры, регламенты, проектную документацию, переписку и&nbsp;внутренние базы знаний. Всё это лежит во&nbsp;внутренних системах, к&nbsp;которым у&nbsp;модели нет доступа. И&nbsp;никакой объём публичных данных при предобучении не&nbsp;научит её&nbsp;отвечать про вашу компанию.</p>
+
+          <p>Статья будет полезна ИТ-директорам, архитекторам, руководителям ИБ и&nbsp;владельцам корпоративных баз знаний, которые рассматривают подключение LLM к&nbsp;внутренним документам. После прочтения у&nbsp;вас будет понимание, из&nbsp;чего собирается RAG-архитектура, где она ломается на&nbsp;пилотах, какие компоненты разумно рассматривать в&nbsp;2026&nbsp;году и&nbsp;почему закрытый контур остаётся базовым требованием для чувствительных данных. RAG&nbsp;— инженерная архитектура с&nbsp;десятками точек настройки, и&nbsp;от&nbsp;качества этой инженерной работы в&nbsp;итоге зависит результат гораздо больше, чем от&nbsp;выбора самой модели.</p>
+        </div>
+
+        <!-- Почему LLM не знает документы -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Почему LLM не&nbsp;знает документы вашей компании</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Базовая модель училась на&nbsp;публичных данных: книги, веб, статьи, форумы, открытый код, документация открытых проектов. Ваши договоры, инструкции, протоколы и&nbsp;проектные папки в&nbsp;это пространство не&nbsp;попадали. И&nbsp;не&nbsp;должны были попадать.</p>
+
+            <p>Когда сотрудник задаёт модели вопрос про внутренний регламент, у&nbsp;неё нет хорошего варианта. Признаваться в&nbsp;незнании модели обучены не&nbsp;всегда; ответить общими словами в&nbsp;стиле учебника по&nbsp;корпоративному управлению можно, но&nbsp;толку от&nbsp;такого ответа мало. Самый частый и&nbsp;одновременно самый опасный исход&nbsp;— уверенный, правдоподобно звучащий ответ, опирающийся на&nbsp;обобщения из&nbsp;обучающего корпуса. Это и&nbsp;есть галлюцинация: модель не&nbsp;врёт намеренно, она восстанавливает «как обычно бывает» и&nbsp;подставляет это под ваш вопрос. Для пользователя такой ответ выглядит как нормальная справка от&nbsp;системы&nbsp;— в&nbsp;этом основная беда.</p>
+
+            <p>Решение «давайте просто положим все документы в&nbsp;промпт» работает плохо по&nbsp;нескольким причинам. Контекстное окно конечно&nbsp;— даже сотни тысяч токенов когда-нибудь заканчиваются, а&nbsp;корпоративный архив легко тянет на&nbsp;десятки гигабайт текста. Стоимость растёт линейно с&nbsp;количеством токенов в&nbsp;запросе. Качество ответа на&nbsp;длинных контекстах деградирует: модель хуже находит факты в&nbsp;середине большого документа. Но&nbsp;даже если&nbsp;бы всё это удалось обойти, остаётся главное: нет никакого механизма, чтобы вытащить актуальную версию регламента и&nbsp;одновременно отсечь данные, к&nbsp;которым у&nbsp;конкретного пользователя нет доступа.</p>
+
+            <p>Реальные внедрения упираются именно в&nbsp;это. Документы лежат в&nbsp;SharePoint, файловых шарах, почте, тикет-системах и&nbsp;DMS, у&nbsp;каждого источника свои права, свои версии и&nbsp;свои дубликаты. Всё это нужно как-то подружить с&nbsp;моделью, не&nbsp;отдав ей&nbsp;лишнего и&nbsp;не&nbsp;оставив без нужного.</p>
+          </div>
+        </div>
+
+        <!-- Что такое RAG -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что такое RAG простыми словами</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Retrieval Augmented Generation&nbsp;— это архитектурный приём, который превращает LLM из&nbsp;«читателя интернета» в&nbsp;«эксперта с&nbsp;архивом под рукой». Перед тем как отвечать, система не&nbsp;просто отдаёт вопрос модели, а&nbsp;сначала идёт в&nbsp;корпоративное хранилище, находит там релевантные фрагменты документов и&nbsp;передаёт их&nbsp;вместе с&nbsp;вопросом.</p>
+
+            <div class="p-5 rounded-xl bg-accent/5 border border-accent/20">
+              <p class="text-sm leading-relaxed text-white/90">Запрос пользователя &rarr; векторное представление запроса &rarr; поиск в&nbsp;индексе &rarr; отбор релевантных фрагментов &rarr; сборка контекста &rarr; запрос к&nbsp;LLM с&nbsp;контекстом &rarr; ответ со&nbsp;ссылками на&nbsp;источники.</p>
+            </div>
+
+            <p>Аналогия: представьте эксперта, который умеет отлично рассуждать, но&nbsp;плохо помнит подробности конкретных документов. Перед тем как задать ему вопрос, помощник кладёт на&nbsp;стол выдержки из&nbsp;нужных папок. Эксперт читает выдержки и&nbsp;формулирует ответ, опираясь на&nbsp;документы, а&nbsp;не&nbsp;на&nbsp;общую эрудицию.</p>
+
+            <p>Разница между обычным ответом LLM и&nbsp;ответом RAG-системы видна сразу. На&nbsp;вопрос «кто согласует договор поставки оборудования свыше&nbsp;5&nbsp;миллионов рублей» обычная модель выдаст что-то вроде:</p>
+
+            <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+              <p class="text-sm leading-relaxed italic text-white/80">«Обычно такие договоры согласуются юридическим отделом, финансовой службой и&nbsp;руководителем подразделения».</p>
+            </div>
+
+            <p>Звучит правдоподобно, но&nbsp;к&nbsp;вашей компании это отношения не&nbsp;имеет. С&nbsp;RAG-системой ответ должен выглядеть иначе:</p>
+
+            <div class="p-5 rounded-xl bg-accent/5 border border-accent/20">
+              <p class="text-sm leading-relaxed text-white/90">«Согласно регламенту договорной работы (ред.&nbsp;от&nbsp;12.03.2026), договоры поставки оборудования на&nbsp;сумму свыше&nbsp;5&nbsp;млн рублей согласуются юридическим отделом, финансовым контролёром и&nbsp;директором блока закупок. Для оборудования, подключаемого к&nbsp;объектам КИИ, дополнительно требуется согласование службы ИБ.</p>
+              <p class="mt-3 text-xs leading-relaxed text-accent/80">Источники: Регламент договорной работы, раздел&nbsp;4.2; Матрица полномочий, приложение&nbsp;1».</p>
+            </div>
+
+            <p>Это и&nbsp;есть ценность подхода: ответ не&nbsp;только корректнее&nbsp;— он&nbsp;ещё и&nbsp;проверяемый. Пользователь видит, на&nbsp;какой пункт какого документа сослалась система; администратор может посмотреть в&nbsp;журнале, какие источники использовались. На&nbsp;вопрос «откуда модель это взяла» появляется конкретный ответ.</p>
+
+            <p>Из&nbsp;этой схемы важно запомнить главное: качество RAG-ответа упирается прежде всего в&nbsp;качество найденного контекста. Самая дорогая модель не&nbsp;вытащит хорошего ответа из&nbsp;плохой выдачи retrieval. Полезно также держать в&nbsp;голове, что RAG не&nbsp;дообучает модель и&nbsp;не&nbsp;«вшивает» документы внутрь её&nbsp;весов&nbsp;— документы и&nbsp;индекс продолжают жить в&nbsp;корпоративном хранилище, никуда не&nbsp;«утекая» в&nbsp;саму LLM.</p>
+          </div>
+        </div>
+
+        <!-- Базовая архитектура -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Базовая RAG-архитектура</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>В&nbsp;типовой корпоративной реализации RAG-система собирается из&nbsp;нескольких связанных частей. Каждая отвечает за&nbsp;свой кусок цепочки и&nbsp;имеет собственные настройки качества.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/14/rag-pipeline.webp" alt="Схема RAG-конвейера: запрос пользователя, embedding, поиск в vector store, reranker, prompt builder, LLM и ответ со ссылками на источники" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">RAG-конвейер: путь от&nbsp;вопроса пользователя до&nbsp;ответа со&nbsp;ссылками на&nbsp;документы</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Источники и&nbsp;ingestion</div>
+                <p class="text-sm leading-relaxed">PDF, DOCX, Confluence, DMS, договоры, инструкции, тикеты, переписка. Конвейер загружает документы и&nbsp;запускает обработку при изменениях.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Извлечение и&nbsp;нормализация</div>
+                <p class="text-sm leading-relaxed">Парсеры PDF и&nbsp;Office, OCR для сканов, обработка таблиц, удаление шапок, подвалов и&nbsp;сквозной нумерации страниц.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Chunking и&nbsp;embedding</div>
+                <p class="text-sm leading-relaxed">Разбиение документов на&nbsp;фрагменты с&nbsp;учётом структуры и&nbsp;перевод фрагментов в&nbsp;векторы локальной embedding-моделью.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Vector store и&nbsp;retriever</div>
+                <p class="text-sm leading-relaxed">Хранилище векторов с&nbsp;поиском по&nbsp;сходству и&nbsp;фильтрацией по&nbsp;метаданным&nbsp;— включая права доступа.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">Reranker и&nbsp;prompt builder</div>
+                <p class="text-sm leading-relaxed">Cross-encoder переставляет кандидатов по&nbsp;точному соответствию запросу, prompt builder собирает финальный промпт из&nbsp;вопроса и&nbsp;фрагментов.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-accent font-bold mb-2">LLM, источники, аудит</div>
+                <p class="text-sm leading-relaxed">Генерация ответа, ссылки на&nbsp;конкретные документы, логирование запросов и&nbsp;ответов в&nbsp;корпоративный SIEM.</p>
+              </div>
+            </div>
+
+            <p>На&nbsp;красивой схеме всё выглядит просто. На&nbsp;реальном проекте основное время съедает совсем не&nbsp;модель: нужно разобрать форматы, договориться с&nbsp;владельцами систем, навести порядок в&nbsp;правах, настроить chunking так, чтобы куски документов имели смысл, и&nbsp;научить retriever находить нужное при нечётких формулировках. Эти задачи редко всплывают в&nbsp;презентациях, но&nbsp;именно они решают, заработает система или нет.</p>
+          </div>
+        </div>
+
+        <!-- Компоненты -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Компоненты RAG: что&nbsp;выбирать в&nbsp;России в&nbsp;2026&nbsp;году</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Никакой «единственно правильной» сборки нет. Выбор зависит от&nbsp;требований к&nbsp;контуру, размера корпуса, языкового профиля документов и&nbsp;готовности команды поддерживать инфраструктуру.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Embedding-модели</h3>
+            <p>Для русского языка и&nbsp;корпоративной документации в&nbsp;проектах часто рассматривают модели семейства multilingual-e5 и&nbsp;bge-m3&nbsp;— они доступны как open-source и&nbsp;работают локально. На&nbsp;рынке также присутствуют Yandex Embeddings и&nbsp;sbert-large-nlu-ru, выбор зависит от&nbsp;того, разрешено&nbsp;ли отправлять данные во&nbsp;внешний API и&nbsp;как устроена политика поставщика. Для специализированных доменов (юридический, медицинский, инженерный) общие модели могут давать слабую релевантность&nbsp;— иногда стоит дообучать собственный энкодер на&nbsp;парах «вопрос&nbsp;— фрагмент».</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Vector store</h3>
+            <p>FAISS&nbsp;— это библиотека Meta для поиска по&nbsp;векторам, удобная для прототипов и&nbsp;встроенных решений, но&nbsp;не&nbsp;сервер БД в&nbsp;полном смысле. Qdrant&nbsp;— векторная БД на&nbsp;Rust с&nbsp;поддержкой фильтрации по&nbsp;метаданным, что критично для разграничения прав доступа на&nbsp;этапе поиска. OpenSearch удобен, когда нужен гибридный поиск: классический BM25 плюс векторный, в&nbsp;одном движке. Milvus масштабируется на&nbsp;большие корпуса, но&nbsp;требует более серьёзной эксплуатации. Для пилота на&nbsp;одном узле часто выбирают Qdrant; для интеграции с&nbsp;уже существующим стеком ELK или OpenSearch&nbsp;— последний.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Reranker</h3>
+            <p>Это второй этап поиска: первичный retriever отдаёт, скажем, 30 кандидатов, а&nbsp;cross-encoder reranker оценивает каждую пару «запрос&nbsp;— фрагмент» и&nbsp;переставляет результаты. На&nbsp;маленьких корпусах с&nbsp;непохожими документами без него можно обойтись. На&nbsp;большом архиве, где есть множество регламентов с&nbsp;похожей структурой, reranker заметно повышает точность ответа: верхние 3–5 фрагментов становятся существенно релевантнее.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">LLM</h3>
+            <p>Здесь разделение проходит по&nbsp;контуру данных. Для чувствительных корпусов и&nbsp;работы по&nbsp;требованиям ИБ обычно выбирают open-source модель, развёрнутую в&nbsp;закрытом контуре. Если данные разрешено отправлять во&nbsp;внешний сервис, проще взять коммерческую модель по&nbsp;API&nbsp;— это быстрее в&nbsp;развёртывании и&nbsp;снимает с&nbsp;команды нагрузку по&nbsp;поддержке инфраструктуры. Гибридные схемы, где чувствительная часть обслуживается локальной моделью, а&nbsp;публичная&nbsp;— внешней, встречаются реже, но&nbsp;иногда оказываются разумным компромиссом. Подробнее об&nbsp;этом&nbsp;— в&nbsp;<a href="/blog/02-on-premise-llm/" class="text-accent hover:underline">материале про on-premise LLM</a>.</p>
+
+            <div class="overflow-x-auto rounded-2xl border border-white/10 mt-6">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05] text-white">
+                    <th class="text-left px-4 py-4 font-semibold">Компонент</th>
+                    <th class="text-left px-4 py-4 font-semibold">Возможные варианты</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Плюсы</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Ограничения</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden lg:table-cell">Когда выбирать</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {componentsTable.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-4 py-3 text-white font-medium">{row.component}</td>
+                      <td class="px-4 py-3">{row.options}</td>
+                      <td class="px-4 py-3 hidden md:table-cell">{row.pros}</td>
+                      <td class="px-4 py-3 hidden md:table-cell">{row.cons}</td>
+                      <td class="px-4 py-3 hidden lg:table-cell">{row.when}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p class="mt-3 text-xs text-muted-foreground/50 italic">Перечисленные варианты&nbsp;— ориентировочные. Окончательный выбор делается под конкретный сценарий, корпус и&nbsp;требования ИБ.</p>
+          </div>
+        </div>
+
+        <!-- Подводные камни -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Подводные камни RAG-проектов</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Большая часть проблем RAG возникает ещё до&nbsp;этапа генерации&nbsp;— в&nbsp;подготовке корпуса и&nbsp;retrieval. LLM здесь, как правило, не&nbsp;виновата.</p>
+
+            <p><strong class="text-white">Плохой chunking.</strong> Слишком короткие фрагменты теряют контекст: пункт регламента без заголовка раздела превращается в&nbsp;обрывок. Слишком длинные размывают релевантность: в&nbsp;одном чанке смешаны несколько тем, и&nbsp;поиск находит фрагмент по&nbsp;одной теме, а&nbsp;отвечать пытается на&nbsp;другую. Разумный диапазон обычно 300–800 токенов с&nbsp;перекрытием, но&nbsp;для договоров и&nbsp;регламентов лучше резать по&nbsp;структуре документа: разделы, статьи, пункты.</p>
+
+            <p><strong class="text-white">Дубликаты и&nbsp;старые версии.</strong> В&nbsp;типичной корпоративной файловой шаре одного и&nbsp;того&nbsp;же документа лежит несколько копий разной свежести. Если не&nbsp;отсеять их&nbsp;на&nbsp;ingestion, retriever будет находить версию двухлетней давности с&nbsp;равной вероятностью. Помогают хеши содержимого, дедупликация по&nbsp;нормализованному тексту и&nbsp;явная маркировка актуальной версии в&nbsp;метаданных.</p>
+
+            <p>Без подразделения, типа документа, даты, владельца и&nbsp;грифа конфиденциальности невозможно ни&nbsp;отфильтровать выдачу по&nbsp;правам доступа, ни&nbsp;понять, какой документ показывать пользователю. По&nbsp;важности метаданные сопоставимы с&nbsp;самими документами; на&nbsp;пилоте ими часто пренебрегают, на&nbsp;проде потом переделывают всё заново. Сюда&nbsp;же относится разрыв между языком пользователей и&nbsp;языком документов: архитектор закладывает поиск по&nbsp;«согласованию договора», а&nbsp;пользователи пишут «как подписать контракт». На&nbsp;таких разрывах теряется значительная часть релевантности; помогают синонимические словари, гибридный поиск и&nbsp;расширение запроса.</p>
+
+            <p><strong class="text-white">Перегруженный контекст.</strong> Соблазн положить в&nbsp;промпт «побольше фрагментов на&nbsp;всякий случай»&nbsp;— типовая ошибка. Модель начинает теряться, отвлекается на&nbsp;нерелевантное и&nbsp;иногда смешивает сведения из&nbsp;разных документов. Лучше отдать 3–5 точных фрагментов, чем десяток размытых.</p>
+
+            <p><strong class="text-white">Отсутствие ссылок на&nbsp;источники и&nbsp;оценки качества.</strong> Без ссылок пользователь не&nbsp;может проверить ответ, без метрик&nbsp;— никто не&nbsp;знает, лучше&nbsp;ли стало после изменений. Минимум: тестовый набор из&nbsp;50–100 реальных вопросов с&nbsp;эталонными документами, регулярный замер top-k accuracy и&nbsp;качества ответа.</p>
+
+            <p>Отдельно стоит проговорить вещь, которая регулярно теряется в&nbsp;инженерной части: права доступа должны фильтровать выдачу retrieval до&nbsp;того, как фрагменты дойдут до&nbsp;LLM. Если ограничения накладываются только на&nbsp;интерфейсе, в&nbsp;момент генерации модель видит документы, которых пользователь видеть не&nbsp;должен&nbsp;— даже если в&nbsp;финальный ответ они не&nbsp;попадут. Это уже не&nbsp;инженерная, а&nbsp;ИБ-проблема: RAG-система не&nbsp;должна становиться обходным путём вокруг существующей корпоративной модели доступа.</p>
+
+            <p>И&nbsp;ещё одно требование, которое всплывает обычно после запуска: корпоративная RAG-система должна уметь не&nbsp;отвечать. Если в&nbsp;найденных фрагментах нет основания для ответа, лучшая реакция&nbsp;— сказать об&nbsp;этом прямо, а&nbsp;не&nbsp;собирать «правдоподобную» версию из&nbsp;общих рассуждений. Для пользователя честное «в&nbsp;документах ответа нет, обратитесь к&nbsp;владельцу регламента» полезнее уверенно сформулированной выдумки.</p>
+
+            <div class="overflow-x-auto rounded-2xl border border-white/10 mt-6">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05] text-white">
+                    <th class="text-left px-4 py-4 font-semibold">Проблема</th>
+                    <th class="text-left px-4 py-4 font-semibold hidden md:table-cell">Как проявляется</th>
+                    <th class="text-left px-4 py-4 font-semibold">Что делать</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {pitfallsTable.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-4 py-3 text-white font-medium">{row.problem}</td>
+                      <td class="px-4 py-3 hidden md:table-cell">{row.symptom}</td>
+                      <td class="px-4 py-3">{row.fix}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-5 rounded-xl bg-amber-500/5 border border-amber-500/20 mt-4">
+              <p class="text-sm leading-relaxed flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span>Попытка одной LLM решить организационный беспорядок в&nbsp;документах обречена. Если на&nbsp;файловом сервере лежит несколько разнящихся версий регламента и&nbsp;ни&nbsp;в&nbsp;одной нет даты последней редакции, никакая RAG-архитектура не&nbsp;сделает поиск надёжным.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Когда RAG не нужен -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Когда RAG не&nbsp;нужен</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>RAG&nbsp;— не&nbsp;универсальный ответ. Несколько случаев, когда стоит выбрать другой инструмент.</p>
+
+            <p><strong class="text-white">Prompt engineering.</strong> Если задача укладывается в&nbsp;один промпт с&nbsp;парой примеров&nbsp;— например, классификация обращений или извлечение полей из&nbsp;счёта,&nbsp;— никакого retrieval не&nbsp;нужно. Сложная архитектура только замедлит и&nbsp;удорожит решение.</p>
+
+            <p><strong class="text-white">Fine-tuning.</strong> Дообучение полезно, когда нужно изменить поведение модели: формат ответа, тон, узкоспециализированный жаргон, классификационные паттерны. Заставлять модель «запомнить» свежие документы через fine-tuning неэффективно: каждое обновление корпуса требует нового цикла дообучения, а&nbsp;ссылки на&nbsp;источники из&nbsp;ответа исчезают.</p>
+
+            <p>Часть сценариев решается без LLM вообще. Если пользователям достаточно увидеть документ, а&nbsp;не&nbsp;получить готовую формулировку, классический поисковый движок (Elasticsearch, OpenSearch с&nbsp;BM25) дешевле и&nbsp;понятнее. Внутренний портал с&nbsp;разделами, тегами и&nbsp;нормальной поисковой строкой нередко закрывает задачу лучше любого генеративного ответа&nbsp;— особенно если документы стабильны и&nbsp;активно посещаются.</p>
+
+            <p><strong class="text-white">Workflow-автоматизация без LLM.</strong> Рутинные операции с&nbsp;предсказуемыми правилами&nbsp;— согласования, маршрутизация, проверки полей&nbsp;— почти всегда лучше делать классически: BPM, RPA, скрипты.</p>
+
+            <p>Иногда честный ответ заказчику звучит так: вам сейчас нужен не&nbsp;RAG, а&nbsp;порядок в&nbsp;DMS и&nbsp;ревизия прав доступа. После этого RAG станет осмысленным.</p>
+          </div>
+        </div>
+
+        <!-- On-premise RAG -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">On-premise RAG для&nbsp;корпоративных данных</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Для российских корпоративных и&nbsp;государственных заказчиков, объектов КИИ, банков, промышленности и&nbsp;любых организаций, которые работают с&nbsp;персональными данными или коммерческой тайной, вопрос «куда уходят документы» закрывает значительную часть дискуссии о&nbsp;выборе архитектуры. Закрытый контур на&nbsp;собственной инфраструктуре даёт несколько практических вещей.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/14/on-premise-rag.webp" alt="On-premise RAG-архитектура: документы, индекс и LLM внутри корпоративного периметра, без выхода во внешние облака" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Закрытый контур: документы, индекс и&nbsp;LLM не&nbsp;покидают корпоративный периметр</p>
+            </div>
+
+            <p>Документы и&nbsp;индексы остаются под контролем компании. Embedding'и, в&nbsp;которые превращаются фрагменты, тоже хранятся локально, что важно: вектор хорошей размерности фактически восстанавливает смысл фрагмента и&nbsp;при компрометации индекса считается чувствительным активом. Этой&nbsp;же логики&nbsp;— что вектор может «протекать»&nbsp;— касается и&nbsp;<a href="/blog/11-prompt-perturbation-privacy-llm/" class="text-accent hover:underline">материал про защиту данных в&nbsp;LLM</a>.</p>
+
+            <p>Запросы пользователей и&nbsp;сгенерированные ответы можно логировать в&nbsp;SIEM, фиксировать кто, что и&nbsp;когда спросил. Систему можно интегрировать с&nbsp;AD и&nbsp;LDAP для авторизации, с&nbsp;DLP для проверки исходящих ответов, со&nbsp;внутренней почтой и&nbsp;тикет-системами как источниками контекста. Закрытый контур упрощает разговор со&nbsp;службой безопасности и&nbsp;юристами: на&nbsp;схеме чётко видно, что данные не&nbsp;покидают периметр. Это снижает количество согласований и&nbsp;облегчает прохождение проверок по&nbsp;требованиям ИБ.</p>
+
+            <p>При этом on-premise RAG не&nbsp;бесплатен и&nbsp;не&nbsp;всегда лучше во&nbsp;всех смыслах. Он&nbsp;требует GPU-инфраструктуры под локальную модель и&nbsp;embedding'и, отдельной поддержки, мониторинга, планирования обновлений, периодической переиндексации. Команда должна уметь эксплуатировать стек, а&nbsp;не&nbsp;только запускать прототипы. Если все документы публичны, а&nbsp;сценарий простой, облачное решение может быть быстрее и&nbsp;дешевле. Для чувствительных данных закрытый контур обычно оказывается единственным приемлемым вариантом&nbsp;— но&nbsp;именно «приемлемым», а&nbsp;не&nbsp;«дешёвым».</p>
+          </div>
+        </div>
+
+        <!-- AzoneDoc -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Кейс AzoneDoc: как&nbsp;RAG применяется в&nbsp;закрытом контуре</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p><a href="/products/azonedoc/" class="text-accent hover:underline">AzoneDoc</a>&nbsp;— система AZONE-AI для работы с&nbsp;внутренними документами на&nbsp;базе RAG-подхода, разворачиваемая в&nbsp;закрытом контуре заказчика.</p>
+
+            <p>Постановка задачи у&nbsp;заказчика обычно звучит примерно так: документы у&nbsp;нас есть, но&nbsp;сотрудники не&nbsp;всегда знают, где лежит актуальная версия, кому её&nbsp;можно показывать и&nbsp;какой пункт применять в&nbsp;конкретной ситуации. RAG в&nbsp;закрытом контуре отвечает именно на&nbsp;это.</p>
+
+            <p>Если описывать концептуально, без деталей конкретных внедрений, в&nbsp;типовой реализации цепочка выглядит так. Документы загружаются в&nbsp;защищённый контур через коннекторы к&nbsp;корпоративным источникам или прямой выгрузкой. Система извлекает текст, очищает его&nbsp;от&nbsp;служебных элементов, разбивает на&nbsp;фрагменты с&nbsp;учётом структуры документа и&nbsp;считает векторные представления с&nbsp;помощью локальной embedding-модели. Индекс и&nbsp;метаданные хранятся в&nbsp;векторной БД внутри контура. Пользователь задаёт вопрос через интерфейс, система применяет фильтры по&nbsp;правам доступа на&nbsp;этапе поиска, отбирает релевантные фрагменты, проводит их&nbsp;через reranker, собирает контекст и&nbsp;передаёт его&nbsp;локальной LLM. В&nbsp;ответе пользователь видит не&nbsp;только сформулированный текст, но&nbsp;и&nbsp;ссылки на&nbsp;конкретные документы и&nbsp;фрагменты, на&nbsp;которые опирался ответ. Подробнее об&nbsp;опыте развёртывания подобных систем&nbsp;— в&nbsp;<a href="/blog/03-azonedoc/" class="text-accent hover:underline">кейсе AzoneDoc</a>.</p>
+
+            <p>Что это даёт компании на&nbsp;практике. Поиск по&nbsp;регламентам и&nbsp;договорам ускоряется в&nbsp;разы&nbsp;— особенно когда нужно собрать ответ по&nbsp;нескольким связанным документам. Снижается нагрузка на&nbsp;экспертов, которым раньше задавали повторяющиеся вопросы. Уменьшается риск ответа «из&nbsp;головы»: ссылки на&nbsp;источники видны пользователю, ответ можно проверить. И&nbsp;главное&nbsp;— LLM работает там, где её&nbsp;невозможно использовать иначе: в&nbsp;контурах с&nbsp;персональными данными, коммерческой тайной, требованиями ФСТЭК и&nbsp;внутренними регламентами ИБ, запрещающими отправку документов в&nbsp;публичные облака.</p>
+
+            <p>Качество ответов в&nbsp;такой системе зависит от&nbsp;того, как подготовлен корпус, как описаны метаданные и&nbsp;насколько чётко настроены права доступа. Поэтому внедрение AzoneDoc начинается с&nbsp;инвентаризации документов и&nbsp;сценариев&nbsp;— обсуждение конкретной модели обычно идёт уже потом, на&nbsp;основе понятых требований.</p>
+          </div>
+        </div>
+
+        <!-- Пилот -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Как начать пилот RAG-проекта</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Хороший пилот не&nbsp;пытается охватить весь корпоративный архив. Он&nbsp;берёт один понятный сценарий и&nbsp;доводит его&nbsp;до&nbsp;рабочего состояния. Подробный гайд по&nbsp;инфраструктуре&nbsp;— в&nbsp;<a href="/blog/07-llm-closed-circuit-guide/" class="text-accent hover:underline">руководстве по&nbsp;развёртыванию LLM в&nbsp;закрытом контуре</a>.</p>
+
+            <div class="space-y-3 mt-6">
+              {pilotSteps.map((step) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10 flex gap-4">
+                  <span class="text-accent font-bold text-lg shrink-0 w-8">{step.n}</span>
+                  <div>
+                    <div class="text-white font-bold mb-1">{step.title}</div>
+                    <p class="text-sm leading-relaxed">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Хороший пилот&nbsp;— это не&nbsp;«развернуть LLM и&nbsp;подключить документы». Это способ заранее увидеть, насколько корпус документов готов к&nbsp;промышленной эксплуатации и&nbsp;насколько ответы реально полезны пользователям. Если на&nbsp;ограниченном сценарии retrieval работает плохо, расширять охват бессмысленно&nbsp;— масштабирование только умножит проблемы.</p>
+          </div>
+        </div>
+
+        <!-- Выводы -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Выводы</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>RAG&nbsp;— архитектурный подход, в&nbsp;котором качество системы складывается из&nbsp;десятков взаимосвязанных решений: chunking, метаданные, embedding, retriever, reranker, права доступа, ссылки на&nbsp;источники. Ни&nbsp;один отдельный компонент не&nbsp;определяет результат в&nbsp;одиночку. Базовая&nbsp;же LLM без корпоративного контекста не&nbsp;решает задачу работы с&nbsp;внутренними знаниями: она даёт правдоподобные, но&nbsp;не&nbsp;основанные на&nbsp;ваших документах ответы.</p>
+
+            <p>Самая дорогая часть RAG-проекта приходится на&nbsp;подготовку корпуса, описание метаданных и&nbsp;интеграцию с&nbsp;источниками. Эту работу нельзя делегировать алгоритмам, и&nbsp;от&nbsp;её&nbsp;качества зависит больше, чем от&nbsp;выбора модели. Для чувствительных корпоративных данных закрытый контур остаётся базовым требованием. Облачные API быстрее и&nbsp;дешевле, но&nbsp;в&nbsp;КИИ, банках и&nbsp;промышленности их&nbsp;применимость ограничена.</p>
+
+            <p>Начинать стоит с&nbsp;пилота на&nbsp;одном сценарии и&nbsp;ограниченном корпусе. Попытка проиндексировать весь корпоративный архив с&nbsp;первого дня обычно заканчивается долгим проектом без видимого результата.</p>
+          </div>
+
+          <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+            <p class="text-white font-medium text-lg leading-relaxed">Если вы&nbsp;хотите проверить, подойдёт&nbsp;ли RAG для ваших внутренних документов, <strong>AZONE-AI</strong> может провести экспресс-аудит корпуса данных и&nbsp;предложить архитектуру пилота в&nbsp;закрытом контуре. Мы&nbsp;оценим качество корпуса, состояние метаданных, требования по&nbsp;правам доступа и&nbsp;реалистичные сценарии&nbsp;— <a href="/contact?product=other" class="text-accent hover:underline">оставьте заявку на&nbsp;консультацию</a>.</p>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Частые вопросы</h2>
+          </div>
+
+          <div class="space-y-4">
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Что такое RAG простыми словами?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">RAG (retrieval augmented generation)&nbsp;— это архитектура, при которой LLM перед ответом получает релевантные фрагменты из&nbsp;корпоративных документов. Модель не&nbsp;«учит» документы, а&nbsp;опирается на&nbsp;них при генерации ответа. Это позволяет работать с&nbsp;актуальными внутренними знаниями без переобучения.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Чем RAG отличается от&nbsp;fine-tuning?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Fine-tuning меняет веса модели и&nbsp;подходит для изменения поведения: формата ответа, стиля, классификации. RAG не&nbsp;трогает модель, а&nbsp;подаёт ей&nbsp;нужные документы во&nbsp;время запроса. Для актуальных корпоративных знаний RAG практичнее: документы обновляются без перетренировки модели и&nbsp;видны как ссылки в&nbsp;ответе.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Можно&nbsp;ли использовать RAG в&nbsp;закрытом контуре?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Да, и&nbsp;для чувствительных данных это базовый сценарий. В&nbsp;закрытом контуре разворачиваются embedding-модель, векторная БД и&nbsp;LLM&nbsp;— данные не&nbsp;покидают периметр. Это типовая архитектура для КИИ, банков, промышленных и&nbsp;государственных заказчиков.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Какая векторная база лучше для RAG?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Однозначно «лучшей» нет. Qdrant удобен для пилотов и&nbsp;средних корпусов, OpenSearch&nbsp;— когда нужен гибридный поиск (BM25 плюс векторный), Milvus масштабируется на&nbsp;большие объёмы, FAISS подходит для встроенных решений и&nbsp;прототипов. Выбор зависит от&nbsp;объёма данных, требований к&nbsp;фильтрации по&nbsp;метаданным и&nbsp;существующего стека.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Почему RAG иногда даёт неправильные ответы?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Чаще всего проблема не&nbsp;в&nbsp;LLM, а&nbsp;в&nbsp;retrieval. Плохой chunking, дубликаты, отсутствие метаданных, разрыв между языком запросов и&nbsp;языком документов, отсутствие reranker&nbsp;— каждая из&nbsp;этих причин снижает качество. LLM лишь синтезирует ответ из&nbsp;того, что ей&nbsp;передали; если контекст плохой, ответ будет плохим.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Подходит&nbsp;ли RAG для конфиденциальных документов?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Подходит, если развёрнут в&nbsp;закрытом контуре с&nbsp;разграничением прав доступа на&nbsp;уровне retrieval, аудитом запросов и&nbsp;интеграцией с&nbsp;DLP и&nbsp;SIEM. Документы не&nbsp;отправляются в&nbsp;публичные API, индексы остаются у&nbsp;заказчика. Для коммерческой тайны и&nbsp;персональных данных это рабочая архитектура; внешние облачные сервисы в&nbsp;таких сценариях обычно неприменимы.</p>
+            </details>
+          </div>
+        </div>
+
+        <!-- Дисклеймер -->
+        <div>
+          <div class="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <div>
+                <h3 class="text-white font-bold mb-2">Актуальность материала</h3>
+                <ul class="space-y-1.5 text-sm leading-relaxed">
+                  <li>Материал подготовлен по&nbsp;состоянию на&nbsp;<strong class="text-white">май 2026&nbsp;года</strong>.</li>
+                  <li>Перечисленные embedding-модели, vector store и&nbsp;reranker&nbsp;— ориентир для корпоративных проектов. Окончательный выбор делается под конкретный сценарий, корпус и&nbsp;требования ИБ.</li>
+                  <li>Описание AzoneDoc дано концептуально. Конкретный состав компонентов, объём и&nbsp;сроки внедрения определяются по&nbsp;итогам аудита у&nbsp;заказчика.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Похожие статьи -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Похожие статьи</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <a href="/blog/02-on-premise-llm/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">On-premise LLM: когда корпоративная нейросеть должна остаться внутри периметра</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            10 мин
+          </span>
+        </a>
+        <a href="/blog/07-llm-closed-circuit-guide/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Как развернуть LLM в закрытом контуре: пошаговое руководство</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            10 мин
+          </span>
+        </a>
+        <a href="/blog/03-azonedoc/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Кейс</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">AzoneDoc: интеллектуальный поиск по корпоративным документам в закрытом контуре</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            9 мин
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <img src="/images/blog/14/cover.webp" alt="RAG-архитектура в закрытом контуре: AZONE-AI как партнёр по корпоративным внедрениям" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Запустите RAG <span class="text-gradient">на&nbsp;своём корпусе документов</span></h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За&nbsp;4–8&nbsp;недель мы&nbsp;проведём экспресс-аудит корпуса и&nbsp;соберём пилот RAG в&nbsp;закрытом контуре заказчика. Лицензии ФСТЭК, ФСБ и&nbsp;МО&nbsp;РФ. Опыт с&nbsp;2003&nbsp;года.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Скачать презентацию
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+</Base>

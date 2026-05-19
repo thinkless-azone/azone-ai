@@ -23,6 +23,11 @@ const currentPath = Astro.url.pathname;
 const fullTitle = `${title} | AZONE-AI`;
 const absoluteImage = image.startsWith("http") ? image : `https://azoneai.ru${image}`;
 const yandexMetrikaId = import.meta.env.PUBLIC_YANDEX_METRIKA_ID;
+const secondaryYandexMetrikaId = '109079712';
+const yandexMetrikaIds = Array.from(
+  new Set([yandexMetrikaId, secondaryYandexMetrikaId].filter(Boolean))
+);
+const callTrackingEnabled = currentPath === '/' || currentPath === '/contact/';
 
 // BreadcrumbList — auto-generated from path
 const segments = currentPath.split('/').filter(Boolean);
@@ -87,7 +92,7 @@ const articleJsonLd = articleDate ? {
   <meta property="og:site_name" content="AZONE-AI" />
   <meta property="og:locale" content="ru_RU" />
   <meta property="og:type" content={ogType} />
-  {yandexMetrikaId && (
+  {yandexMetrikaIds.length > 0 && (
     <>
       <script set:html={`
         (function(m,e,t,r,i,k,a){
@@ -95,15 +100,28 @@ const articleJsonLd = articleDate ? {
           m[i].l=1*new Date();
           for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
           k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-        })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=${yandexMetrikaId}', 'ym');
-        ym(${yandexMetrikaId}, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+        })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=${yandexMetrikaIds[0]}', 'ym');
+        ${yandexMetrikaIds
+          .map((id) => `ym(${id}, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});`)
+          .join('\n')}
       `} />
       <noscript>
-        <div>
-          <img src={`https://mc.yandex.ru/watch/${yandexMetrikaId}`} style="position:absolute; left:-9999px;" alt="" />
-        </div>
+        {yandexMetrikaIds.map((id) => (
+          <div>
+            <img src={`https://mc.yandex.ru/watch/${id}`} style="position:absolute; left:-9999px;" alt="" />
+          </div>
+        ))}
       </noscript>
     </>
+  )}
+  {callTrackingEnabled && (
+    <script async type="text/javascript" set:html={`
+      (function ct_load_script() {
+        var ct = document.createElement('script'); ct.type = 'text/javascript'; ct.async = true; ct.rel = 'preload';
+        ct.src = document.location.protocol + '//cc.calltracking.ru/phone.5d9d3.8578.async.js?nc=' + Math.floor(new Date().getTime() / 300000);
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ct, s);
+      })();
+    `} />
   )}
   {noindex && <meta name="robots" content="noindex, follow" />}
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

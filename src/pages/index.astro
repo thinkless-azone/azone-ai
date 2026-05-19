@@ -86,6 +86,12 @@ import { products } from '../data/products.js';
                 <span class="text-4xl font-heading font-bold text-white/10 group-hover:text-white/20 transition-colors">{product.number}</span>
               </div>
               <h3 class="text-2xl font-bold text-white mb-3">{product.name}</h3>
+              {product.hasDemo && (
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold uppercase tracking-wider mb-3 self-start">
+                  <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Демо доступно
+                </span>
+              )}
               <p class="text-muted-foreground mb-6 flex-grow">{product.shortDesc}</p>
               <div class="space-y-4 mb-8 pt-6 border-t border-white/10">
                 <div class="text-sm">
