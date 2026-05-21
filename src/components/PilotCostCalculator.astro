@@ -1,0 +1,228 @@
+---
+interface Props {
+  idPrefix: string;
+  /** Используется для URL контакта, если не передан contactBase */
+  serviceId?: string;
+  /** Полный query без calc_* — переопределяет URL со страницы услуг/блога */
+  contactBase?: string;
+  defaults?: {
+    users?: string;
+    model?: string;
+    security?: string;
+    integrations?: string;
+  };
+  /** service — ссылка на статью 15; blog — «таблица выше»; none — без вводного абзаца */
+  intro?: 'service' | 'blog' | 'none';
+  cardClass?: string;
+}
+
+const {
+  idPrefix,
+  serviceId = 'on-premise-llm',
+  contactBase: contactBaseProp,
+  defaults = {
+    users: 'medium',
+    model: '13b',
+    security: 'corporate',
+    integrations: 'medium',
+  },
+  intro = 'service',
+  cardClass = '',
+} = Astro.props;
+
+const uid = (name: string) => `${idPrefix}-${name}`;
+const contactBase =
+  contactBaseProp ??
+  `/contact/?service=${serviceId}&topic=pilot&utm_source=services&utm_medium=calculator&utm_campaign=service-${serviceId}`;
+---
+
+<div class="pilot-cost-calculator" data-calc-root={idPrefix}>
+  {intro === 'service' && (
+    <p class="text-sm text-muted-foreground leading-relaxed mb-6">
+      Выберите параметры&nbsp;— получите ориентировочный диапазон бюджета на&nbsp;пилот и&nbsp;первый год эксплуатации.
+      Расчёт по&nbsp;коридорам из&nbsp;{' '}
+      <a href="/blog/15-stoimost-vnedreniya-llm-on-premise/" class="text-accent hover:underline">
+        статьи о&nbsp;стоимости LLM on-premise
+      </a>.
+      Это не&nbsp;коммерческое предложение, а&nbsp;первая прикидка для внутреннего обсуждения.
+    </p>
+  )}
+
+  <div class:list={['glass-card p-6 md:p-8', cardClass]}>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-white font-semibold mb-2 text-sm" for={uid('users')}>Количество пользователей</label>
+        <select
+          id={uid('users')}
+          data-calc-field="users"
+          class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white"
+        >
+          <option value="small" selected={defaults.users === 'small'}>5–20 человек (рабочая группа)</option>
+          <option value="medium" selected={defaults.users === 'medium'}>20–100 человек (подразделение)</option>
+          <option value="large" selected={defaults.users === 'large'}>100+ человек (корпоративный масштаб)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-white font-semibold mb-2 text-sm" for={uid('model')}>Размер модели</label>
+        <select
+          id={uid('model')}
+          data-calc-field="model"
+          class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white"
+        >
+          <option value="7b" selected={defaults.model === '7b'}>7B / 13B с квантизацией</option>
+          <option value="13b" selected={defaults.model === '13b'}>13B–34B (FP16)</option>
+          <option value="70b" selected={defaults.model === '70b'}>70B+ или несколько моделей</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-white font-semibold mb-2 text-sm" for={uid('security')}>Требования по ИБ</label>
+        <select
+          id={uid('security')}
+          data-calc-field="security"
+          class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white"
+        >
+          <option value="basic" selected={defaults.security === 'basic'}>Базовые: AD, журнал доступа</option>
+          <option value="corporate" selected={defaults.security === 'corporate'}>Корпоративные: аудит, разграничение</option>
+          <option value="regulated" selected={defaults.security === 'regulated'}>Регулируемые: ФСТЭК / КИИ / аттестация</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-white font-semibold mb-2 text-sm" for={uid('integrations')}>Источники данных и&nbsp;интеграции</label>
+        <select
+          id={uid('integrations')}
+          data-calc-field="integrations"
+          class="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-accent transition-colors [&>option]:bg-slate-900 [&>option]:text-white"
+        >
+          <option value="basic" selected={defaults.integrations === 'basic'}>1–2 источника: файлы, AD</option>
+          <option value="medium" selected={defaults.integrations === 'medium'}>3–5 источников: СЭД, 1С, портал</option>
+          <option value="full" selected={defaults.integrations === 'full'}>Полный комплект: множественные источники</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-7 pt-7 border-t border-white/10">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+        <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+          <div class="text-xs text-muted-foreground mb-1.5">CAPEX (железо, ПО)</div>
+          <div id={uid('capex')} class="text-xl md:text-2xl font-bold text-white">— млн&nbsp;₽</div>
+        </div>
+        <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+          <div class="text-xs text-muted-foreground mb-1.5">Проектные работы</div>
+          <div id={uid('work')} class="text-xl md:text-2xl font-bold text-white">— млн&nbsp;₽</div>
+        </div>
+        <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+          <div class="text-xs text-muted-foreground mb-1.5">OPEX за&nbsp;год</div>
+          <div id={uid('opex')} class="text-xl md:text-2xl font-bold text-white">— млн&nbsp;₽</div>
+        </div>
+      </div>
+
+      <div class="p-5 rounded-xl bg-accent/10 border border-accent/30">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div class="text-xs text-muted-foreground mb-1">Итого первый год (CAPEX + работы + OPEX)</div>
+            <div id={uid('total')} class="text-2xl md:text-3xl font-bold text-gradient">— млн&nbsp;₽</div>
+          </div>
+          <a
+            id={uid('cta')}
+            href={contactBase}
+            class="premium-btn whitespace-nowrap text-center"
+            data-calc-cta
+          >
+            Уточнить расчёт
+          </a>
+        </div>
+      </div>
+
+      <p class="text-xs text-muted-foreground/80 mt-4 italic leading-relaxed">
+        Диапазон ориентировочный: курс рубля, доступность GPU, состав работ и&nbsp;требования регулятора двигают итоговую цифру.
+        Для точного расчёта&nbsp;— обсуждение с&nbsp;архитектором AZONE-AI.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ idPrefix, contactBase }}>
+  (function () {
+    const root = document.querySelector(`[data-calc-root="${idPrefix}"]`);
+    if (!root) return;
+
+    const factors = {
+      users: {
+        small: { capex: [0.5, 0.8], work: [0.8, 1.2], opex: [0.4, 0.8] },
+        medium: { capex: [2.0, 3.5], work: [1.5, 2.5], opex: [0.8, 1.8] },
+        large: { capex: [4.0, 12.0], work: [3.0, 8.0], opex: [2.0, 6.0] },
+      },
+      model: {
+        '7b': { capex: [0.2, 0.4], work: [0.2, 0.4], opex: [0.1, 0.3] },
+        '13b': { capex: [0.5, 1.5], work: [0.5, 1.0], opex: [0.3, 0.6] },
+        '70b': { capex: [3.0, 10.0], work: [1.5, 4.0], opex: [1.0, 3.0] },
+      },
+      security: {
+        basic: { capex: [0, 0.2], work: [0.2, 0.5], opex: [0.1, 0.3] },
+        corporate: { capex: [0.3, 0.8], work: [0.5, 1.5], opex: [0.3, 0.8] },
+        regulated: { capex: [2.0, 8.0], work: [2.0, 6.0], opex: [1.0, 4.0] },
+      },
+      integrations: {
+        basic: { capex: [0, 0], work: [0.3, 0.7], opex: [0.2, 0.4] },
+        medium: { capex: [0, 0.2], work: [0.8, 2.0], opex: [0.4, 1.0] },
+        full: { capex: [0.2, 0.5], work: [2.0, 5.0], opex: [1.0, 3.0] },
+      },
+    };
+
+    const fmt = (n) => {
+      if (n >= 10) return Math.round(n).toString();
+      return n.toFixed(1).replace('.', ',');
+    };
+    const fmtRange = (min, max) => `${fmt(min)}–${fmt(max)} млн ₽`;
+    const $ = (name) => root.querySelector(`#${idPrefix}-${name}`);
+
+    function calc() {
+      const u = $(`users`).value;
+      const m = $(`model`).value;
+      const s = $(`security`).value;
+      const i = $(`integrations`).value;
+
+      const sumKey = (key) =>
+        [factors.users[u][key], factors.model[m][key], factors.security[s][key], factors.integrations[i][key]].reduce(
+          (acc, [lo, hi]) => [acc[0] + lo, acc[1] + hi],
+          [0, 0],
+        );
+
+      const [capexMin, capexMax] = sumKey('capex');
+      const [workMin, workMax] = sumKey('work');
+      const [opexMin, opexMax] = sumKey('opex');
+      const totalMin = capexMin + workMin + opexMin;
+      const totalMax = capexMax + workMax + opexMax;
+
+      $(`capex`).textContent = fmtRange(capexMin, capexMax);
+      $(`work`).textContent = fmtRange(workMin, workMax);
+      $(`opex`).textContent = fmtRange(opexMin, opexMax);
+      $(`total`).textContent = fmtRange(totalMin, totalMax);
+
+      $(`cta`).href =
+        contactBase +
+        '&calc_users=' +
+        u +
+        '&calc_model=' +
+        m +
+        '&calc_security=' +
+        s +
+        '&calc_integrations=' +
+        i;
+    }
+
+    root.querySelectorAll('[data-calc-field]').forEach((el) => {
+      el.addEventListener('change', calc);
+    });
+
+    const cta = root.querySelector('[data-calc-cta]');
+    cta?.addEventListener('click', function () {
+      if (typeof ym === 'function') ym(108466305, 'reachGoal', 'calculator_cta_click');
+    });
+
+    calc();
+  })();
+</script>

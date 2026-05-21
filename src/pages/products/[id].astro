@@ -72,64 +72,38 @@ export function getStaticPaths() {
 const { product } = Astro.props;
 const relatedMaterials = productMaterials[product.id] || [];
 const productFaq = product.faq || [];
-const softwareApplicationJsonLd = product.id === 'contractguard'
-  ? {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "ContractGuard",
-      "description": "Доверенный ИИ-ассистент для автоматизации договорной работы в закрытом контуре.",
-      "applicationCategory": "BusinessApplication",
-      "applicationSubCategory": "LegalTech, AI Assistant",
-      "operatingSystem": "Astra Linux, РЕД ОС, Windows Server",
-      "url": "https://azoneai.ru/products/contractguard/",
-      "featureList": [
-        "Автоматическая проверка договоров",
-        "Сравнение версий документов",
-        "Генерация протоколов разногласий",
-        "On-premise LLM в закрытом контуре",
-        "Интеграция с Directum, Тезис, 1С"
-      ],
-      "offers": {
-        "@type": "Offer",
-        "availability": "https://schema.org/InStock",
-        "seller": {
-          "@type": "Organization",
-          "name": "AZONE-AI",
-          "url": "https://azoneai.ru"
-        },
-        "priceSpecification": {
-          "@type": "PriceSpecification",
-          "priceCurrency": "RUB"
-        }
-      },
-      "provider": {
-        "@type": "Organization",
-        "name": "AZONE-AI",
-        "url": "https://azoneai.ru"
-      }
-    }
-  : {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": product.name,
-      "description": product.seoDescription || product.shortDesc,
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Linux, Windows Server",
-      "url": `https://azoneai.ru/products/${product.id}/`,
-      "featureList": product.benefits,
-      "offers": {
-        "@type": "Offer",
-        "availability": "https://schema.org/InStock",
-        "seller": { "@type": "Organization", "name": "AZONE-AI", "url": "https://azoneai.ru" },
-        "priceSpecification": { "@type": "PriceSpecification", "priceCurrency": "RUB" }
-      },
-      "provider": { "@type": "Organization", "name": "AZONE-AI", "url": "https://azoneai.ru" }
-    };
+const softwareApplicationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": product.name,
+  "description": product.seoDescription || product.shortDesc,
+  "applicationCategory": "BusinessApplication",
+  ...(product.applicationSubCategory && { applicationSubCategory: product.applicationSubCategory }),
+  ...(product.compatibility?.os && { operatingSystem: product.compatibility.os }),
+  "url": `https://azoneai.ru/products/${product.id}/`,
+  "featureList": product.benefits,
+  "offers": {
+    "@type": "Offer",
+    "availability": "https://schema.org/InStock",
+    "seller": { "@type": "Organization", "name": "AZONE-AI", "url": "https://azoneai.ru" },
+    "priceSpecification": { "@type": "PriceSpecification", "priceCurrency": "RUB" }
+  },
+  "provider": { "@type": "Organization", "name": "AZONE-AI", "url": "https://azoneai.ru" }
+};
+const compatibilityRows = product.compatibility
+  ? [
+      { label: "ОС", value: product.compatibility.os },
+      { label: "СУБД", value: product.compatibility.db },
+      { label: "Развёртывание", value: product.compatibility.deployment },
+      { label: "Интеграции", value: product.compatibility.integration },
+    ]
+  : [];
 ---
 <Base
   title={product.seoTitle || product.name}
   description={product.seoDescription || product.shortDesc}
   breadcrumbTitle={product.name}
+  image={product.ogImage}
 >
 
   <script type="application/ld+json" set:html={JSON.stringify(softwareApplicationJsonLd)} />
@@ -179,9 +153,8 @@ const softwareApplicationJsonLd = product.id === 'contractguard'
           <div class="flex flex-col sm:flex-row gap-3">
             <a href={`/contact/?product=${encodeURIComponent(product.name)}`} class="premium-btn">Обсудить внедрение</a>
             {product.hasDemo && (
-              <a href={product.demoUrl} target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors">
-                Открыть демо
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <a href="#demo-block" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors">
+                Запросить демо
               </a>
             )}
           </div>
@@ -229,6 +202,27 @@ const softwareApplicationJsonLd = product.id === 'contractguard'
       </div>
     </div>
   </section>
+
+  {product.compatibility && (
+    <section class="py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-8">Совместимость</h2>
+        <div class="glass-card p-6 md:p-8 border border-white/10">
+          <dl class="divide-y divide-white/10">
+            {compatibilityRows.map((row) => (
+              <div class="grid grid-cols-1 sm:grid-cols-[minmax(8rem,12rem)_1fr] gap-2 sm:gap-6 py-4 first:pt-0 last:pb-0">
+                <dt class="text-sm font-semibold text-white">{row.label}</dt>
+                <dd class="text-sm text-muted-foreground leading-relaxed">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p class="text-xs text-muted-foreground/70 mt-6 leading-relaxed">
+            Точный перечень поддерживаемых версий ОС и&nbsp;СУБД уточняется на&nbsp;этапе проектирования под инфраструктуру заказчика.
+          </p>
+        </div>
+      </div>
+    </section>
+  )}
 
   {product.roiMetrics?.length > 0 && (
     <section class="py-12">
@@ -282,7 +276,7 @@ const softwareApplicationJsonLd = product.id === 'contractguard'
                 <h2 class="text-3xl md:text-4xl font-heading font-bold text-white mb-5">Попробуйте {product.name} в&nbsp;работе</h2>
 
                 <p class="text-lg text-muted-foreground mb-6 leading-relaxed">
-                  Демо-стенд работает на&nbsp;синтетических данных и&nbsp;показывает реальные сценарии работы системы&nbsp;— от&nbsp;дашборда событий до&nbsp;аналитики и&nbsp;отчётов. Доступ открытый, можно зайти прямо сейчас.
+                  Стенд изолирован и&nbsp;работает только на&nbsp;синтетических данных. Показывает типовые сценарии&nbsp;— от&nbsp;дашборда событий до&nbsp;аналитики и&nbsp;отчётов. Доступ к&nbsp;интерактивному стенду предоставляется по&nbsp;запросу.
                 </p>
 
                 {product.demoNote && (
@@ -302,7 +296,7 @@ const softwareApplicationJsonLd = product.id === 'contractguard'
                   </div>
                   <div class="flex items-start gap-2">
                     <svg class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span class="text-sm">Доступ за&nbsp;секунды</span>
+                    <span class="text-sm">Доступ по&nbsp;запросу</span>
                   </div>
                 </div>
               </div>
@@ -311,30 +305,22 @@ const softwareApplicationJsonLd = product.id === 'contractguard'
                 <div class="rounded-2xl bg-background/60 backdrop-blur-sm border border-white/10 p-6">
                   <div class="text-xs font-bold uppercase tracking-wider text-emerald-300 mb-4">Демо-доступ</div>
 
-                  <div class="space-y-3 mb-6">
-                    <div class="flex items-center justify-between gap-4 px-3 py-2.5 rounded-lg bg-white/5 border border-white/10">
-                      <span class="text-sm text-muted-foreground">Логин</span>
-                      <code class="text-sm font-mono text-white font-bold">{product.demoLogin}</code>
-                    </div>
-                    <div class="flex items-center justify-between gap-4 px-3 py-2.5 rounded-lg bg-white/5 border border-white/10">
-                      <span class="text-sm text-muted-foreground">Пароль</span>
-                      <code class="text-sm font-mono text-white font-bold">{product.demoPassword}</code>
-                    </div>
-                  </div>
+                  <p class="text-sm text-muted-foreground leading-relaxed mb-6">
+                    Изолированный стенд, синтетические данные. Не&nbsp;содержит реальных данных заказчиков.
+                  </p>
 
-                  <a href={product.demoUrl} target="_blank" rel="noopener" class="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-semibold bg-emerald-500 hover:bg-emerald-400 text-background transition-colors">
-                    Открыть {product.name}
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  <a
+                    href={`/contact/?product=${product.id}&topic=demo-access`}
+                    class="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl font-semibold bg-emerald-500 hover:bg-emerald-400 text-background transition-colors"
+                  >
+                    Запросить доступ к&nbsp;демо
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </a>
 
-                  <p class="text-xs text-muted-foreground/70 text-center mt-4">
-                    Откроется в&nbsp;новой вкладке
-                  </p>
+                  <a href={`/contact/?product=${product.id}&topic=demo`} class="block mt-4 text-center text-sm text-emerald-300 hover:text-emerald-200 transition-colors">
+                    Персональная демонстрация с&nbsp;инженером →
+                  </a>
                 </div>
-
-                <a href={`/contact/?product=${encodeURIComponent(product.name)}&topic=demo`} class="block mt-4 text-center text-sm text-emerald-300 hover:text-emerald-200 transition-colors">
-                  Хотите персональную демонстрацию с&nbsp;инженером? →
-                </a>
               </div>
             </div>
           </div>

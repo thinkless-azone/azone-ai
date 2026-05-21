@@ -55,8 +55,8 @@ const faqItems = [
 ];
 ---
 <Base
-  title="On-premise AI-продукты для КИИ и предприятий"
-  description="Каталог on-premise AI-продуктов AZONE-AI для госсектора, КИИ и предприятий: LLM, видеоаналитика, предиктивная аналитика и анализ документов."
+  title="ИИ-продукты on-premise для КИИ и предприятий"
+  description="Каталог on-premise ИИ-продуктов AZONE-AI для госсектора, КИИ и предприятий: LLM, видеоаналитика, предиктивная аналитика и анализ документов."
   image="/images/logo.png"
 >
   <script
@@ -64,8 +64,8 @@ const faqItems = [
     set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      "name": "Каталог AI-продуктов AZONE-AI",
-      "description": "Каталог AI-решений AZONE-AI для крупного бизнеса, госсектора и объектов КИИ.",
+      "name": "Каталог ИИ-продуктов AZONE-AI",
+      "description": "Каталог ИИ-решений AZONE-AI для крупного бизнеса, госсектора и объектов КИИ.",
       "url": "https://azoneai.ru/products/",
     })}
   />
@@ -113,10 +113,10 @@ const faqItems = [
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-accent text-sm font-medium mb-8">
           Решения для крупного бизнеса, госсектора и КИИ
         </div>
-        <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6">Каталог <span class="text-gradient">AI-продуктов</span></h1>
+        <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6">Каталог <span class="text-gradient">ИИ-продуктов</span></h1>
         <p class="text-xl text-muted-foreground leading-relaxed max-w-3xl">
-          Готовые on-premise AI-решения AZONE-AI для обработки документов, видеоаналитики, предиктивной аналитики
-          и корпоративных сценариев, где критичны безопасность, локализация данных и интеграция с существующей инфраструктурой.
+          Готовые on-premise ИИ-решения AZONE-AI для обработки документов, видеоаналитики, предиктивной аналитики
+          и&nbsp;корпоративных сценариев, где критичны безопасность, локализация данных и&nbsp;интеграция с&nbsp;существующей инфраструктурой.
         </p>
       </div>
     </div>
@@ -127,7 +127,7 @@ const faqItems = [
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <div class="glass-card p-8 h-full flex flex-col group hover:-translate-y-2 glow-border">
-            <a href={`/products/${product.id}/`} class="block">
+            <a href={`/products/${product.id}/`} class="block flex flex-col flex-1 min-h-0">
               <div class="flex justify-between items-start mb-6">
                 <div
                   class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors text-accent"
@@ -138,12 +138,12 @@ const faqItems = [
 
               <h2 class="text-2xl font-bold text-white mb-3">{product.name}</h2>
               {product.hasDemo && (
-                <a href={`/products/${product.id}/#demo-block`} class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold uppercase tracking-wider hover:bg-emerald-500/30 transition-colors mb-3" onclick="event.stopPropagation()">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold uppercase tracking-wider mb-3 self-start">
                   <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                   Демо доступно
-                </a>
+                </span>
               )}
-              <p class="text-muted-foreground mb-6 flex-grow">{product.shortDesc}</p>
+              <p class="text-muted-foreground mb-6">{product.shortDesc}</p>
 
               <div class="space-y-4 mb-8 pt-6 border-t border-white/10">
                 <div class="text-sm">

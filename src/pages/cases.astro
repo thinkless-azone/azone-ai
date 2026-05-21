@@ -1,0 +1,280 @@
+---
+import Base from '../layouts/Base.astro';
+import { products } from '../data/products.js';
+
+const pageTitle = 'Опыт внедрения ИИ on-premise';
+const pageDescription =
+  'Обезличенный опыт внедрения ИИ on-premise в закрытом контуре: документы, ИБ, предиктивная аналитика для КИИ и крупного бизнеса.';
+
+const cases = [
+  {
+    id: 'azonedoc-holding',
+    productId: 'azonedoc',
+    industry: 'Крупный промышленный холдинг',
+    perimeter: 'Закрытый контур, on-premise, без передачи данных в облако',
+    story:
+      'Группа компаний с распределённым архивом: десятки тысяч сотрудников, несколько филиалов, единые требования к работе с регламентами и проектной документацией. Документы хранились в разных системах, а поиск опирался на ручной обход каталогов и согласований между подразделениями.',
+    problem: [
+      'Поиск нужного документа занимал от 2 до 4 часов: сотрудники обходили филиальные хранилища и согласовывали доступы.',
+      'Архив был разрознен по филиалам и корпоративным системам без единого семантического слоя.',
+      'Публичные облачные ИИ-сервисы не проходили согласование ИБ и комплаенса.',
+      'Отраслевая терминология в документах плохо покрывалась обычным полнотекстовым поиском.',
+    ],
+    solution: [
+      'Развёртывание on-premise LLM и семантического поиска по корпоративному архиву внутри периметра.',
+      'Дообучение модели на терминологии и типовых документах заказчика.',
+      'Коннекторы к 1С, SAP, Directum, ELMA и корпоративному ЭДО.',
+      'Классификация и версионирование документов без выноса данных за контур.',
+    ],
+  },
+  {
+    id: 'contentguard-soc',
+    productId: 'contentguard',
+    industry: 'Предприятие — субъект КИИ с собственным SOC',
+    perimeter: 'Интеграция в существующий контур ИБ без замены СЗИ',
+    story:
+      'Служба информационной безопасности обслуживала объект критической инфраструктуры с уже развёрнутыми NGFW, DLP, EDR и SIEM. События поступали из разных систем, а расследование опиралось на ручную корреляцию и экспертизу аналитиков SOC.',
+    problem: [
+      'Высокая доля ложных срабатываний перегружала аналитиков и отвлекала от реальных инцидентов.',
+      'Расследование инцидентов занимало много времени из-за разрозненных источников событий.',
+      'NGFW, DLP, EDR и SIEM не давали единой картины без дополнительной ручной сводки.',
+      'Передача событий ИБ во внешние облачные сервисы была исключена требованиями регулятора.',
+    ],
+    solution: [
+      'Единый API-слой поверх существующих СЗИ без замены инфраструктуры.',
+      'Нормализация и корреляция событий с ИИ-моделями внутри периметра.',
+      'Классификация инцидентов и выявление паттернов, невидимых для точечных решений.',
+      'LLM-обогащение: аналитические сводки на естественном языке для ускорения разбора.',
+    ],
+  },
+  {
+    id: 'predictmaintain-kii',
+    productId: 'predictmaintain',
+    industry: 'Энергетическая компания — объект КИИ',
+    perimeter: 'On-premise, подключение к SCADA и телеметрии без замены оборудования',
+    story:
+      'Промышленный объект с критичным оборудованием, входит в энергетических холдинг. Телеметрия собиралась в SCADA, но обслуживание оборудования происходило только в период плановых остановок. Внеплановые простои несли прямой операционный риск.',
+    problem: [
+      'Внеплановые остановки оборудования из-за позднего выявления отклонений в данных датчиков.',
+      'Реактивный ремонт вместо планирования работ по прогнозу отказов.',
+      'Нельзя было выносить телеметрию и историю поломок во внешние облачные платформы.',
+      'Замена или массовая модернизация парка оборудования для аналитики была экономически нецелесообразна.',
+    ],
+    solution: [
+      'Подключение к существующим SCADA и системам телеметрии on-premise.',
+      'Цифровые двойники оборудования на базе исторических данных о поломках.',
+      'Анализ отклонений от нормы и прогноз отказов в реальном времени.',
+      'Рекомендации по обслуживанию для снижения внеплановых простоев.',
+    ],
+  },
+];
+
+const getProduct = (productId) => products.find((p) => p.id === productId);
+
+const casesWithProducts = cases.map((caseItem) => ({
+  ...caseItem,
+  product: getProduct(caseItem.productId),
+})).filter((c) => c.product);
+
+const pageFaqs = [
+  {
+    question: 'Почему описания внедрений на сайте обезличены?',
+    answer:
+      'Мы не публикуем названия заказчиков и узнаваемые детали без согласования. На странице — обобщённый контекст и проверенные метрики из проектов; детальный разбор под NDA возможен на встрече с архитектором.',
+  },
+  {
+    question: 'Можно ли получить детальное описание внедрения по нашей отрасли?',
+    answer:
+      'Да. Оставьте заявку с описанием отрасли, контура и задачи — подготовим релевантные материалы и ориентиры по срокам и составу пилота под ваш сценарий.',
+  },
+  {
+    question: 'Доступны ли демо-стенды продуктов?',
+    answer:
+      'Для ряда решений есть открытые демо на синтетических данных (например, ContentGuard и AzoneDoc), а также персональная демонстрация с инженером под вашу инфраструктуру.',
+  },
+];
+
+const itemListJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Опыт внедрения ИИ on-premise — AZONE-AI',
+  description: pageDescription,
+  url: 'https://azoneai.ru/cases/',
+  numberOfItems: casesWithProducts.length,
+  itemListElement: casesWithProducts.map((caseItem, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    item: {
+      '@type': 'CreativeWork',
+      name: `Внедрение: ${caseItem.product?.name}`,
+      description: caseItem.story,
+      url: `https://azoneai.ru/cases/#${caseItem.id}`,
+    },
+  })),
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: pageFaqs.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer,
+    },
+  })),
+};
+---
+
+<Base title={pageTitle} description={pageDescription} breadcrumbTitle="Опыт внедрения">
+
+  <script type="application/ld+json" set:html={JSON.stringify(itemListJsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+  <section class="pt-24 py-20 relative border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6 animate-fade-up">
+        Опыт <span class="text-gradient">внедрения</span>
+      </h1>
+      <p class="text-xl text-muted-foreground max-w-3xl mx-auto animate-fade-up animate-delay-100 leading-relaxed">
+        Обезличенные истории пилотов и промышленных внедрений on-premise ИИ в закрытом контуре. Цифры и эффекты — из реальных проектов, без названий компаний.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      {casesWithProducts.map((caseItem) => (
+        <article id={caseItem.id} class="glass-card glow-border p-8 md:p-10 scroll-mt-28">
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-8">
+            <div>
+              <div class="flex flex-wrap items-center gap-3 mb-3">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-accent">
+                  <span set:html={caseItem.product?.iconSvg} />
+                  {caseItem.product?.name}
+                </span>
+                <span class="text-xs text-muted-foreground">{caseItem.industry}</span>
+              </div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">
+                {caseItem.product?.shortDesc}
+              </h2>
+            </div>
+            <div class="text-sm text-muted-foreground lg:text-right lg:max-w-xs shrink-0">
+              <div class="font-medium text-white/80 mb-1">Периметр</div>
+              <p>{caseItem.perimeter}</p>
+            </div>
+          </div>
+
+          <div class="space-y-10">
+            <div>
+              <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary text-sm">1</span>
+                История
+              </h3>
+              <p class="text-muted-foreground leading-relaxed">{caseItem.story}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400 text-sm">2</span>
+                  Проблема
+                </h3>
+                <ul class="space-y-3">
+                  {caseItem.problem.map((point) => (
+                    <li class="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
+                      <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 text-sm">3</span>
+                  Решение
+                </h3>
+                <ul class="space-y-3">
+                  {caseItem.solution.map((point) => (
+                    <li class="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
+                      <svg class="w-4 h-4 text-green-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {caseItem.product?.roiMetrics && caseItem.product.roiMetrics.length > 0 && (
+              <div>
+                <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent text-sm">4</span>
+                  Эффект
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {caseItem.product.roiMetrics.map((metric) => (
+                    <div class={`glass-card p-6 border-l-4 ${metric.borderClass}`}>
+                      <div class={`text-4xl font-bold mb-2 ${metric.valueClass}`}>{metric.value}</div>
+                      <div class="text-white font-medium mb-2">{metric.title}</div>
+                      <p class="text-sm text-muted-foreground">{metric.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div class="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <p class="text-sm text-muted-foreground">
+              Подробнее о продукте и составе пилота — на странице {caseItem.product?.name}.
+            </p>
+            <a
+              href={`/products/${caseItem.productId}/`}
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors whitespace-nowrap"
+            >
+              Продукт {caseItem.product?.name}
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-8">Частые вопросы</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {pageFaqs.map((faq) => (
+          <div class="glass-card p-6">
+            <h3 class="text-lg font-bold text-white mb-3">{faq.question}</h3>
+            <p class="text-muted-foreground leading-relaxed text-sm">{faq.answer}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">
+            Обсудить <span class="text-gradient">пилот</span> под вашу задачу
+          </h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Подготовим архитектуру, оценку сроков и диапазон бюджета под ваш контур и отрасль. Пилот — 4–8 недель.
+          </p>
+          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4 inline-flex items-center gap-2">
+            Обсудить пилот
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Base>

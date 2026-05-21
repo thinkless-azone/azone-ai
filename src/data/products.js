@@ -10,9 +10,7 @@ export const products = [
     benefits: ["Единый API-слой для NGFW, DLP, EDR и SIEM", "Снижение ложных срабатываний и классификация инцидентов", "Полное on-premise развёртывание без передачи данных наружу"],
     hasDemo: true,
     demoUrl: "https://guard.azoneai.ru",
-    demoLogin: "admin",
-    demoPassword: "admin",
-    demoNote: "Демо-стенд развёрнут в конфигурации для образовательных учреждений: мониторинг 72 объектов, защита от вредоносных ресурсов, аналитика посещений и блокировок. Для корпоративных и КИИ-сценариев конфигурация настраивается под задачи заказчика.",
+    demoNote: "Демо-стенд в конфигурации для образовательных учреждений: мониторинг 72 объектов, аналитика посещений и блокировок. Изолированный контур, только синтетические данные. Доступ предоставляется по запросу.",
     iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
     fullDesc: [
       "Интегрирует разнородные СЗИ (NGFW, DLP, EDR, SIEM) через единый API-слой без замены существующей инфраструктуры",
@@ -60,7 +58,15 @@ export const products = [
         question: "Можно ли посмотреть систему до внедрения?",
         answer: "Да. Доступен открытый демо-стенд на синтетических данных (guard.azoneai.ru), а также возможна персональная демонстрация с инженером."
       }
-    ]
+    ],
+    applicationSubCategory: "Security Analytics",
+    ogImage: "/images/og/product-contentguard.jpg",
+    compatibility: {
+      os: "Astra Linux, РЕД ОС",
+      db: "Postgres Pro",
+      deployment: "On-premise / закрытый контур, без передачи данных во внешние облака",
+      integration: "NGFW, DLP, EDR, SIEM через единый API-слой"
+    }
   },
   {
     id: "azonedoc",
@@ -73,9 +79,7 @@ export const products = [
     benefits: ["Поиск с 2–4 ч до 2–3 минут", "On-premise LLM без облака", "Интеграция с 1С, SAP, ELMA"],
     hasDemo: true,
     demoUrl: "https://azonedoc.azoneai.ru",
-    demoLogin: "azonedoc",
-    demoPassword: "azonedoc",
-    demoNote: "Демо-стенд развёрнут в конфигурации для ГК: 10 000+ сотрудников, 10 филиалов. Доступ открытый, можно зайти прямо сейчас.",
+    demoNote: "Демо-конфигурация: ГК уровня 10 000+ сотрудников, 10 филиалов. Стенд изолирован, работает на синтетических данных. Доступ предоставляется по запросу.",
     iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11h6"/><path d="M11 8v6"/></svg>`,
     fullDesc: [
       "Распознаёт и классифицирует документы",
@@ -124,7 +128,15 @@ export const products = [
         question: "Понимает ли система нашу отраслевую терминологию?",
         answer: "Да. В рамках внедрения модель дообучается на специфической терминологии и архиве документов заказчика."
       }
-    ]
+    ],
+    applicationSubCategory: "Enterprise Search, RAG",
+    ogImage: "/images/og/product-azonedoc.jpg",
+    compatibility: {
+      os: "Astra Linux, РЕД ОС",
+      db: "Postgres Pro",
+      deployment: "On-premise / закрытый контур, без передачи данных во внешние облака",
+      integration: "1С, SAP, Directum, ELMA"
+    }
   },
   {
     id: "constructioneye",
@@ -132,7 +144,7 @@ export const products = [
     name: "ConstructionEye",
     shortDesc: "Видеоаналитика промышленных объектов",
     seoTitle: "ConstructionEye — видеоаналитика безопасности на стройплощадке",
-    seoDescription: "Автоматический контроль техники безопасности и СИЗ на стройплощадках. Edge AI без передачи данных в облако. Отчеты и прогноз задержек.",
+    seoDescription: "Автоматический контроль техники безопасности и СИЗ на стройплощадках. Edge-ИИ on-premise без передачи данных в облако. Отчёты и прогноз задержек.",
     targetAudience: "Строительство, промышленность, КИИ",
     benefits: ["Контроль ТБ и СИЗ в реальном времени", "Edge AI — без передачи данных в облако", "Автоматические отчёты и прогноз задержек"],
     iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
@@ -182,7 +194,15 @@ export const products = [
         question: "Можно ли настроить детектируемые нарушения под наш объект?",
         answer: "Да. Модель обучается на видеоархиве заказчика под специфические нарушения и зоны конкретного объекта."
       }
-    ]
+    ],
+    applicationSubCategory: "Computer Vision",
+    ogImage: "/images/og/product-constructioneye.jpg",
+    compatibility: {
+      os: "Astra Linux, РЕД ОС",
+      db: "Определяется архитектурой внедрения (хранение метаданных и отчётов)",
+      deployment: "On-premise / закрытый контур (edge-сервер на объекте), без передачи видео во внешние облака",
+      integration: "IP-камеры, MS Project, 1С"
+    }
   },
   {
     id: "predictmaintain",
@@ -239,7 +259,15 @@ export const products = [
         question: "Где обрабатываются данные телеметрии?",
         answer: "Полностью on-premise — данные не покидают контур предприятия, что критично для объектов КИИ."
       }
-    ]
+    ],
+    applicationSubCategory: "Predictive Maintenance",
+    ogImage: "/images/og/product-predictmaintain.jpg",
+    compatibility: {
+      os: "Astra Linux, РЕД ОС",
+      db: "Определяется архитектурой внедрения",
+      deployment: "On-premise / закрытый контур, без передачи данных во внешние облака",
+      integration: "SCADA, телеметрия"
+    }
   },
   {
     id: "contractguard",
@@ -299,6 +327,14 @@ export const products = [
         question: "Можно ли дообучить модель на наших специфических договорах?",
         answer: "Да, в рамках внедрения мы проводим тонкую настройку (fine-tuning) LLM на исторических данных и внутренних регламентах вашего юридического департамента."
       }
-    ]
+    ],
+    applicationSubCategory: "LegalTech, AI Assistant",
+    ogImage: "/images/og/product-contractguard.jpg",
+    compatibility: {
+      os: "Astra Linux, РЕД ОС",
+      db: "Postgres Pro",
+      deployment: "On-premise / закрытый контур, без передачи данных во внешние облака",
+      integration: "Directum, Тезис, 1С:Документооборот"
+    }
   }
 ];

@@ -13,12 +13,13 @@ interface Props {
 const {
   title,
   description = "AZONE-AI — внедряем нейросети и LLM on-premise. Данные не покидают вашу инфраструктуру. Лицензии ФСТЭК, ФСБ, МО РФ.",
-  image = "/images/logo.png",
+  image: imageProp,
   ogType = "website",
   noindex = false,
   articleDate,
   breadcrumbTitle,
 } = Astro.props;
+const image = imageProp ?? (articleDate ? "/images/og/article-default.jpg" : "/images/logo.png");
 const currentPath = Astro.url.pathname;
 const fullTitle = `${title} | AZONE-AI`;
 const absoluteImage = image.startsWith("http") ? image : `https://azoneai.ru${image}`;
@@ -47,6 +48,18 @@ if (segments.length > 0) {
     if (segments[1]) {
       items.push({ '@type': 'ListItem', position: 3, name: lastLabel, item: `https://azoneai.ru${currentPath}` });
     }
+  } else if (segments[0] === 'services') {
+    items.push({ '@type': 'ListItem', position: 2, name: 'Услуги', item: 'https://azoneai.ru/services/' });
+    if (segments[1]) {
+      items.push({ '@type': 'ListItem', position: 3, name: lastLabel, item: `https://azoneai.ru${currentPath}` });
+    }
+  } else if (segments[0] === 'industries') {
+    items.push({ '@type': 'ListItem', position: 2, name: 'Отрасли', item: 'https://azoneai.ru/industries/' });
+    if (segments[1]) {
+      items.push({ '@type': 'ListItem', position: 3, name: lastLabel, item: `https://azoneai.ru${currentPath}` });
+    }
+  } else if (segments[0] === 'cases') {
+    items.push({ '@type': 'ListItem', position: 2, name: 'Опыт внедрения', item: 'https://azoneai.ru/cases/' });
   } else if (segments[0] === 'about' || segments[0] === 'contact' || segments[0] === 'privacy' || segments[0] === 'terms') {
     items.push({ '@type': 'ListItem', position: 2, name: lastLabel, item: `https://azoneai.ru${currentPath}` });
   }
@@ -92,6 +105,10 @@ const articleJsonLd = articleDate ? {
   <meta property="og:site_name" content="AZONE-AI" />
   <meta property="og:locale" content="ru_RU" />
   <meta property="og:type" content={ogType} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={fullTitle} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={absoluteImage} />
   {yandexMetrikaIds.length > 0 && (
     <>
       <script set:html={`
@@ -156,6 +173,9 @@ const articleJsonLd = articleDate ? {
         <nav class="hidden md:flex items-center gap-8">
           <a href="/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/" ? "text-white" : "text-muted-foreground"]}>Главная</a>
           <a href="/products/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/products") ? "text-white" : "text-muted-foreground"]}>Продукты</a>
+          <a href="/services/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/services") ? "text-white" : "text-muted-foreground"]}>Услуги</a>
+          <a href="/industries/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/industries") ? "text-white" : "text-muted-foreground"]}>Отрасли</a>
+          <a href="/cases/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/cases") ? "text-white" : "text-muted-foreground"]}>Внедрения</a>
           <a href="/about/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath === "/about/" ? "text-white" : "text-muted-foreground"]}>О компании</a>
           <a href="/blog/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/blog") ? "text-white" : "text-muted-foreground"]}>Блог</a>
           <a href="/search/" class:list={["text-sm font-medium transition-colors hover:text-white", currentPath.startsWith("/search") ? "text-white" : "text-muted-foreground"]}>Поиск</a>
@@ -172,6 +192,9 @@ const articleJsonLd = articleDate ? {
       <div class="px-4 pt-2 pb-6 space-y-4 flex flex-col">
         <a href="/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Главная</a>
         <a href="/products/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Продукты</a>
+        <a href="/services/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Услуги</a>
+        <a href="/industries/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Отрасли</a>
+        <a href="/cases/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Внедрения</a>
         <a href="/about/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">О компании</a>
         <a href="/blog/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Блог</a>
         <a href="/search/" class="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-md">Поиск</a>
@@ -211,7 +234,10 @@ const articleJsonLd = articleDate ? {
         <div>
           <h4 class="text-white font-semibold mb-6">Компания</h4>
           <ul class="space-y-3 text-sm text-muted-foreground">
+            <li><a href="/services/" class="hover:text-primary transition-colors">Услуги</a></li>
+            <li><a href="/industries/" class="hover:text-primary transition-colors">Отрасли</a></li>
             <li><a href="/about/" class="hover:text-primary transition-colors">О нас</a></li>
+            <li><a href="/cases/" class="hover:text-primary transition-colors">Опыт внедрения</a></li>
             <li><a href="/blog/" class="hover:text-primary transition-colors">Блог и материалы</a></li>
             <li><a href="/contact/" class="hover:text-primary transition-colors">Контакты</a></li>
           </ul>

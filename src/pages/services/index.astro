@@ -1,0 +1,99 @@
+---
+import Base from '../../layouts/Base.astro';
+import { services } from '../../data/services.js';
+---
+<Base
+  title="Услуги по внедрению ИИ on-premise"
+  description="Услуги AZONE-AI: внедрение LLM и ИИ on-premise в закрытом контуре, пилот за 4–8 недель, RAG, проекты для объектов КИИ. Лицензии ФСТЭК, ФСБ."
+  image="/images/logo.png"
+>
+
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Услуги по внедрению ИИ AZONE-AI',
+      description: 'Внедрение ИИ и LLM on-premise в закрытом контуре для B2G и КИИ.',
+      url: 'https://azoneai.ru/services/',
+    })}
+  />
+
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      itemListElement: services.map((service, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `https://azoneai.ru/services/${service.id}/`,
+        name: service.name,
+      })),
+    })}
+  />
+
+  <section class="relative pt-24 pb-20 overflow-hidden border-b border-white/5">
+    <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <a href="/" class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-accent transition-colors mb-12">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Назад на главную
+      </a>
+      <div class="max-w-4xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-accent text-sm font-medium mb-8">
+          Внедрение под ключ и пилоты
+        </div>
+        <h1 class="text-4xl md:text-6xl font-heading font-bold text-white mb-6">
+          Услуги по внедрению <span class="text-gradient">ИИ</span> в закрытом контуре
+        </h1>
+        <p class="text-xl text-muted-foreground leading-relaxed max-w-3xl">
+          Посадочные сценарии под коммерческий спрос: LLM on-premise, пилот за 4–8 недель, RAG по корпоративным знаниям и проекты для объектов КИИ.
+          Каждая услуга ведёт к целевому пилоту, а не к общей форме «обсудить проект».
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {services.map((service) => (
+          <div class="glass-card p-8 h-full flex flex-col group hover:-translate-y-2 glow-border">
+            <a href={`/services/${service.id}/`} class="block flex flex-col flex-1 min-h-0">
+              <div class="flex justify-between items-start mb-6">
+                <span class="text-sm font-bold text-accent">УСЛУГА {service.number}</span>
+                <span class="text-4xl font-heading font-bold text-white/10 group-hover:text-white/20 transition-colors">{service.number}</span>
+              </div>
+              <h2 class="text-2xl font-bold text-white mb-3">{service.name}</h2>
+              <p class="text-muted-foreground mb-4 leading-relaxed">{service.heroLead}</p>
+              <ul class="space-y-2 mb-6">
+                {service.problem.slice(0, 3).map((point) => (
+                  <li class="flex items-start gap-2 text-sm text-muted-foreground">
+                    <svg class="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+              <div class="flex items-center text-primary text-sm font-semibold group-hover:text-accent transition-colors mt-auto">
+                Подробнее
+                <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-24">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-muted-foreground mb-6">Нужен готовый продукт, а не проект внедрения? Смотрите каталог решений.</p>
+      <a href="/products/" class="inline-flex items-center gap-2 text-accent font-semibold hover:underline">
+        Перейти к продуктам
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </section>
+</Base>

@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://functions.yandexcloud.net/d4erei6bq3unc5ficeqm';
 ---
 <Base
-  title="Обсудить AI-проект: пилот за 4-8 недель"
+  title="Обсудить ИИ-проект: пилот за 4–8 недель"
   description="Оставьте заявку на внедрение ИИ-решения on-premise. Подготовим архитектуру, оценку сроков и стоимости пилота за 4-8 недель."
 >
 
@@ -49,6 +49,9 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
             <div style="position:absolute;left:-9999px;" aria-hidden="true">
               <input type="checkbox" name="bot_trap" value="1" tabindex="-1" autocomplete="off" />
             </div>
+            <input type="hidden" name="service" id="serviceField" value="" />
+            <input type="hidden" name="industry" id="industryField" value="" />
+            <input type="hidden" name="topic" id="topicField" value="" />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label class="text-sm font-medium text-white/80">Имя и фамилия *</label>
@@ -109,10 +112,64 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
 
   <script define:vars={{ FUNCTION_URL }}>
     const params = new URLSearchParams(window.location.search);
+    const serviceNames = {
+      'on-premise-llm': 'Внедрение LLM on-premise',
+      'ai-pilot': 'Пилотный проект ИИ',
+      'rag-vnedrenie': 'Внедрение RAG-системы',
+      'ii-dlya-kii': 'ИИ для объектов КИИ',
+    };
+    const industryNames = {
+      banki: 'Банки и финтех',
+      tek: 'ТЭК',
+      gossektor: 'Госсектор',
+    };
+    const topicLabels = {
+      questionnaire: 'Запрос: опросный лист',
+      brief: 'Запрос: отраслевой бриф',
+      'demo-access': 'Запрос: доступ к демо',
+      'architecture-doc': 'Запрос: архитектурный документ',
+      pilot: 'Запрос: обсуждение пилота',
+      demo: 'Запрос: персональная демонстрация',
+    };
+
     const product = params.get('product');
     if (product) {
       const sel = document.querySelector('select[name="product"]');
       if (sel) sel.value = product.toLowerCase();
+    }
+
+    const service = params.get('service');
+    const industry = params.get('industry');
+    const topic = params.get('topic');
+    const serviceField = document.getElementById('serviceField');
+    const industryField = document.getElementById('industryField');
+    const topicField = document.getElementById('topicField');
+    const messageEl = document.querySelector('textarea[name="message"]');
+    const prefixes = [];
+
+    if (service) {
+      if (serviceField) serviceField.value = service;
+      const label = serviceNames[service] || service.replace(/-/g, ' ');
+      prefixes.push(`Интересует услуга: ${label}`);
+      const sel = document.querySelector('select[name="product"]');
+      if (sel && !product) sel.value = 'other';
+    }
+    if (industry) {
+      if (industryField) industryField.value = industry;
+      const label = industryNames[industry] || industry.replace(/-/g, ' ');
+      prefixes.push(`Отрасль: ${label}`);
+      const sel = document.querySelector('select[name="product"]');
+      if (sel && !product) sel.value = 'other';
+    }
+    if (topic) {
+      if (topicField) topicField.value = topic;
+      const topicLabel = topicLabels[topic] || `Запрос: ${topic}`;
+      prefixes.push(topicLabel);
+    }
+    if (prefixes.length && messageEl) {
+      const hint = prefixes.join('\n') + '\n\n';
+      if (!messageEl.value) messageEl.placeholder = hint + (messageEl.placeholder || '');
+      else messageEl.value = hint + messageEl.value;
     }
 
     document.getElementById('contactForm')?.addEventListener('submit', async (e) => {
