@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
-const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://functions.yandexcloud.net/d4erei6bq3unc5ficeqm';
+const FUNCTION_URL = import.meta.env.DEV
+  ? '/api/contact'
+  : import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://functions.yandexcloud.net/d4erei6bq3unc5ficeqm';
 ---
 <Base
   title="Обсудить ИИ-проект: пилот за 4–8 недель"
@@ -25,13 +27,13 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
             <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
               <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
-            <div><h4 class="text-white font-bold mb-1">Email</h4><a href="mailto:order@azone-it.ru" class="text-muted-foreground hover:text-white transition-colors">order@azone-it.ru</a></div>
+            <div><h4 class="text-white font-bold mb-1">Email</h4><a href="mailto:order@azone-it.ru" data-placement="contact_sidebar" class="text-muted-foreground hover:text-white transition-colors">order@azone-it.ru</a></div>
           </div>
           <div class="glass-card p-6 flex items-start gap-4">
             <div class="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
               <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             </div>
-            <div><h4 class="text-white font-bold mb-1">Телефон</h4><a href="tel:+74959026636" class="text-muted-foreground hover:text-white transition-colors">+7 (495) 902-66-36</a></div>
+            <div><h4 class="text-white font-bold mb-1">Телефон</h4><a href="tel:+74959026636" data-placement="contact_sidebar" class="text-muted-foreground hover:text-white transition-colors">+7 (495) 902-66-36</a></div>
           </div>
           <div class="glass-card p-6 flex items-start gap-4">
             <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
@@ -50,7 +52,7 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
               <input type="checkbox" name="bot_trap" value="1" tabindex="-1" autocomplete="off" />
             </div>
             <input type="hidden" name="service" id="serviceField" value="" />
-            <input type="hidden" name="industry" id="industryField" value="" />
+            <input type="hidden" name="industry_url" id="industryField" value="" />
             <input type="hidden" name="topic" id="topicField" value="" />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
@@ -84,13 +86,88 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
                 <option value="other">Другое / Пилотный проект</option>
               </select>
             </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Отрасль</label>
+                <select name="industry" class="w-full bg-[#13192B] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+                  <option value="" selected>Выберите, если применимо</option>
+                  <option value="banki-fintech">Банки и финтех</option>
+                  <option value="tek-energy">ТЭК / энергетика</option>
+                  <option value="industry">Промышленность</option>
+                  <option value="gossektor-fgup">Госсектор / ФГУП</option>
+                  <option value="holding">Крупный холдинг</option>
+                  <option value="information-security">Информационная безопасность</option>
+                  <option value="other">Другое</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Роль</label>
+                <select name="role" class="w-full bg-[#13192B] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+                  <option value="" selected>Выберите, если применимо</option>
+                  <option value="cio">ИТ-директор / CIO</option>
+                  <option value="ciso">CISO / руководитель ИБ</option>
+                  <option value="digital-transformation">Руководитель цифровой трансформации</option>
+                  <option value="legal-compliance">Юрист / compliance</option>
+                  <option value="cfo">Финансовый директор / CFO</option>
+                  <option value="ceo">Генеральный директор</option>
+                  <option value="department-head">Руководитель подразделения</option>
+                  <option value="other">Другое</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Горизонт проекта</label>
+                <select name="project_horizon" class="w-full bg-[#13192B] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+                  <option value="" selected>Выберите, если применимо</option>
+                  <option value="1-3-months">1–3 месяца</option>
+                  <option value="3-6-months">3–6 месяцев</option>
+                  <option value="6-12-months">6–12 месяцев</option>
+                  <option value="research">Изучаем рынок</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-white/80">Интересующее направление</label>
+                <select name="interest" class="w-full bg-[#13192B] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+                  <option value="" selected>Выберите, если применимо</option>
+                  <option value="llm-rag-closed-loop">LLM и RAG в закрытом контуре</option>
+                  <option value="corporate-ai-assistant">Корпоративный ИИ-ассистент</option>
+                  <option value="azonedoc">Интеллектуальный поиск по документам / AzoneDoc</option>
+                  <option value="contentguard">ИИ для информационной безопасности / ContentGuard</option>
+                  <option value="predictmaintain">ИИ для промышленности и энергетики / PredictMaintain</option>
+                  <option value="contractguard">Юридический ИИ / ContractGuard</option>
+                  <option value="pilot-mvp">Пилотный проект / MVP</option>
+                  <option value="unknown">Пока не определились</option>
+                </select>
+              </div>
+            </div>
             <div class="space-y-2">
               <label class="text-sm font-medium text-white/80">Дополнительная информация *</label>
               <textarea name="message" rows="4" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" placeholder="Опишите вашу задачу или инфраструктуру..."></textarea>
             </div>
-            <button type="submit" id="submitBtn" class="w-full premium-btn py-4 flex items-center justify-center text-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed">Отправить заявку</button>
+            <label class="flex items-start gap-3 text-sm text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                id="contactPdnConsent"
+                name="pdn_consent"
+                value="1"
+                required
+                class="mt-1 rounded border-white/20"
+              />
+              <span>
+                Согласен на обработку персональных данных в соответствии с{' '}
+                <a href="/privacy/" class="text-accent hover:underline">политикой конфиденциальности</a>
+              </span>
+            </label>
+            <button
+              type="submit"
+              id="submitBtn"
+              disabled
+              class="w-full premium-btn py-4 flex items-center justify-center text-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Отправить заявку
+            </button>
             <div id="formStatus" class="text-center text-sm mt-2"></div>
-            <p class="text-xs text-muted-foreground text-center mt-4">Нажимая кнопку, вы соглашаетесь с политикой обработки персональных данных.</p>
           </form>
           </div>
           <div class="glass-card p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -100,6 +177,9 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
             <a
               href="/oprosnik_azoneai.pdf"
               download
+              data-ym-goal="oprosnik_download"
+              data-download-type="oprosnik"
+              data-placement="contact_page"
               class="premium-btn inline-flex items-center justify-center px-5 py-3 whitespace-nowrap"
             >
               Скачать опросник (PDF)
@@ -107,10 +187,54 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
           </div>
         </div>
       </div>
+
+      <section class="mt-16">
+        <div class="glass-card p-8 md:p-10 border border-white/10">
+          <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 lg:gap-12">
+            <div>
+              <h2 class="text-2xl md:text-3xl font-heading font-bold text-white mb-6">Что произойдёт после заявки</h2>
+              <ul class="space-y-4 text-muted-foreground leading-relaxed">
+                <li class="flex gap-3">
+                  <span class="text-accent font-bold shrink-0">1.</span>
+                  <span>В течение 1 рабочего дня уточним задачу и ограничения по контуру.</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="text-accent font-bold shrink-0">2.</span>
+                  <span>Зафиксируем отрасль, сценарий, требования ИБ и предполагаемый горизонт пилота.</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="text-accent font-bold shrink-0">3.</span>
+                  <span>Подготовим предварительную архитектуру или перечень вопросов для расчёта.</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="text-accent font-bold shrink-0">4.</span>
+                  <span>При необходимости предложим пилот на 4–8 недель с измеримыми критериями результата.</span>
+                </li>
+              </ul>
+            </div>
+            <div class="space-y-3">
+              <a href="#contactForm" data-ym-goal="consultation_click" data-placement="contact_after_submit_block" class="premium-btn w-full inline-flex items-center justify-center text-center">
+                Получить консультацию
+              </a>
+              <a href="/AZONE_AI_presentation.pdf" download data-ym-goal="presentation_download" data-download-type="presentation" data-placement="contact_after_submit_block" class="w-full inline-flex items-center justify-center rounded-xl border border-accent/30 bg-accent/10 px-5 py-3 font-semibold text-accent transition-colors hover:bg-accent/20">
+                Скачать презентацию
+              </a>
+              <a href="/oprosnik_azoneai.pdf" download data-ym-goal="oprosnik_download" data-download-type="oprosnik" data-placement="contact_after_submit_block" class="w-full inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white transition-colors hover:bg-white/10">
+                Скачать опросник для расчёта пилота
+              </a>
+              <a href="/cases/" data-ym-goal="cases_cta_click" data-placement="contact_after_submit_block" class="w-full inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white transition-colors hover:bg-white/10">
+                Посмотреть кейсы
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
-  <script define:vars={{ FUNCTION_URL }}>
+  <script type="module" define:vars={{ FUNCTION_URL }}>
+    import { postContactFunction, contactFetchErrorMessage } from '/scripts/contact-api.js';
+    import { getAttributionParams, populateFormAttribution } from '../scripts/metrika.js';
     const params = new URLSearchParams(window.location.search);
     const serviceNames = {
       'on-premise-llm': 'Внедрение LLM on-premise',
@@ -144,6 +268,7 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
     const serviceField = document.getElementById('serviceField');
     const industryField = document.getElementById('industryField');
     const topicField = document.getElementById('topicField');
+    const industrySelect = document.querySelector('select[name="industry"]');
     const messageEl = document.querySelector('textarea[name="message"]');
     const prefixes = [];
 
@@ -156,6 +281,9 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
     }
     if (industry) {
       if (industryField) industryField.value = industry;
+      if (industrySelect && [...industrySelect.options].some((option) => option.value === industry)) {
+        industrySelect.value = industry;
+      }
       const label = industryNames[industry] || industry.replace(/-/g, ' ');
       prefixes.push(`Отрасль: ${label}`);
       const sel = document.querySelector('select[name="product"]');
@@ -172,59 +300,115 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL || 'https://fun
       else messageEl.value = hint + messageEl.value;
     }
 
+    const pdnConsent = document.getElementById('contactPdnConsent');
+    const submitBtn = document.getElementById('submitBtn');
+    let formStarted = false;
+
+    function syncContactSubmitBtn() {
+      if (!submitBtn || !pdnConsent) return;
+      submitBtn.disabled = !pdnConsent.checked;
+    }
+
+    pdnConsent?.addEventListener('change', syncContactSubmitBtn);
+    syncContactSubmitBtn();
+
+    function getContactAnalyticsParams(data = {}) {
+      const attribution = getAttributionParams();
+      return {
+        form: 'contact',
+        product: data.product || product || '',
+        service: data.service || service || '',
+        industry: data.industry || data.industry_url || industry || '',
+        role: data.role || '',
+        project_horizon: data.project_horizon || '',
+        interest: data.interest || '',
+        topic: data.topic || topic || '',
+        utm_source: data.utm_source || attribution.utm_source || '',
+        utm_medium: data.utm_medium || attribution.utm_medium || '',
+        utm_campaign: data.utm_campaign || attribution.utm_campaign || '',
+        utm_content: data.utm_content || attribution.utm_content || '',
+        utm_term: data.utm_term || attribution.utm_term || '',
+        ym_client_id: data.ym_client_id || attribution.ym_client_id || '',
+      };
+    }
+
+    document.getElementById('contactForm')?.addEventListener('input', () => {
+      if (formStarted) return;
+      formStarted = true;
+      window.trackAnalyticsGoal?.('lead_form_start', {
+        ...getContactAnalyticsParams({
+          industry: industrySelect?.value || '',
+        }),
+      });
+    });
+
     document.getElementById('contactForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
       const btn = document.getElementById('submitBtn');
       const status = document.getElementById('formStatus');
-      btn.disabled = true;
-      btn.textContent = 'Отправка...';
-      status.textContent = '';
-
+      populateFormAttribution(form);
       const data = Object.fromEntries(new FormData(form));
+      data.industry = data.industry || data.industry_url || '';
+
+      if (!data.pdn_consent) {
+        status.style.color = '#ef4444';
+        status.textContent = 'Необходимо согласие на обработку персональных данных';
+        return;
+      }
 
       if (!data.name || data.name.trim().length < 2) {
         status.style.color = '#ef4444';
         status.textContent = 'Пожалуйста, укажите имя (минимум 2 символа)';
-        btn.disabled = false;
-        btn.textContent = 'Отправить заявку';
         return;
       }
       if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
         status.style.color = '#ef4444';
         status.textContent = 'Пожалуйста, укажите корректный email';
-        btn.disabled = false;
-        btn.textContent = 'Отправить заявку';
         return;
       }
 
+      btn.disabled = true;
+      btn.textContent = 'Отправка...';
+      status.textContent = '';
+      window.trackAnalyticsGoal?.('lead_form_submit_attempt', {
+        ...getContactAnalyticsParams(data),
+        hasPhone: Boolean(data.phone),
+        messageLength: (data.message || '').length,
+      });
+
       try {
-        const res = await fetch(FUNCTION_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        const raw = await res.text();
-        let json;
-        try {
-          json = raw ? JSON.parse(raw) : {};
-        } catch {
-          throw new Error('Сервер вернул неожиданный ответ. Попробуйте позже или напишите на order@azone-it.ru');
-        }
-        if (res.ok && json.success) {
+        const { json, ok } = await postContactFunction(FUNCTION_URL, data);
+        if (ok) {
           status.style.color = '#06B6D4';
           status.textContent = '✅ Заявка отправлена! Мы свяжемся в течение 1 рабочего дня.';
+          const submitParams = {
+            ...getContactAnalyticsParams(data),
+            hasPhone: Boolean(data.phone),
+            hasCalculatorParams: Object.keys(data).some((key) => key.startsWith('calc_')),
+            messageLength: (data.message || '').length,
+          };
+          window.trackAnalyticsGoal?.('lead_form_submit', submitParams);
+          window.trackAnalyticsGoal?.('form_submit', submitParams);
+          if (submitParams.industry && submitParams.role && submitParams.project_horizon) {
+            window.trackAnalyticsGoal?.('form_submit_qualified', submitParams);
+          }
           form.reset();
-          if (typeof ym !== 'undefined') ym(108466305, 'reachGoal', 'form_submit');
         } else {
           throw new Error(json.error || json.message || 'Ошибка отправки');
         }
       } catch (err) {
+        const errorMessage = contactFetchErrorMessage(err);
         status.style.color = '#ef4444';
-        status.textContent = '❌ ' + err.message;
+        status.textContent = '❌ ' + errorMessage;
+        window.trackAnalyticsGoal?.('form_error', {
+          form: 'contact',
+          error: errorMessage,
+          page: window.location.pathname,
+        });
       } finally {
-        btn.disabled = false;
         btn.textContent = 'Отправить заявку';
+        syncContactSubmitBtn();
       }
     });
   </script>

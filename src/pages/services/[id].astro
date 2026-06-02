@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PilotCostCalculator from '../../components/PilotCostCalculator.astro';
+import WhitepaperCallout from '../../components/WhitepaperCallout.astro';
 import { services } from '../../data/services.js';
 import { products } from '../../data/products.js';
 
@@ -88,7 +89,7 @@ const contactBase = `/contact/?service=${service.id}`;
         </h1>
         <p class="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-8 max-w-3xl">{service.heroLead}</p>
         <div class="flex flex-col sm:flex-row gap-3">
-          <a href={`${contactBase}&topic=${service.ctaTopic}`} class="premium-btn">Обсудить пилот</a>
+          <a href={`${contactBase}&topic=${service.ctaTopic}`} data-ym-goal="discuss_project_click" data-service={service.id} data-placement="service_hero" class="premium-btn">Обсудить пилот</a>
           <a
             href={`${contactBase}&topic=questionnaire`}
             class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
@@ -259,6 +260,8 @@ const contactBase = `/contact/?service=${service.id}`;
     </section>
   )}
 
+  <WhitepaperCallout source={`service-${service.id}`} />
+
   <!-- Final CTA -->
   <section class="pb-24">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -271,7 +274,7 @@ const contactBase = `/contact/?service=${service.id}`;
             Подготовим оценку сроков и бюджета по вашему контуру после опросного листа и opening discovery.
           </p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href={`${contactBase}&topic=${service.ctaTopic}`} class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href={`${contactBase}&topic=${service.ctaTopic}`} data-ym-goal="discuss_project_click" data-service={service.id} data-placement="service_bottom_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
             <a
               href={`${contactBase}&topic=architecture-doc`}
               class="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"

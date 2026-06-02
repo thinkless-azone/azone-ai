@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import WhitepaperCallout from '../../components/WhitepaperCallout.astro';
 
 const title = 'ИИ в банках и финтехе: 6 рабочих сценариев on-premise';
 const description = 'Почему публичные ИИ-сервисы в банке редко проходят согласование комплаенса и ИБ. Шесть сценариев on-premise LLM в закрытом контуре: контакт-центр, договоры, AML/KYC, скоринг, RAG, антифрод.';
@@ -648,6 +649,8 @@ const faqSchema = {
     </div>
   </section>
 
+  <WhitepaperCallout source="blog-16-ii-v-bankah-on-premise-scenarii" />
+
   <!-- CTA -->
   <section class="py-24 relative">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -660,8 +663,8 @@ const faqSchema = {
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Обсудить <span class="text-gradient">ИИ-сценарий для банка</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">Экспресс-аудит процессов, выбор сценария, архитектура пилота в&nbsp;закрытом контуре. Лицензии ФСТЭК, ФСБ и&nbsp;МО&nbsp;РФ. Опыт интеграции с&nbsp;банковской ИБ.</p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="/contact/?product=other&utm_source=blog&utm_medium=cta-bottom&utm_campaign=article-16" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
-            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+            <a href="/contact/?product=other&utm_source=blog&utm_medium=cta-bottom&utm_campaign=article-16" data-ym-goal="discuss_project_click" data-product="other" data-placement="blog_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download data-ym-goal="presentation_download" data-download-type="presentation" data-placement="blog_cta" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Скачать презентацию
             </a>

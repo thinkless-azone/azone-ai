@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import WhitepaperCallout from '../../components/WhitepaperCallout.astro';
 import { industries } from '../../data/industries.js';
 import { products } from '../../data/products.js';
 import { services } from '../../data/services.js';
@@ -93,7 +94,7 @@ const collectionJsonLd = {
         </h1>
         <p class="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-8 max-w-3xl">{industry.heroLead}</p>
         <div class="flex flex-col sm:flex-row gap-3">
-          <a href={`${contactBase}&topic=pilot`} class="premium-btn">Обсудить пилот</a>
+          <a href={`${contactBase}&topic=pilot`} data-ym-goal="discuss_project_click" data-industry={industry.id} data-placement="industry_hero" class="premium-btn">Обсудить пилот</a>
           <a
             href={`/contact/?industry=${industry.id}&topic=brief`}
             class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
@@ -267,6 +268,8 @@ const collectionJsonLd = {
     </section>
   )}
 
+  <WhitepaperCallout source={`industry-${industry.id}`} />
+
   <!-- CTA -->
   <section class="pb-24">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -281,7 +284,7 @@ const collectionJsonLd = {
             Подготовим оценку сроков и формата внедрения с учётом регуляторики вашей отрасли.
           </p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
-            <a href={`${contactBase}&topic=pilot`} class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href={`${contactBase}&topic=pilot`} data-ym-goal="discuss_project_click" data-industry={industry.id} data-placement="industry_bottom_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
             <a href="/cases/" class="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
               Смотреть кейсы
             </a>

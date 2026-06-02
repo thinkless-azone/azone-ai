@@ -1,0 +1,707 @@
+---
+import Base from '../../layouts/Base.astro';
+import WhitepaperCallout from '../../components/WhitepaperCallout.astro';
+
+const title = 'ИИ в энергетике: предиктивное обслуживание оборудования';
+const description = 'Как предиктивная аналитика снижает риск аварий и простоев на объектах ТЭК. On-premise ИИ, SCADA, КИИ, закрытый контур и пилот за 6–8 недель.';
+const publishDate = '2026-06-01';
+const readTime = '11 мин';
+const tags = ['ИИ в энергетике', 'предиктивное обслуживание', 'КИИ', 'ТЭК', 'on-premise AI', 'PredictMaintain'];
+const coverImage = '/images/blog/18/cover.webp';
+const slug = '18-ii-v-energetike-prediktivnoe-obsluzhivanie';
+const articleUrl = `https://azoneai.ru/blog/${slug}/`;
+
+// Сравнение подходов к обслуживанию
+const maintenanceTable = [
+  { criterion: 'Основание для ремонта', re: 'Факт поломки', ppr: 'Календарь и наработка', pred: 'Фактическое состояние узла' },
+  { criterion: 'Учёт условий эксплуатации', re: 'Нет', ppr: 'Частично', pred: 'Да, в динамике' },
+  { criterion: 'Внеплановые остановки', re: 'Максимум', ppr: 'Снижены, но остаются', pred: 'Существенно ниже' },
+  { criterion: '«Лишние» ремонты исправных узлов', re: 'Нет', ppr: 'Заметная доля', pred: 'Минимальны' },
+  { criterion: 'Требования к данным', re: 'Нет', ppr: 'Низкие', pred: 'Высокие' },
+  { criterion: 'Зрелость процессов эксплуатации', re: 'Любая', ppr: 'Средняя', pred: 'Высокая' },
+];
+
+// Источники данных (кроме SCADA и журналов, которые вынесены в прозу)
+const dataSources = [
+  { title: 'Телеметрия', desc: 'Измерения с датчиков, которые не всегда заведены в SCADA: дополнительные термопары, датчики давления, расходомеры.' },
+  { title: 'Вибродиагностика', desc: 'Один из самых информативных источников для вращающегося оборудования: турбин, насосов, компрессоров. Развитие дисбаланса и дефектов подшипников видно в спектре вибрации раньше, чем в любом другом параметре.' },
+  { title: 'Акустика', desc: 'Анализ звуковых сигнатур для раннего выявления кавитации, утечек, аномального трения.' },
+  { title: 'Тепловизия', desc: 'Контроль перегревов электрических соединений, обмоток, изоляции; чаще как периодические обследования, чем непрерывный поток.' },
+];
+
+// Четыре сценария
+const scenarios = [
+  {
+    num: '1',
+    title: 'Прогноз отказа турбины',
+    data: 'вибрация, температуры подшипников, обороты, давление масла, параметры из SCADA',
+    effect: 'раннее обнаружение развивающегося дефекта подшипника или дисбаланса ротора за период от нескольких суток до нескольких недель — достаточный горизонт, чтобы спланировать остановку, а не получить аварийную',
+    limit: 'для вращающегося оборудования критична частота опроса датчиков вибрации; редкая дискретизация «съедает» раннюю диагностику. Нужна история хотя бы нескольких отказов или деградаций, чтобы модель различала норму и предотказное состояние',
+    check: 'глубину и качество архива вибродиагностики, наличие размеченных случаев отказов, реальный горизонт упреждения на исторических данных',
+    note: 'Турбина — высокоценный, но требовательный к данным объект. Стартовать с него стоит только при хорошей вибродиагностике; иначе лучше выбрать узел попроще.',
+  },
+  {
+    num: '2',
+    title: 'Обнаружение утечек в магистральных сетях',
+    data: 'давление и расход по участкам, температура, акустические датчики, профиль потребления',
+    effect: 'выявление аномалий баланса «вход–выход» и характерных сигнатур, указывающих на утечку или несанкционированный отбор, раньше, чем это проявится в учёте',
+    limit: 'разреженность датчиков на протяжённых сетях; сезонные и суточные колебания, которые легко спутать с аномалией. Модель требует калибровки под конкретную топологию сети',
+    check: 'покрытие участка датчиками, частоту ложных срабатываний на исторических данных, реакцию диспетчерской службы на сигнал',
+    note: 'Ценность сценария прямо зависит от плотности измерений. На хорошо инструментованном участке эффект заметен быстро, на «слепом» — модель будет фантазировать.',
+  },
+  {
+    num: '3',
+    title: 'Оптимизация ремонтных циклов',
+    data: 'наработка, история ТО, фактическое состояние узлов, данные о деградации',
+    effect: 'обоснованный перенос части плановых работ и приоритизация ремонтов по фактическому риску, а не только по календарю — при сохранении обязательных регламентных требований',
+    limit: 'на объектах КИИ часть ТО регламентирована и переносу не подлежит; модель может оптимизировать только то, что допускает нормативка. Решения должны оставаться под контролем эксплуатации',
+    check: 'какие именно работы допускают гибкость, как изменение графика согласуется с требованиями и кто принимает финальное решение',
+    note: 'Это не «отмена ППР», а инструмент приоритизации внутри разрешённых границ. Эффект — в снижении доли ремонтов исправного оборудования без роста рисков.',
+  },
+];
+
+// Облако vs on-premise
+const cloudVsOnprem = [
+  { criterion: 'Данные', cloud: 'Покидают периметр', onprem: 'Остаются внутри объекта' },
+  { criterion: 'Безопасность и ИБ', cloud: 'Зависит от провайдера, сложнее согласовать для КИИ', onprem: 'Контроль на стороне заказчика' },
+  { criterion: 'Latency до SCADA', cloud: 'Выше, зависит от каналов', onprem: 'Минимальная, рядом с источником' },
+  { criterion: 'Интеграция с SCADA/АСУ ТП', cloud: 'Усложнена изоляцией техсетей', onprem: 'Прямая, в том же периметре' },
+  { criterion: 'Соответствие требованиям КИИ', cloud: 'Часто неприменимо', onprem: 'Реализуемо' },
+  { criterion: 'Эксплуатация', cloud: 'На стороне провайдера', onprem: 'Требует своих компетенций или поддержки интегратора' },
+  { criterion: 'Стоимость владения', cloud: 'Ниже на старте, растёт с объёмом', onprem: 'Выше капзатраты, предсказуемее в долгую' },
+];
+
+// Слагаемые часа простоя
+const downtimeCost = [
+  { title: 'Недоотпуск', desc: 'Потери продукта или энергии за время остановки.' },
+  { title: 'Сверхурочные', desc: 'Оплата аварийной бригаде сверх плановых смен.' },
+  { title: 'Срочные закупки', desc: 'Запчасти по ценам «надо вчера» вместо плановых поставок.' },
+  { title: 'Штрафные обязательства', desc: 'На ряде объектов — санкции по договорам поставки за недопоставку.' },
+];
+
+// Дорожная карта пилота
+const roadmap = [
+  { step: '1', title: 'Выбор объекта и оборудования', desc: 'Берём узел, где у эксплуатации есть боль и есть данные. Турбина без вибродиагностики — плохой кандидат для старта.' },
+  { step: '2', title: 'Аудит данных', desc: 'Что собирается, с какой частотой, как давно, в каком виде журналы. Здесь обычно вскрываются неприятные сюрпризы — лучше до запуска.' },
+  { step: '3', title: 'Подключение источников', desc: 'Настройка выгрузки из SCADA, телеметрии, оцифровка нужных журналов. Этап, который почти всегда занимает больше времени, чем планировалось.' },
+  { step: '4', title: 'Baseline-модель', desc: 'Базовая модель «нормального» поведения узла, от которой считаются отклонения.' },
+  { step: '5', title: 'Тестирование прогнозов', desc: 'Прогон на исторических данных и на текущем потоке, оценка горизонта упреждения и частоты ложных срабатываний.' },
+  { step: '6', title: 'Оценка экономического эффекта', desc: 'Считаем по реальным данным объекта, а не по презентации.' },
+  { step: '7', title: 'Решение о промышленном запуске', desc: 'С понятными метриками и описанным порядком эксплуатации.' },
+];
+
+// Чек-лист готовности
+const readinessChecklist = [
+  'Есть исторические данные по выбранному оборудованию достаточной глубины',
+  'Понятны критичные узлы и цена их отказа',
+  'Есть технический доступ к телеметрии и SCADA',
+  'Определён владелец процесса на стороне заказчика',
+  'Согласованы требования ИБ и режим работы в закрытом контуре',
+  'Определены метрики эффекта, по которым будет оцениваться пилот',
+  'Выбран конкретный объект и узел для пилота',
+  'Понятен порядок промышленной эксплуатации после пилота',
+];
+
+// FAQ
+const faqItems = [
+  {
+    q: 'Можно ли внедрить предиктивное обслуживание без облака?',
+    a: 'Да, и для энергетики это основной вариант. Решение разворачивается в закрытом контуре на инфраструктуре заказчика, данные SCADA не покидают периметр. Для объектов КИИ это, как правило, не опция, а требование.'
+  },
+  {
+    q: 'Какие данные нужны для ИИ в энергетике?',
+    a: 'Базово — данные SCADA и телеметрия, для вращающегося оборудования критична вибродиагностика. Дополнительно используют акустику, тепловизию и текстовые журналы эксплуатации. Главное условие — достаточная историческая глубина данных по выбранному узлу.'
+  },
+  {
+    q: 'Сколько длится пилот PredictMaintain?',
+    a: 'Ориентировочно 6–8 недель при условии, что данные доступны и определён владелец процесса. Если телеметрию и журналы приходится готовить с нуля, этап аудита и подключения источников увеличивает срок.'
+  },
+  {
+    q: 'Можно ли применять такие решения на объектах КИИ?',
+    a: 'Да, при развёртывании в закрытом контуре с сегментацией сетей, логированием и контролем доступа. Конкретные требования и категорию значимости объекта нужно сверять с действующей нормативкой и профильными специалистами по ИБ.'
+  },
+  {
+    q: 'Чем ИИ лучше планового обслуживания?',
+    a: 'ИИ не заменяет ППР, а дополняет его: ловит дефекты между плановыми ТО и помогает не ремонтировать исправное оборудование по календарю. На объектах КИИ обязательные регламентные работы при этом сохраняются.'
+  },
+];
+
+// Schema.org JSON-LD
+const blogPostingSchema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ИИ в энергетике: как предиктивное обслуживание снижает риск аварий и простоев",
+  "description": description,
+  "image": `https://azoneai.ru${coverImage}`,
+  "datePublished": publishDate,
+  "dateModified": publishDate,
+  "author": {
+    "@type": "Organization",
+    "name": "AZONE-AI",
+    "url": "https://azoneai.ru/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AZONE-AI",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://azoneai.ru/logo.png"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": articleUrl
+  },
+  "keywords": tags.join(', '),
+  "articleSection": "Отраслевые сценарии",
+  "inLanguage": "ru-RU"
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://azoneai.ru/" },
+    { "@type": "ListItem", "position": 2, "name": "Блог", "item": "https://azoneai.ru/blog/" },
+    { "@type": "ListItem", "position": 3, "name": "ИИ в энергетике: предиктивное обслуживание оборудования", "item": articleUrl }
+  ]
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqItems.map(item => ({
+    "@type": "Question",
+    "name": item.q,
+    "acceptedAnswer": { "@type": "Answer", "text": item.a }
+  }))
+};
+---
+
+<Base title={title} description={description} articleDate={publishDate} image={coverImage}>
+
+  <Fragment slot="head">
+    <link rel="canonical" href={articleUrl} />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`https://azoneai.ru${coverImage}`} />
+    <meta property="og:url" content={articleUrl} />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="article:published_time" content={publishDate} />
+    <meta property="article:section" content="Отраслевые сценарии" />
+    {tags.map(tag => <meta property="article:tag" content={tag} />)}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`https://azoneai.ru${coverImage}`} />
+    <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  </Fragment>
+
+  <main class="flex-grow">
+
+  <!-- Hero -->
+  <section class="relative pt-28 pb-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div>
+        <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Назад к блогу
+        </a>
+
+        <div class="mb-6 flex items-center gap-3 flex-wrap">
+          {tags.map((tag) => (
+            <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">{tag}</span>
+          ))}
+        </div>
+
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+          ИИ в&nbsp;энергетике: как предиктивное обслуживание снижает риск аварий и&nbsp;простоев
+        </h1>
+
+        <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+          Почему энергетике нужен ИИ в&nbsp;закрытом контуре, какие данные нужны для прогноза отказов и&nbsp;как выглядит реалистичный путь через пилот PredictMaintain
+        </p>
+
+        <div class="flex items-center gap-6 text-sm text-muted-foreground pb-6 border-b border-white/10">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            28 мая 2026
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            {readTime}
+          </span>
+        </div>
+
+        <a href="/industries/tek/" class="inline-flex items-center gap-2 mt-6 mb-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/30 text-sm font-medium text-primary hover:bg-primary/20 hover:text-accent transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Отрасль: ТЭК и энергетика — сценарии внедрения on-premise
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="prose prose-invert prose-lg max-w-none space-y-12 text-muted-foreground">
+
+        <!-- Cover -->
+        <div class="mb-4">
+          <img src="/images/blog/18/cover.webp" alt="Предиктивное обслуживание в энергетике: данные SCADA и телеметрии передаются в ИИ-модуль в закрытом контуре" class="w-full rounded-2xl object-cover" loading="eager">
+        </div>
+
+        <!-- Краткий вывод -->
+        <div class="p-6 rounded-2xl bg-accent/5 border border-accent/20">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-accent shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            <div>
+              <p class="text-accent font-bold mb-2 text-sm uppercase tracking-wide">Главное</p>
+              <p class="text-sm leading-relaxed text-white/90">Предиктивное обслуживание решает одну приземлённую задачу: чтобы отказ узла перестал быть сюрпризом и&nbsp;стал виден за&nbsp;несколько суток до&nbsp;остановки. Модель смотрит на&nbsp;данные SCADA, телеметрию, вибрацию и&nbsp;журналы ремонтов. Ключевой вопрос для ТЭК&nbsp;— где эти данные обрабатываются: большинство объектов относятся к&nbsp;КИИ, и&nbsp;отправка телеметрии в&nbsp;публичное облако там не&nbsp;проходит по&nbsp;требованиям ИБ. Поэтому рабочий вариант почти всегда один&nbsp;— закрытый контур.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Почему энергетика — особый случай -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Почему энергетика&nbsp;— особый случай для ИИ</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Любой проект по&nbsp;ИИ начинается с&nbsp;одного и&nbsp;того&nbsp;же вопроса: где живут данные и&nbsp;кто к&nbsp;ним имеет доступ. В&nbsp;энергетике отвечать на&nbsp;него сложнее, чем почти где&nbsp;бы то&nbsp;ни было ещё, и&nbsp;причин для этого несколько.</p>
+
+            <p>Во-первых, режим работы. Генерация, передача, распределение&nbsp;— всё это работает 24/7, без выходных и&nbsp;технологических пауз «на&nbsp;обед». У&nbsp;ИТ-директора банка есть ночное окно для регламентных работ. У&nbsp;главного инженера ТЭЦ такого окна часто нет вовсе: остановка блока&nbsp;— это не&nbsp;строчка в&nbsp;журнале, а&nbsp;согласования, потеря отпуска тепла и&nbsp;деньги.</p>
+
+            <p>Во-вторых, цена простоя. Здесь важно сразу оговориться: универсальной цифры не&nbsp;существует, и&nbsp;любой, кто называет вам «средний час простоя по&nbsp;отрасли», лукавит. Стоимость часа простоя газовой турбины на&nbsp;крупной станции, дизель-генератора на&nbsp;удалённом объекте и&nbsp;насосного агрегата на&nbsp;магистрали различается на&nbsp;порядки. Но&nbsp;порядок проблемы понятен и&nbsp;руководителю эксплуатации, и&nbsp;финансовому директору без презентаций.</p>
+
+            <p>В-третьих, регуляторика. Значительная часть энергетических объектов попадает под законодательство о&nbsp;критической информационной инфраструктуре. Это меняет не&nbsp;отдельные настройки, а&nbsp;сам подход к&nbsp;проекту: где разворачивать решение, как сегментировать сети, что и&nbsp;как логировать, кому давать доступ к&nbsp;моделям и&nbsp;данным. Конкретные категории значимости объектов и&nbsp;обязательные меры защиты нужно сверять с&nbsp;действующей нормативкой и&nbsp;профильными специалистами по&nbsp;ИБ&nbsp;— это не&nbsp;та область, где уместны общие формулировки.</p>
+
+            <p>И&nbsp;четвёртое, что часто недооценивают,&nbsp;— консервативность среды. SCADA-системе на&nbsp;объекте может быть пятнадцать лет. АСУ&nbsp;ТП собиралась поэтапно, разными подрядчиками, с&nbsp;разной документацией. Инженеры эксплуатации видели уже не&nbsp;одну «волшебную систему», которая обещала всё автоматизировать, а&nbsp;потом стояла мёртвым грузом. Доверие здесь зарабатывается не&nbsp;демонстрацией, а&nbsp;тем, что система не&nbsp;мешает работать и&nbsp;хотя&nbsp;бы раз оказывается права в&nbsp;неочевидной ситуации.</p>
+
+            <div class="mt-6 p-5 rounded-xl bg-white/[0.03] border border-white/10 border-l-4 border-l-accent/40">
+              <p class="text-sm leading-relaxed">Прежде чем обсуждать модели и&nbsp;точность прогнозов, в&nbsp;энергетике нужно ответить на&nbsp;три приземлённых вопроса: попадает&nbsp;ли объект под КИИ, можно&nbsp;ли вообще выносить телеметрию за&nbsp;периметр и&nbsp;кто на&nbsp;стороне заказчика отвечает за&nbsp;эксплуатацию решения после пилота. Если хотя&nbsp;бы один ответ неясен&nbsp;— это и&nbsp;есть первый этап работ, а&nbsp;не&nbsp;модель.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Что такое предиктивное обслуживание -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что такое предиктивное обслуживание оборудования</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>В&nbsp;обслуживании промышленного оборудования сосуществуют три логики, и&nbsp;на&nbsp;реальном объекте они обычно перемешаны.</p>
+
+            <p>Реактивный подход&nbsp;— чиним, когда сломалось. Дёшево на&nbsp;бумаге, дорого в&nbsp;жизни: аварийная остановка тянет за&nbsp;собой сорванный график, срочную закупку запчастей и&nbsp;сверхурочные бригад.</p>
+
+            <p>Планово-предупредительный ремонт (ППР)&nbsp;— основа отраслевой культуры эксплуатации. Узлы обслуживают по&nbsp;календарю и&nbsp;наработке независимо от&nbsp;фактического состояния. Это предсказуемо и&nbsp;управляемо, но&nbsp;платой становятся «лишние» ремонты исправного оборудования и&nbsp;при&nbsp;этом&nbsp;— отказы между плановыми ТО, потому что календарь не&nbsp;знает, что конкретный подшипник перегревается уже неделю.</p>
+
+            <p>Предиктивное обслуживание (по&nbsp;состоянию) опирается не&nbsp;на&nbsp;дату, а&nbsp;на&nbsp;данные. Модель отслеживает поведение узла и&nbsp;сигнализирует, когда отклонения указывают на&nbsp;развивающийся дефект. Ремонт назначается не&nbsp;«по&nbsp;плану» и&nbsp;не&nbsp;«по&nbsp;факту аварии», а&nbsp;в&nbsp;окне, когда дефект уже виден, но&nbsp;до&nbsp;отказа ещё есть время.</p>
+
+            <div class="overflow-x-auto rounded-2xl border border-white/10 my-6">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05]">
+                    <th class="text-left px-5 py-4 font-semibold text-white">Параметр</th>
+                    <th class="text-center px-5 py-4 font-semibold text-red-400">Реактивное</th>
+                    <th class="text-center px-5 py-4 font-semibold text-muted-foreground">ППР</th>
+                    <th class="text-center px-5 py-4 font-semibold text-green-400">Предиктивное</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {maintenanceTable.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-5 py-4 text-white">{row.criterion}</td>
+                      <td class="px-5 py-4 text-center text-muted-foreground">{row.re}</td>
+                      <td class="px-5 py-4 text-center text-muted-foreground">{row.ppr}</td>
+                      <td class="px-5 py-4 text-center text-green-400 font-medium">{row.pred}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p>Важно не&nbsp;продавать предиктив как замену ППР. На&nbsp;объектах КИИ регламентные работы никуда не&nbsp;денутся&nbsp;— это требование, а&nbsp;не&nbsp;выбор. Предиктивная аналитика встраивается поверх существующей культуры эксплуатации: помогает приоритизировать, переносить часть работ обоснованно и&nbsp;ловить то, что календарь пропускает.</p>
+
+            <p>Предиктив требует зрелости&nbsp;— исторических данных, понятных критичных узлов и&nbsp;людей, готовых реагировать на&nbsp;прогноз. Без этого проект превращается в&nbsp;красивый дашборд, на&nbsp;который никто не&nbsp;смотрит. Начинать имеет смысл с&nbsp;узлов, где у&nbsp;эксплуатации уже болит, а&nbsp;данные хоть в&nbsp;каком-то виде собираются.</p>
+          </div>
+        </div>
+
+        <!-- Какие данные нужны -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Какие данные нужны для предиктивной аналитики в&nbsp;энергетике</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Прогноз настолько хорош, насколько хороши данные на&nbsp;входе&nbsp;— и&nbsp;здесь, а&nbsp;не&nbsp;в&nbsp;выборе алгоритма, спотыкается большинство пилотов. На&nbsp;схеме источники выглядят аккуратными прямоугольниками. В&nbsp;реальности половина данных лежит в&nbsp;разных форматах, часть журналов ведётся в&nbsp;бумаге, а&nbsp;тэги в&nbsp;SCADA называются так, что без местного инженера их&nbsp;не&nbsp;расшифровать.</p>
+
+            <p>Фундамент&nbsp;— это SCADA и&nbsp;АСУ&nbsp;ТП: токи, напряжения, давления, температуры, обороты, положения арматуры. С&nbsp;ними сразу две оговорки. Дискретизация у&nbsp;разных параметров разная, а&nbsp;историю не&nbsp;всегда архивируют&nbsp;— то, что видно на&nbsp;экране диспетчера сейчас, через месяц может быть уже недоступно для анализа. Поверх этого слоя обычно собирают остальное:</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {dataSources.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div class="my-6">
+              <img src="/images/blog/18/data-sources.webp" alt="Источники данных для предиктивной аналитики в энергетике: SCADA, телеметрия, вибрация, акустика, тепловизия, журналы эксплуатации" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Источники данных для предиктивной модели&nbsp;— от&nbsp;потоковой телеметрии до&nbsp;текстовых ремонтных журналов</p>
+            </div>
+
+            <p>Отдельная и&nbsp;самая недооценённая категория&nbsp;— журналы эксплуатации и&nbsp;отчёты ремонтных служб. Именно там хранится знание о&nbsp;том, как ведёт себя конкретный агрегат: что меняли, когда, по&nbsp;какой причине, какие дефекты находили. И&nbsp;именно эти данные самые «грязные»&nbsp;— свободный текст, сокращения, местный жаргон. Разобрать такой массив руками нереально, а&nbsp;вот языковая модель извлекает из&nbsp;протоколов структурированные факты и&nbsp;связывает их&nbsp;с&nbsp;историей отказов. Для текстового контура у&nbsp;AZONE&nbsp;AI применяется отдельный модуль обработки документов&nbsp;— <a href="/products/contentguard/" data-ym-goal="blog_to_product_click" data-product="contentguard" data-placement="blog_cta" class="text-accent hover:underline">ContentGuard</a>, который в&nbsp;энергетических проектах берёт на&nbsp;себя разбор и&nbsp;классификацию эксплуатационной документации в&nbsp;закрытом контуре.</p>
+
+            <div class="mt-6 p-5 rounded-xl bg-white/[0.03] border border-white/10 border-l-4 border-l-accent/40">
+              <p class="text-sm leading-relaxed">Перед запуском любой модели нужен честный аудит данных: что собирается, с&nbsp;какой частотой, как давно хранится, в&nbsp;каком виде ведутся журналы. Часто выясняется, что историческая глубина данных меньше, чем казалось, а&nbsp;по&nbsp;части критичных узлов телеметрии нет вообще. Это не&nbsp;повод отказываться от&nbsp;проекта&nbsp;— это повод правильно выбрать объект пилота.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 сценария -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Четыре сценария применения ИИ в&nbsp;энергетике</h2>
+          </div>
+
+          <div class="space-y-5">
+            {scenarios.map((s) => (
+              <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+                <div class="flex items-start gap-4 mb-4">
+                  <span class="w-9 h-9 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">{s.num}</span>
+                  <h3 class="text-white font-bold text-lg pt-1">{s.title}</h3>
+                </div>
+                <div class="space-y-3 text-sm leading-relaxed">
+                  <p><span class="text-accent font-semibold">Данные:</span> {s.data}.</p>
+                  <p><span class="text-green-400 font-semibold">Возможный эффект:</span> {s.effect}.</p>
+                  <p><span class="text-red-400 font-semibold">Ограничения:</span> {s.limit}.</p>
+                  <p><span class="text-blue-400 font-semibold">Что проверить на пилоте:</span> {s.check}.</p>
+                  <p class="pt-2 border-t border-white/5 text-muted-foreground/80 italic">{s.note}</p>
+                </div>
+              </div>
+            ))}
+
+            <!-- Сценарий 4 — намеренно сплошным абзацем, ломая шаблон -->
+            <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+              <div class="flex items-start gap-4 mb-4">
+                <span class="w-9 h-9 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">4</span>
+                <h3 class="text-white font-bold text-lg pt-1">Анализ инцидентов и&nbsp;составление отчётов</h3>
+              </div>
+              <p class="text-sm leading-relaxed">Из&nbsp;четырёх сценариев этот&nbsp;— самый безопасный для старта, потому что модель здесь ничем не&nbsp;управляет, а&nbsp;только разбирает текст. На&nbsp;вход идут журналы событий, протоколы инцидентов, ремонтные отчёты и&nbsp;телеметрия на&nbsp;момент события. На&nbsp;выходе&nbsp;— сопоставление событий, найденные в&nbsp;истории похожие случаи и&nbsp;черновик отчёта по&nbsp;типовой форме. Выигрыш&nbsp;— во&nbsp;времени на&nbsp;рутине: разбор, который занимал у&nbsp;инженера полдня, сжимается до&nbsp;проверки готового черновика. Ограничение очевидно из&nbsp;природы данных&nbsp;— результат ровно настолько хорош, насколько аккуратно велись журналы, а&nbsp;причины инцидента всё равно устанавливает человек, не&nbsp;модель. Но&nbsp;именно поэтому скептичной эксплуатации проще довериться: цена ошибки здесь&nbsp;— лишний черновик, а&nbsp;не&nbsp;остановленный агрегат. На&nbsp;пилоте проверяют структуру и&nbsp;доступность исторических журналов, требуемую форму отчётности и&nbsp;то, насколько инженеры готовы работать с&nbsp;машинными черновиками.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Архитектура on-premise -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"></rect><rect x="2" y="14" width="20" height="8" rx="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Архитектура on-premise решения</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Логика потока данных в&nbsp;закрытом контуре проста: телеметрия с&nbsp;оборудования и&nbsp;SCADA стекается в&nbsp;хранилище, туда&nbsp;же подключаются исторические журналы и&nbsp;ремонтные отчёты; над этим работают две модели&nbsp;— одна ищет аномалии и&nbsp;строит прогноз по&nbsp;числовым данным, вторая разбирает текст; результат&nbsp;— приоритизированные рекомендации инженеру или диспетчеру, чьи действия фиксируются в&nbsp;журнале и&nbsp;возвращаются модели как обратная связь.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/18/architecture.webp" alt="Архитектура on-premise предиктивного обслуживания: SCADA и телеметрия → хранилище → ML и LLM модули → рекомендации инженеру → журнал действий, всё в закрытом контуре" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Поток данных в&nbsp;закрытом контуре: от&nbsp;SCADA и&nbsp;телеметрии до&nbsp;рекомендаций инженеру&nbsp;— без выхода за&nbsp;периметр</p>
+            </div>
+
+            <p>Контур здесь замкнут&nbsp;— и&nbsp;это не&nbsp;оговорка в&nbsp;спецификации, а&nbsp;условие, без которого проект на&nbsp;КИИ не&nbsp;согласуют. Данные SCADA не&nbsp;покидают периметр, модели разворачиваются на&nbsp;инфраструктуре заказчика, обращений к&nbsp;внешним API нет.</p>
+
+            <p>Что для таких объектов критично заложить в&nbsp;архитектуру с&nbsp;самого начала:</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-white font-bold mb-2">Сегментация контуров</div>
+                <p class="text-sm leading-relaxed">Технологический сегмент с&nbsp;SCADA/АСУ&nbsp;ТП изолирован от&nbsp;корпоративной сети и&nbsp;от&nbsp;сегмента, где работают модели; передача данных идёт по&nbsp;строго описанным каналам.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-white font-bold mb-2">Логирование</div>
+                <p class="text-sm leading-relaxed">Фиксируются не&nbsp;только действия пользователей, но&nbsp;и&nbsp;то, какие рекомендации выдавала модель и&nbsp;как на&nbsp;них реагировала эксплуатация. Без этого невозможны ни&nbsp;аудит, ни&nbsp;разбор спорных ситуаций.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-white font-bold mb-2">Контроль доступа</div>
+                <p class="text-sm leading-relaxed">Кто видит сырую телеметрию, кто&nbsp;— рекомендации, кто может менять параметры модели. Роли описываются до&nbsp;запуска, а&nbsp;не&nbsp;по&nbsp;факту.</p>
+              </div>
+              <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div class="text-white font-bold mb-2">Изоляция от&nbsp;публичного облака</div>
+                <p class="text-sm leading-relaxed">Технически и&nbsp;организационно исключается любой исходящий трафик с&nbsp;технологическими данными за&nbsp;периметр.</p>
+              </div>
+            </div>
+
+            <p class="mt-4">Подход к&nbsp;развёртыванию ИИ в&nbsp;закрытом контуре подробно разобран в&nbsp;<a href="/blog/07-llm-closed-circuit-guide/" class="text-accent hover:underline">руководстве по&nbsp;развёртыванию LLM в&nbsp;закрытом контуре</a>, а&nbsp;общая рамка работы с&nbsp;объектами КИИ&nbsp;— в&nbsp;<a href="/blog/01-cloud-ai-kii/" class="text-accent hover:underline">статье про ИИ и&nbsp;КИИ</a>.</p>
+          </div>
+        </div>
+
+        <!-- Облако vs on-premise -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Облако vs on-premise для энергетики</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Для большинства корпоративных задач облако выигрывает по&nbsp;скорости старта и&nbsp;стоимости входа. В&nbsp;энергетике, особенно на&nbsp;объектах КИИ, расклад другой.</p>
+
+            <div class="overflow-x-auto rounded-2xl border border-white/10 my-6">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05]">
+                    <th class="text-left px-5 py-4 font-semibold text-white">Критерий</th>
+                    <th class="text-center px-5 py-4 font-semibold text-red-400">Публичное облако</th>
+                    <th class="text-center px-5 py-4 font-semibold text-green-400">On-premise / закрытый контур</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {cloudVsOnprem.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-5 py-4 text-white">{row.criterion}</td>
+                      <td class="px-5 py-4 text-center text-muted-foreground">{row.cloud}</td>
+                      <td class="px-5 py-4 text-center text-green-400 font-medium">{row.onprem}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p>Вывод не&nbsp;в&nbsp;том, что облако «плохое». Для аналитики обезличенных данных или для непроизводственных задач оно вполне применимо. Но&nbsp;как только речь о&nbsp;телеметрии действующего энергообъекта, вопрос упирается не&nbsp;в&nbsp;цену и&nbsp;удобство, а&nbsp;в&nbsp;допустимость выноса данных за&nbsp;периметр. На&nbsp;объектах КИИ ответ обычно отрицательный, и&nbsp;это снимает спор о&nbsp;выборе ещё до&nbsp;его начала.</p>
+          </div>
+        </div>
+
+        <!-- Цифры эффекта и ROI -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Цифры эффекта и&nbsp;ROI</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Универсальных цифр окупаемости предиктивного обслуживания в&nbsp;энергетике не&nbsp;существует, а&nbsp;те, что кочуют по&nbsp;презентациям, чаще всего взяты из&nbsp;чужой отрасли или из&nbsp;маркетинга вендора. Поэтому ниже&nbsp;— не&nbsp;«средние по&nbsp;рынку показатели», а&nbsp;логика расчёта, которую нужно наполнить данными конкретного заказчика.</p>
+
+            <p>Главная и&nbsp;самая трудоёмкая величина&nbsp;— стоимость часа простоя критичного узла. Её&nbsp;редко считают заранее, и&nbsp;зря: это та&nbsp;единственная цифра, без которой весь дальнейший расчёт держится на&nbsp;воздухе. Складывается она не&nbsp;из&nbsp;одной строки:</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {downtimeCost.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">На&nbsp;дорогом узле сумма выходит такой, что один предотвращённый отказ перекрывает стоимость всего пилота. На&nbsp;второстепенном&nbsp;— близкой к&nbsp;нулю, и&nbsp;это тоже результат, который лучше узнать на&nbsp;аудите.</p>
+
+            <p>Остальные величины надстраиваются над первой. Снижение доли внеплановых остановок: по&nbsp;опыту проектов с&nbsp;обслуживанием по&nbsp;состоянию называют сокращение аварийных остановок на&nbsp;70–75%, а&nbsp;затрат на&nbsp;ТО&nbsp;— на&nbsp;25–40%, но&nbsp;эти ориентиры нужно проверять и&nbsp;не&nbsp;переносить вслепую на&nbsp;конкретный объект. Экономия OPEX&nbsp;— за&nbsp;счёт сокращения «лишних» ремонтов исправного оборудования и&nbsp;более точного планирования запчастей. И&nbsp;собственно окупаемость пилота, которая для энергетики чаще всего упирается обратно в&nbsp;первую величину.</p>
+
+            <p>Дальше арифметика короткая. Если один предотвращённый отказ дорогого узла окупает весь проект, спорить о&nbsp;процентах улучшений уже незачем. Если&nbsp;же простой стоит недорого, а&nbsp;оборудование некритично&nbsp;— возможно, предиктив этому объекту просто не&nbsp;нужен, и&nbsp;честнее сказать об&nbsp;этом на&nbsp;этапе аудита, а&nbsp;не&nbsp;после внедрения.</p>
+
+            <p>Подробный разбор того, из&nbsp;чего складывается бюджет такого проекта,&nbsp;— в&nbsp;<a href="/blog/15-stoimost-vnedreniya-llm-on-premise/" class="text-accent hover:underline">материале о&nbsp;стоимости пилота</a>.</p>
+
+            <div class="mt-6 p-5 rounded-xl bg-white/[0.03] border border-white/10 border-l-4 border-l-accent/40">
+              <p class="text-sm leading-relaxed">ROI здесь считается не&nbsp;«в&nbsp;среднем по&nbsp;отрасли», а&nbsp;на&nbsp;цифрах заказчика, и&nbsp;начинается счёт всегда с&nbsp;одного&nbsp;— со&nbsp;стоимости часа простоя критичного узла.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Дорожная карта пилота -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Дорожная карта пилота за&nbsp;6–8&nbsp;недель</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Реалистичный пилот&nbsp;— это не&nbsp;«внедрить ИИ на&nbsp;станции», а&nbsp;проверить гипотезу на&nbsp;одном объекте и&nbsp;одном-двух узлах. Типовая последовательность:</p>
+
+            <div class="space-y-3">
+              {roadmap.map((item) => (
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                  <span class="w-8 h-8 rounded-full bg-primary/30 text-primary font-bold text-sm flex items-center justify-center shrink-0">{item.step}</span>
+                  <div>
+                    <div class="text-white font-semibold mb-1">{item.title}</div>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Сроки 6–8&nbsp;недель достижимы, если данные доступны и&nbsp;владелец процесса на&nbsp;стороне заказчика определён. Если данные приходится «добывать»&nbsp;— этап аудита и&nbsp;подключения растягивается, и&nbsp;это нормально.</p>
+          </div>
+        </div>
+
+        <!-- Чек-лист готовности -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Чек-лист готовности к&nbsp;внедрению</h2>
+          </div>
+
+          <p class="mb-5">Перед стартом пилота PredictMaintain имеет смысл пройтись по&nbsp;восьми пунктам. Чем больше «нет»&nbsp;— тем больше работы на&nbsp;подготовительном этапе.</p>
+
+          <div class="space-y-2.5">
+            {readinessChecklist.map((item) => (
+              <div class="flex items-start gap-3 p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
+                <svg class="w-5 h-5 text-green-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <p class="text-sm leading-relaxed text-white/90">{item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Что делать дальше -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что делать дальше</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Если коротко: не&nbsp;начинать с&nbsp;модели. Начинать с&nbsp;трёх вещей&nbsp;— выбрать критичный узел с&nbsp;понятной ценой отказа, честно оценить доступные по&nbsp;нему данные и&nbsp;определить, кто на&nbsp;стороне эксплуатации будет реагировать на&nbsp;прогнозы. Эти три пункта определяют, будет&nbsp;ли проект работать, гораздо сильнее, чем выбор алгоритма.</p>
+
+            <p>Дальше&nbsp;— короткий пилот на&nbsp;одном объекте, расчёт эффекта на&nbsp;собственных данных и&nbsp;только потом разговор о&nbsp;промышленном масштабировании. Такой порядок защищает и&nbsp;от&nbsp;разочарования, и&nbsp;от&nbsp;лишних затрат.</p>
+
+            <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+              <p class="text-white font-medium text-lg leading-relaxed">Если хотите проверить, подойдёт&nbsp;ли предиктивное обслуживание для вашего оборудования и&nbsp;инфраструктуры, <strong>AZONE-AI</strong> может провести экспресс-аудит данных и&nbsp;предложить архитектуру пилота в&nbsp;закрытом контуре&nbsp;— <a href="/contact/?product=predictmaintain&utm_source=blog&utm_medium=cta&utm_campaign=18-ii-v-energetike&utm_content=hot" class="text-accent hover:underline">обсудить пилот PredictMaintain</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Частые вопросы</h2>
+          </div>
+
+          <div class="space-y-4">
+            {faqItems.map((item) => (
+              <details class="glass-card p-5 group">
+                <summary class="cursor-pointer text-white font-bold flex items-center justify-between">{item.q}<svg class="w-4 h-4 transition-transform group-open:rotate-180 shrink-0 ml-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+                <p class="mt-4 text-sm leading-relaxed">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+
+        <!-- Дисклеймер -->
+        <div>
+          <div class="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <div>
+                <h3 class="text-white font-bold mb-2">Актуальность материала</h3>
+                <ul class="space-y-1.5 text-sm leading-relaxed">
+                  <li>Материал подготовлен по&nbsp;состоянию на&nbsp;<strong class="text-white">май 2026&nbsp;года</strong>.</li>
+                  <li>Числовые ориентиры (снижение внеплановых остановок и&nbsp;затрат на&nbsp;ТО, стоимость часа простоя, сроки пилота)&nbsp;— диапазоны для оценки. Под конкретный объект их&nbsp;нужно проверять на&nbsp;данных заказчика.</li>
+                  <li>Отнесение энергообъектов к&nbsp;КИИ, категория значимости и&nbsp;обязательные меры защиты сверяются с&nbsp;действующей нормативной базой и&nbsp;профильными специалистами по&nbsp;ИБ по&nbsp;каждому объекту отдельно.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Похожие статьи -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Похожие статьи</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <a href="/blog/05-predict-maintain/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Предиктивная аналитика: предотвращение аварий до&nbsp;их&nbsp;возникновения</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            9 мин
+          </span>
+        </a>
+        <a href="/blog/01-cloud-ai-kii/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Безопасность</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Облачный ИИ и&nbsp;объекты КИИ: что можно, а&nbsp;что под запретом</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            8 мин
+          </span>
+        </a>
+        <a href="/blog/15-stoimost-vnedreniya-llm-on-premise/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Коммерческая / ROI</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Сколько стоит LLM on-premise: разбор бюджета пилота</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            12 мин
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <WhitepaperCallout source="blog-18-ii-v-energetike-prediktivnoe-obsluzhivanie" />
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <img src="/images/blog/18/cover.webp" alt="AZONE-AI: экспресс-аудит данных энергообъекта и пилот предиктивного обслуживания в закрытом контуре" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Обсудить <span class="text-gradient">пилот PredictMaintain</span> на&nbsp;вашем объекте</h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">Экспресс-аудит данных, выбор критичного узла, архитектура пилота в&nbsp;закрытом контуре. Лицензии ФСТЭК, ФСБ и&nbsp;МО&nbsp;РФ. Опыт работы с&nbsp;объектами КИИ.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/contact/?product=predictmaintain&utm_source=blog&utm_medium=cta&utm_campaign=18-ii-v-energetike&utm_content=hot" data-ym-goal="discuss_project_click" data-product="predictmaintain" data-placement="blog_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот PredictMaintain</a>
+            <a href="/AZONE_AI_presentation.pdf" download data-ym-goal="presentation_download" data-download-type="presentation" data-placement="blog_cta" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Скачать обзор: ИИ в энергетике 2026
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+</Base>

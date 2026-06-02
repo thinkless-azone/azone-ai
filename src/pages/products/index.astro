@@ -177,7 +177,7 @@ const faqItems = [
               <a href={productResources[product.id]?.blogHref} class="block text-sm text-muted-foreground hover:text-white transition-colors">
                 {productResources[product.id]?.blogLabel}
               </a>
-              <a href={`/contact/?product=${product.id}`} class="inline-flex items-center gap-2 text-sm text-accent hover:underline">
+              <a href={`/contact/?product=${product.id}`} data-ym-goal="discuss_project_click" data-product={product.id} data-placement="products_card" class="inline-flex items-center gap-2 text-sm text-accent hover:underline">
                 Обсудить этот продукт
               </a>
             </div>
@@ -237,7 +237,7 @@ const faqItems = [
             Если вы выбираете между несколькими продуктами или хотите обсудить пилот в закрытом контуре,
             мы поможем определить архитектуру, формат поставки и объём работ.
           </p>
-          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact/?product=other" data-ym-goal="discuss_project_click" data-product="other" data-placement="products_bottom_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>

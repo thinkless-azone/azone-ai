@@ -3,6 +3,7 @@ dist/
 .netlify/
 .astro/
 .env
+.sitemap-notify-cache.json
 
 # Локальные служебные файлы (не в репозиторий)
 *.eml

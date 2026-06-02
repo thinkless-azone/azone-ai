@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PilotCostCalculator from '../../components/PilotCostCalculator.astro';
+import WhitepaperCallout from '../../components/WhitepaperCallout.astro';
 
 const title = 'Сколько стоит LLM on-premise: разбор бюджета пилота';
 const description = 'Из чего складывается бюджет LLM on-premise: железо, ПО, данные, интеграция, поддержка. Три сценария пилота с реалистичными диапазонами стоимости в РФ в 2026 году.';
@@ -594,6 +595,8 @@ const managementErrors = [
     </div>
   </section>
 
+  <WhitepaperCallout source="blog-15-stoimost-vnedreniya-llm-on-premise" />
+
   <!-- CTA -->
   <section class="py-24 relative">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -606,8 +609,8 @@ const managementErrors = [
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Получите ориентир <span class="text-gradient">по&nbsp;бюджету пилота</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За&nbsp;1–2&nbsp;недели разберём задачу, прикинем требования к&nbsp;инфраструктуре и&nbsp;соберём диапазон CAPEX/OPEX под ваш сценарий. Лицензии ФСТЭК, ФСБ и&nbsp;МО&nbsp;РФ. Опыт с&nbsp;2003&nbsp;года.</p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="/contact/?product=other&utm_source=blog&utm_medium=cta-bottom&utm_campaign=article-15" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
-            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+            <a href="/contact/?product=other&utm_source=blog&utm_medium=cta-bottom&utm_campaign=article-15" data-ym-goal="discuss_project_click" data-product="other" data-placement="blog_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download data-ym-goal="presentation_download" data-download-type="presentation" data-placement="blog_cta" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Скачать презентацию
             </a>

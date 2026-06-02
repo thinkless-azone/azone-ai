@@ -312,8 +312,8 @@ zip -r ../contact-function.zip . -x "node_modules/.cache/*" -x ".env*"
 | Способ загрузки | ZIP-архив |
 | Файл | `contact-function.zip` (загрузи) |
 | Точка входа | `index.handler` |
-| Таймаут | `10` секунд |
-| Память | `128` МБ |
+| Таймаут | **`30` секунд** (10 с — SMTP не успевает, в логах `504 Execution timeout exceeded`) |
+| Память | **`256` МБ** (при 128 МБ cold start + nodemailer часто упираются в лимит памяти) |
 
 4. В разделе **Переменные окружения** добавь:
 

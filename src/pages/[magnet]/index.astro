@@ -1,0 +1,83 @@
+---
+import Base from '../../layouts/Base.astro';
+import LeadMagnetForm from '../../components/LeadMagnetForm.astro';
+import { leadMagnets } from '../../data/leadMagnets.js';
+
+export function getStaticPaths() {
+  return leadMagnets.map((m) => ({ params: { magnet: m.slug }, props: { magnet: m } }));
+}
+
+const { magnet } = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: magnet.metaTitle,
+  description: magnet.metaDescription,
+  inLanguage: 'ru',
+  learningResourceType: 'whitepaper',
+  url: `https://azoneai.ru/${magnet.slug}/`,
+  author: { '@type': 'Organization', name: 'AZONE-AI', url: 'https://azoneai.ru' },
+  provider: { '@type': 'Organization', name: 'AZONE-AI', url: 'https://azoneai.ru' },
+};
+---
+
+<Base
+  title={magnet.metaTitle}
+  description={magnet.metaDescription}
+  breadcrumbTitle={magnet.breadcrumbTitle}
+  image={magnet.ogImage}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <div class="min-h-screen pt-24 pb-24 relative">
+    <div class="absolute top-1/4 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <!-- Hero -->
+      <div class="text-center max-w-4xl mx-auto mb-16">
+        <p class="text-sm text-accent font-medium mb-4">{magnet.eyebrow}</p>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+          {magnet.h1Lead} <span class="text-gradient">{magnet.h1Accent}</span>
+        </h1>
+        <p class="text-lg text-muted-foreground leading-relaxed" set:html={magnet.heroText}></p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <!-- Content -->
+        <div class="space-y-10">
+          <section>
+            <h2 class="text-2xl font-heading font-bold text-white mb-5">Что внутри</h2>
+            <ul class="space-y-3">
+              {magnet.inside.map((item) => (
+                <li class="flex items-start gap-3 text-muted-foreground text-sm leading-relaxed">
+                  <svg class="w-4 h-4 text-accent shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-heading font-bold text-white mb-5">Кому будет полезен</h2>
+            <ul class="space-y-4">
+              {magnet.audience.map((item) => (
+                <li class="glass-card p-5 text-sm text-muted-foreground leading-relaxed">{item}</li>
+              ))}
+            </ul>
+          </section>
+
+          {magnet.note && (
+            <p class="text-xs text-muted-foreground leading-relaxed" set:html={magnet.note}></p>
+          )}
+        </div>
+
+        <!-- Form -->
+        <LeadMagnetForm magnet={magnet} />
+      </div>
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,642 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const title = 'Fine-tuning LLM на корпоративных данных: когда нужен, когда хватит RAG';
+const description = 'Когда дообучение LLM действительно решает задачу, а когда хватит RAG: LoRA, QLoRA, PEFT, датасеты, риски, on-premise-стек и сравнение подходов.';
+const publishDate = '2026-05-25';
+const readTime = '12 мин';
+const tags = ['LLM', 'RAG', 'fine-tuning', 'LoRA', 'PEFT', 'on-premise', 'корпоративный ИИ'];
+const coverImage = '/images/blog/17/cover.webp';
+
+const peftLevels = [
+  {
+    title: 'Full fine-tuning',
+    desc: 'Обновляются все веса модели — фактически новая её версия. Требует десятков гигабайт VRAM на инференс и кратно больше на обучение, много данных и аккуратной работы с гиперпараметрами. На корпоративных проектах применяется редко: дорого, есть риск «забыть» базовые способности (catastrophic forgetting) и трудно поддерживать.',
+  },
+  {
+    title: 'LoRA (Low-Rank Adaptation)',
+    desc: 'Компромисс, который сейчас выбирают чаще всего. Вместо обновления исходных весов обучаются небольшие низкоранговые адаптеры, подключаемые к слоям внимания. Адаптер весит мегабайты-сотни мегабайт против десятков гигабайт у базовой модели. Типовые стартовые значения rank — 8–32, learning rate 1e-4–5e-4.',
+  },
+  {
+    title: 'QLoRA',
+    desc: 'Та же LoRA, но базовая модель загружается в 4-битной квантизации. Это позволяет дообучать 13–70B-модели на одной серверной видеокарте уровня A100/H100; для 7B при коротком контексте часто хватает одной 24-гигабайтной потребительской карты. Все цифры плавают в зависимости от длины контекста и размера батча.',
+  },
+  {
+    title: 'PEFT',
+    desc: 'Зонтичное название для методов, обучающих малую долю параметров: LoRA, prefix tuning, adapter tuning, IA³ и другие. Так же называется библиотека от Hugging Face, которая де-факто стала стандартом для этой группы методов.',
+  },
+];
+
+const scenariosTable = [
+  {
+    title: 'Классификация документов и обращений',
+    desc: 'Тысячи входящих писем, обращений, заявок, договоров — с проставлением категории, приоритета, типа контрагента. RAG здесь почти ничего не даёт, промпт с примерами работает нестабильно. LoRA-адаптер, обученный на 2–5 тысячах размеченных примеров, обычно стабильно перекрывает базовую модель и оказывается дешевле в эксплуатации.',
+  },
+  {
+    title: 'Стиль и формат ответа',
+    desc: 'Корпоративный ассистент должен отвечать в фирменном стиле, в строгом формате, с обязательной структурой. RAG обеспечит правильность данных, но не дисциплину изложения. Fine-tuning на образцовых ответах закрепляет паттерн.',
+  },
+  {
+    title: 'Извлечение сущностей',
+    desc: 'Из договора нужно вытащить стороны, реквизиты, ключевые даты, предмет, ответственность, неустойки. На дополнительных соглашениях типичная ошибка базовой модели — путать дату самого соглашения с датой вступления изменений в силу; на размеченном корпусе такие систематические сбои чинятся. Особенно заметно работает на русскоязычных юридических текстах.',
+  },
+  {
+    title: 'Отраслевой язык',
+    desc: 'Медицина, нефтегаз, оборонная отрасль, банковское регулирование. Лексика, аббревиатуры, типовые формулировки. RAG подаст модели релевантные документы, но текст ответа всё равно будет звучать как «общерусский поверх специальных терминов». Fine-tuning на корпусе отраслевых текстов сглаживает этот разрыв.',
+  },
+  {
+    title: 'Специализированные ассистенты',
+    desc: 'Внутренний помощник методолога, помощник аналитика, помощник тестировщика — узкие роли с устоявшимися сценариями. Дообучение под роль даёт более предсказуемое поведение, чем длинные системные промпты, которые на потоке всё равно начинают «уезжать».',
+  },
+];
+
+const whenNotHelp = [
+  { title: 'Нужны актуальные знания', desc: 'Документы и регламенты меняются. Дообученная модель знает только то, что было в датасете на момент обучения. Каждое обновление = новый цикл fine-tuning. RAG обновляет индекс за минуты.' },
+  { title: 'Проблема в поиске, а не в модели', desc: 'Если в выдаче retrieval мусор, никакое дообучение не спасёт. Сначала чинится retrieval (chunking, метаданные, reranker), потом ставится вопрос про fine-tuning.' },
+  { title: 'Нет качественного датасета и нет ресурса его собрать', desc: 'Без датасета fine-tuning не существует как инженерная задача. Обещания «как-нибудь соберём в процессе» обычно приводят к шестимесячному проекту без результата. Команда возвращается к этапу «давайте честно посмотрим, что у нас в архивах» — и обнаруживает половину материалов без меток и половину с устаревшими версиями.' },
+  { title: 'Задача уже решена RAG на 90%', desc: 'Доводить последние 10% через дообучение часто дороже, чем доработать промпт и retrieval.' },
+  { title: 'Нужно объяснимое цитирование источников', desc: 'Дообученная модель отвечает «из себя», без ссылок на конкретные документы. Для регуляторики, аудита и юридических задач это критично — там нужен именно RAG с прозрачной цепочкой источников.' },
+];
+
+const stack = [
+  { name: 'Hugging Face PEFT', desc: 'Библиотека для LoRA, QLoRA и других PEFT-методов. Де-факто стандарт. Хорошо интегрирована с transformers и accelerate.' },
+  { name: 'Axolotl', desc: 'Фреймворк-обёртка, в которой конфигурация обучения описывается одним YAML-файлом. Удобен для воспроизводимости экспериментов.' },
+  { name: 'Unsloth', desc: 'Оптимизированная реализация LoRA/QLoRA, заметно ускоряющая обучение и снижающая потребление памяти на потребительских GPU. Полезен на пилотах с ограниченным железом.' },
+  { name: 'Инструменты оценки качества', desc: 'lm-evaluation-harness для бенчмарков, MERA как русскоязычный набор задач (релевантность к корпоративным сценариям проверяется отдельно), собственный hold-out с ручной экспертной оценкой. Без последнего любой автоматический показатель — половина правды.' },
+  { name: 'Хранение моделей и датасетов', desc: 'Внутренний реестр артефактов (например, MLflow или DVC) и контроль версий датасетов. Без этого через полгода никто не вспомнит, на каком корпусе обучалась версия адаптера, работающая в продакшене.' },
+];
+
+const pitfalls = [
+  { title: 'Catastrophic forgetting', desc: 'Обучая модель отвечать на ваших данных, легко «отучить» её от базовых способностей: рассуждения, общих знаний, кода. Характерно для full fine-tuning. LoRA снимает риск частично — базовые веса остаются нетронутыми, но при агрессивных гиперпараметрах деградация всё равно возможна.' },
+  { title: 'Переобучение', desc: 'Маленький датасет плюс много эпох, и модель начинает воспроизводить обучающие примеры почти дословно. На тестовых вопросах метрики выглядят отлично, на новых формулировках — катастрофа.' },
+  { title: 'Утечка данных', desc: 'Дообученная модель — по сути, сжатая память о датасете. Всё, что в неё попало, может всплыть на выходе: фрагмент ПДн, конкретная формулировка из договора, кусок внутренней переписки. Датасет перед обучением чистится не как заметка «на всякий случай», а как обязательный этап с регламентом и ответственным.' },
+  { title: 'Деградация общей способности', desc: 'Узко натренированная модель отвечает идеально в рамках своего домена и плохо — за его пределами. Если корпоративный ассистент должен покрывать несколько ролей, fine-tuning под одну может ухудшить остальные.' },
+  { title: 'Воспроизводимость', desc: 'Через полгода другой инженер должен иметь возможность повторить обучение и получить тот же результат. Это требует фиксации: версии библиотек, точного датасета, гиперпараметров, seed, окружения. На практике об этом задумываются ровно в тот момент, когда «потеряли» рабочую модель и не могут её восстановить.' },
+];
+
+const comparisonTable = [
+  { criterion: 'Что меняет', pe: 'Только инструкцию', rag: 'Контекст в промпте', ft: 'Веса (адаптеры)' },
+  { criterion: 'Когда нужен', pe: 'Простая задача, мало вариаций', rag: 'Нужны корпоративные знания', ft: 'Нужно изменить поведение' },
+  { criterion: 'Актуальность данных', pe: 'По мере правки промпта', rag: 'Обновляется в индексе', ft: 'Только переобучением' },
+  { criterion: 'Цитирование источников', pe: 'Нет', rag: 'Есть', ft: 'Нет' },
+  { criterion: 'Объяснимость для аудита', pe: 'Низкая', rag: 'Высокая', ft: 'Низкая' },
+  { criterion: 'Стоимость старта', pe: 'Минимальная', rag: 'Средняя', ft: 'Высокая' },
+  { criterion: 'Стоимость обновления', pe: 'Низкая', rag: 'Низкая', ft: 'Высокая' },
+  { criterion: 'Сложность поддержки', pe: 'Низкая', rag: 'Средняя', ft: 'Высокая' },
+  { criterion: 'Риск деградации модели', pe: 'Нет', rag: 'Нет', ft: 'Есть' },
+  { criterion: 'Типовой срок до пилота', pe: 'Дни', rag: '4–8 недель', ft: '2–3 месяца + датасет' },
+];
+
+const budgetItems = [
+  { title: 'Подготовка датасета', desc: '1–3 человеко-месяца разметчика, редактора и предметного эксперта. Самая дорогая и самая недооцениваемая статья. К концу первого месяца обычно становится понятно, что архив требует чистки, унификации форматов и согласования с владельцами данных.' },
+  { title: 'GPU-время на эксперименты', desc: 'Порядка десятков-сотен часов на один цикл LoRA-обучения 13B. На QLoRA с Unsloth требования к железу ниже, на full fine-tuning — кратно выше.' },
+  { title: 'Архитектор и ML-инженер', desc: '1,5–3 месяца параллельной работы на полный цикл: датасет → обучение → оценка → подготовка к продакшену.' },
+  { title: 'Интеграция и проверка качества', desc: 'Hold-out набор, ручная экспертная оценка, регресс на нескольких сценариях, документация модели и регламент её обновления.' },
+  { title: 'Регулярная переоценка и переобучение', desc: 'Бюджет на год после запуска, не разовый. Адаптер живёт ровно до тех пор, пока стабильны данные и сценарии.' },
+];
+
+const decisionChecklist = [
+  { n: '01', title: 'Проблема в знаниях или в поведении?', desc: 'Если в знаниях — RAG. Если в поведении — дальше по списку.' },
+  { n: '02', title: 'Что уже сделано в RAG и промптах?', desc: 'Если ничего или сделано небрежно, fine-tuning не стоит обсуждать — сначала выжать понятный потолок из retrieval и инструкций.' },
+  { n: '03', title: 'Есть ли датасет или способ его собрать?', desc: 'Не «соберём в процессе», а конкретный источник примеров и план разметки.' },
+  { n: '04', title: 'Есть ли метрики и тестовый набор?', desc: 'Если нечем измерить улучшение, дообучение нельзя ни принять, ни отклонить.' },
+  { n: '05', title: 'Готова ли инфраструктура?', desc: 'GPU, MLOps-обвязка, версионирование, регламент обновлений.' },
+  { n: '06', title: 'Кто будет поддерживать?', desc: 'Дообученная модель — это не разовый артефакт, а актив, требующий регулярного внимания.' },
+];
+---
+
+<Base title={title} description={description} articleDate={publishDate} image={coverImage}>
+
+  <main class="flex-grow">
+
+  <!-- Hero -->
+  <section class="relative pt-28 pb-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div>
+        <a href="/blog/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors mb-8">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Назад к блогу
+        </a>
+
+        <div class="mb-6 flex items-center gap-3 flex-wrap">
+          {tags.map((tag) => (
+            <span class="inline-block px-3 py-1 rounded-full bg-white/5 text-xs font-medium text-accent border border-white/10">{tag}</span>
+          ))}
+        </div>
+
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6 leading-tight">
+          Fine-tuning LLM на&nbsp;корпоративных данных: когда нужен, когда хватит RAG
+        </h1>
+
+        <p class="text-xl text-muted-foreground mb-8 leading-relaxed">
+          LoRA, QLoRA, PEFT, датасеты и&nbsp;риски: где дообучение модели действительно решает задачу, а&nbsp;где практичнее остаться на&nbsp;retrieval
+        </p>
+
+        <div class="flex items-center gap-6 text-sm text-muted-foreground pb-8 border-b border-white/10">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            21 мая 2026
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            {readTime}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="prose prose-invert prose-lg max-w-none space-y-12 text-muted-foreground">
+
+        <!-- Cover -->
+        <div class="mb-4">
+          <img src="/images/blog/17/cover.webp" alt="Fine-tuning LLM на корпоративных данных: дообучение vs RAG в закрытом контуре" class="w-full rounded-2xl object-cover" loading="eager">
+        </div>
+
+        <!-- Краткий вывод -->
+        <div class="p-6 rounded-2xl bg-accent/5 border border-accent/20">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-accent shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            <div>
+              <p class="text-accent font-bold mb-2 text-sm uppercase tracking-wide">Кратко</p>
+              <p class="text-sm leading-relaxed text-white/90">Fine-tuning меняет поведение модели, а&nbsp;не&nbsp;её&nbsp;знания. Для актуальных корпоративных документов почти всегда практичнее RAG: дешевле, обновляемо, объяснимо. Дообучение оправдано, когда нужно зафиксировать стиль, доменный язык, формат ответа или классификацию&nbsp;— и&nbsp;есть качественный датасет. В&nbsp;остальных случаях fine-tuning превращается в&nbsp;долгий и&nbsp;дорогой проект без понятного выигрыша.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Intro -->
+        <div class="space-y-4">
+          <p>После того как в&nbsp;компании внедрили RAG и&nbsp;пилот показал первые ответы по&nbsp;корпоративным документам, у&nbsp;руководителя ИТ или архитектора почти всегда возникает один и&nbsp;тот&nbsp;же вопрос: «А&nbsp;не&nbsp;дообучить&nbsp;ли нам модель?» Иногда это разумно. Чаще&nbsp;— нет. Граница между «здесь нужен fine-tuning» и&nbsp;«здесь достаточно RAG» проходит совсем не&nbsp;там, где её&nbsp;обычно проводят на&nbsp;маркетинговых слайдах.</p>
+
+          <p>Эта статья&nbsp;— о&nbsp;том, как читать симптомы и&nbsp;принимать решение. Без обещаний, что дообучение «выведет ИИ на&nbsp;новый уровень», и&nbsp;без презрения к&nbsp;нему как к&nbsp;якобы устаревшему подходу. Дообучение&nbsp;— обычный инженерный инструмент со&nbsp;своими сильными сторонами и&nbsp;жёсткими ограничениями, которые проявляются не&nbsp;сразу.</p>
+        </div>
+
+        <!-- Когда RAG не справляется -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Когда RAG не&nbsp;справляется: симптомы</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Если RAG развёрнут и&nbsp;работает, но&nbsp;что-то всё равно не&nbsp;устраивает заказчика, первое, что стоит сделать,&nbsp;— точно сформулировать, <em>что именно</em> не&nbsp;устраивает. От&nbsp;ответа зависит, нужен&nbsp;ли вообще fine-tuning.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/17/symptoms.webp" alt="Четыре симптома, при которых RAG не справляется: неподходящий стиль, отсутствие доменного языка, нестабильная классификация, плавающий формат ответа" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Четыре характерных симптома, по&nbsp;которым видно, что проблема в&nbsp;поведении модели, а&nbsp;не&nbsp;в&nbsp;данных</p>
+            </div>
+
+            <p>Самая частая жалоба&nbsp;— модель отвечает «по&nbsp;документам», но&nbsp;не&nbsp;в&nbsp;нужном стиле. Юристам нужен сухой канцелярит со&nbsp;ссылками на&nbsp;пункты, а&nbsp;модель пишет в&nbsp;духе обзорной статьи. Поддержке нужны короткие, структурированные ответы по&nbsp;шаблону&nbsp;— модель отвечает развёрнутыми абзацами. Это поведенческая проблема, не&nbsp;информационная. Промпт-инжиниринг сильно помогает, но&nbsp;если требования к&nbsp;стилю жёсткие и&nbsp;проверяются ревью, fine-tuning закрепляет нужный паттерн надёжнее.</p>
+
+            <p>Близкая по&nbsp;природе ситуация&nbsp;— не&nbsp;хватает доменного языка. Модель отвечает корректно по&nbsp;смыслу, но&nbsp;использует «общерусский» вместо отраслевого. В&nbsp;нефтегазовой компании это заметно сразу: где специалист скажет «остановка УПН по&nbsp;аварии Б1», модель выдаёт «остановка установки подготовки нефти из-за аварийной ситуации в&nbsp;категории Б1». Технически верно, но&nbsp;не&nbsp;так, как пишут в&nbsp;смене. Базовая модель такой язык сглаживает: на&nbsp;выходе всё равно получается «общерусский», даже если в&nbsp;источниках был отраслевой жаргон.</p>
+
+            <p>Отдельная история&nbsp;— классификация. Когда LLM используется как классификатор обращений, типов договоров, рисков, у&nbsp;retrieval-подхода тут потолок. Few-shot в&nbsp;промпте даёт нестабильный результат, а&nbsp;полноценный fine-tuning на&nbsp;размеченных примерах резко повышает точность и&nbsp;стабильность.</p>
+
+            <p>Сюда&nbsp;же&nbsp;— нестабильное следование формату. Модель должна возвращать JSON со&nbsp;строгой схемой, а&nbsp;возвращает то&nbsp;JSON, то&nbsp;текст, то&nbsp;JSON с&nbsp;лишними полями. На&nbsp;большом потоке это превращается в&nbsp;кошмар для интеграции. Fine-tuning на&nbsp;тысяче примеров корректно сформированных ответов снимает большинство таких отклонений.</p>
+
+            <p>Что важно понимать буквально: если модель ведёт себя «не&nbsp;так», подсовывание ей&nbsp;документов это не&nbsp;исправит. Документы влияют на&nbsp;содержание ответа, не&nbsp;на&nbsp;манеру речи и&nbsp;не&nbsp;на&nbsp;следование инструкциям.</p>
+
+            <div class="p-5 rounded-xl bg-accent/5 border border-accent/20 mt-4">
+              <p class="text-sm leading-relaxed flex items-start gap-3">
+                <svg class="w-5 h-5 text-accent shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                <span><strong class="text-white">Практический вывод.</strong> Прежде чем планировать fine-tuning, отделите проблемы знаний (это к&nbsp;<a href="/blog/14-rag-arhitektura/" class="text-accent hover:underline">RAG</a>) от&nbsp;проблем поведения (это к&nbsp;дообучению или промптам). На&nbsp;реальных пилотах смешение этих двух классов&nbsp;— основная причина того, что команда тратит месяцы на&nbsp;дообучение, а&nbsp;отвечать «по&nbsp;сути» модель так и&nbsp;не&nbsp;начинает.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Что такое fine-tuning технически -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что такое fine-tuning технически</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Терминология вокруг fine-tuning сильно засорена маркетингом&nbsp;— под одним словом продают разные вещи. Различать имеет смысл четыре уровня.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/17/peft-levels.webp" alt="Четыре уровня дообучения LLM: Full fine-tuning, LoRA, QLoRA, PEFT — стоимость, требования к памяти, область применения" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Четыре уровня дообучения: от&nbsp;полного обновления весов до&nbsp;адаптеров на&nbsp;потребительском GPU</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {peftLevels.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-accent font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Важно держать в&nbsp;голове, что fine-tuning&nbsp;— это только один из&nbsp;трёх способов «настроить» поведение модели:</p>
+
+            <ul class="space-y-3 list-none pl-0">
+              <li class="flex items-start gap-3">
+                <span class="text-accent font-bold shrink-0 mt-0.5">→</span>
+                <span><strong class="text-white">Prompt engineering</strong>&nbsp;— меняем инструкцию и&nbsp;примеры в&nbsp;промпте. Веса модели не&nbsp;трогаем. Самый дешёвый и&nbsp;быстрый способ.</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-accent font-bold shrink-0 mt-0.5">→</span>
+                <span><strong class="text-white">RAG</strong>&nbsp;— подаём в&nbsp;промпт релевантные фрагменты документов. Веса модели не&nbsp;трогаем. Решает проблему знаний.</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-accent font-bold shrink-0 mt-0.5">→</span>
+                <span><strong class="text-white">Fine-tuning</strong>&nbsp;— обновляем (всю или часть) весов. Меняем поведение модели на&nbsp;длительной основе.</span>
+              </li>
+            </ul>
+
+            <p class="mt-4">Эти три инструмента не&nbsp;заменяют друг друга. На&nbsp;зрелых внедрениях они нередко работают вместе: дообученная под формат и&nbsp;стиль модель плюс RAG для актуальных данных плюс выверенные промпты.</p>
+          </div>
+        </div>
+
+        <!-- Что нужно для fine-tuning -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что нужно для fine-tuning</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Прежде чем запускать обучение, имеет смысл честно проверить, готова&nbsp;ли компания к&nbsp;этой работе. Список короткий, но&nbsp;каждый пункт отрезвляет.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Качество и&nbsp;размер датасета</h3>
+            <p>Это самая дорогая и&nbsp;наименее очевидная часть. Минимально жизнеспособный размер для LoRA на&nbsp;узкой задаче&nbsp;— порядка 500–1&nbsp;000 примеров высокого качества. Для устойчивого результата&nbsp;— 3&nbsp;000–10&nbsp;000. Цифры ориентировочные и&nbsp;сильно зависят от&nbsp;задачи: для классификации хватает меньше, для генеративных задач нужно больше.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Разметка</h3>
+            <p>Тысячу пар «вопрос&nbsp;— образцовый ответ» руками не&nbsp;пишут за&nbsp;вечер. Нужен либо процесс с&nbsp;разметчиками и&nbsp;контролем качества, либо способ собрать датасет из&nbsp;существующих артефактов: тикеты с&nbsp;финальными ответами поддержки, согласованные договорные формулировки, эталонные отчёты. На&nbsp;реальных проектах подготовка датасета съедает 60–80% бюджета&nbsp;— то&nbsp;есть всё, кроме GPU-времени и&nbsp;работы инженера, уходит на&nbsp;людей, размечающих и&nbsp;проверяющих примеры. Команды, которые планируют fine-tuning как «мы&nbsp;быстро прогоним обучение», обнаруживают этот перекос примерно через месяц.</p>
+
+            <p>Отдельно стоит сказать про состояние корпоративных корпусов. В&nbsp;тикетах поддержки 30–40% переписки&nbsp;— это обмен сообщениями вида «ок, починили», по&nbsp;которому ничему обучить нельзя. В&nbsp;файловых архивах юристов лежат пять версий одного договора с&nbsp;правками, и&nbsp;отличить итоговую от&nbsp;черновика без бизнес-логики не&nbsp;получится. Эта работа никуда не&nbsp;девается и&nbsp;в&nbsp;бюджет fine-tuning заходит целиком.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">GPU</h3>
+            <p>Для LoRA/QLoRA-пилотов 7–13B-моделей достаточно одной серверной видеокарты или мощной потребительской (A100&nbsp;40GB, A6000, RTX&nbsp;4090&nbsp;— ориентир, проверять под конкретные модели и&nbsp;длину контекста). Full fine-tuning 70B+ моделей требует кластера и&nbsp;редко делается силами одного заказчика&nbsp;— обычно используют уже дообученные опенсорсные чекпойнты. Подробнее про подбор железа&nbsp;— в&nbsp;<a href="/blog/15-stoimost-vnedreniya-llm-on-premise/" class="text-accent hover:underline">материале о&nbsp;стоимости LLM on-premise</a>.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Время экспериментов</h3>
+            <p>Один прогон обучения&nbsp;— это часы. Цикл «разметили → обучили → оценили → нашли ошибку → переобучили» занимает дни и&nbsp;недели. Реалистичный горизонт от&nbsp;старта подготовки датасета до&nbsp;пригодного к&nbsp;промышленной эксплуатации адаптера&nbsp;— два-три месяца. На&nbsp;сложных задачах больше.</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Тестовые наборы и&nbsp;метрики</h3>
+            <p>Без отдельного hold-out-набора и&nbsp;понятных метрик результат дообучения не&nbsp;отличить от&nbsp;случайного колебания. Для классификации это accuracy/F1, для генерации&nbsp;— ручная экспертная оценка по&nbsp;чек-листу, плюс автометрики там, где они применимы (BLEU и&nbsp;ROUGE для генеративных задач&nbsp;— слабый сигнал, на&nbsp;них нельзя опираться в&nbsp;одиночку).</p>
+
+            <h3 class="text-xl font-bold text-white mt-6">Безопасность данных</h3>
+            <p>Если корпус для дообучения содержит персональные данные, коммерческую тайну или сведения из&nbsp;защищаемой инфраструктуры, fine-tuning должен идти в&nbsp;закрытом контуре, на&nbsp;инфраструктуре заказчика, без передачи данных во&nbsp;внешние сервисы. Это вопрос не&nbsp;только облака против on-premise, но&nbsp;и&nbsp;того, кто имеет доступ к&nbsp;артефактам обучения и&nbsp;где хранятся итоговые веса. Подробнее об&nbsp;организации закрытого периметра&nbsp;— в&nbsp;<a href="/blog/07-llm-closed-circuit-guide/" class="text-accent hover:underline">руководстве по&nbsp;развёртыванию LLM в&nbsp;закрытом контуре</a> и&nbsp;<a href="/blog/11-prompt-perturbation-privacy-llm/" class="text-accent hover:underline">материале о&nbsp;приватности корпоративных LLM</a>.</p>
+          </div>
+        </div>
+
+        <!-- Реальные сценарии -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Реальные сценарии, где fine-tuning даёт эффект</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Конкретные внедрения AZONE&nbsp;AI здесь намеренно не&nbsp;приводятся&nbsp;— это типовые классы задач, на&nbsp;которых дообучение регулярно даёт измеримый эффект.</p>
+
+            <div class="space-y-3 mt-4">
+              {scenariosTable.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10 border-l-4 border-l-green-500/60">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Если перечитать эти пять сценариев, видна общая черта: все они про <em>поведение</em> модели, не&nbsp;про <em>знания</em>. Если задача читателя ложится в&nbsp;этот список, fine-tuning имеет смысл планировать. Если нет&nbsp;— стоит ещё раз посмотреть, нельзя&nbsp;ли решить её&nbsp;через RAG и&nbsp;промпт.</p>
+          </div>
+        </div>
+
+        <!-- Когда не поможет -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Когда fine-tuning не&nbsp;поможет</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Эти случаи встречаются чаще, чем хотелось&nbsp;бы. Часто заказчик ожидает от&nbsp;дообучения именно того, что оно дать не&nbsp;может.</p>
+
+            <div class="space-y-3 mt-4">
+              {whenNotHelp.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10 border-l-4 border-l-red-500/60">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <!-- Стек -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Стек для on-premise fine-tuning</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Минимально необходимый набор инструментов, который имеет смысл рассматривать при дообучении в&nbsp;закрытом контуре. Конкретные версии и&nbsp;совместимость нужно проверять перед стартом&nbsp;— экосистема меняется быстро.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {stack.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-cyan-400 font-bold mb-2">{item.name}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Отдельная тема&nbsp;— лицензионная пригодность базовой модели для корпоративных адаптеров: не&nbsp;каждый опенсорсный чекпойнт можно использовать в&nbsp;коммерческом продукте без оговорок. Этот вопрос лучше закрывать на&nbsp;этапе выбора модели, а&nbsp;не&nbsp;на&nbsp;этапе раскатки в&nbsp;прод. Сравнение опенсорсных и&nbsp;отечественных LLM, пригодных для дообучения в&nbsp;закрытом контуре, разобрано в&nbsp;<a href="/blog/02-on-premise-llm/" class="text-accent hover:underline">статье об&nbsp;on-premise LLM</a> и&nbsp;<a href="/blog/10-sravnenie-llm/" class="text-accent hover:underline">обзоре отечественных моделей</a>.</p>
+          </div>
+        </div>
+
+        <!-- Подводные камни -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Подводные камни</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Дообучение&nbsp;— это работа с&nbsp;весами модели, и&nbsp;каждое такое вмешательство может сломать что-то незаметно для глаз. Главные группы рисков сводятся к&nbsp;нескольким повторяющимся сюжетам.</p>
+
+            <div class="space-y-3 mt-4">
+              {pitfalls.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10 border-l-4 border-l-orange-500/60">
+                  <div class="text-white font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <!-- Сравнительная таблица -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">RAG vs Fine-tuning vs Prompt engineering: что выбрать</h2>
+          </div>
+
+          <div class="space-y-4">
+            <div class="overflow-x-auto rounded-2xl border border-white/10 mt-4">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-white/[0.05] text-white">
+                    <th class="text-left px-4 py-4 font-semibold">Критерий</th>
+                    <th class="text-left px-4 py-4 font-semibold">Prompt engineering</th>
+                    <th class="text-left px-4 py-4 font-semibold">RAG</th>
+                    <th class="text-left px-4 py-4 font-semibold">Fine-tuning</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  {comparisonTable.map((row) => (
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                      <td class="px-4 py-3 text-white font-medium">{row.criterion}</td>
+                      <td class="px-4 py-3">{row.pe}</td>
+                      <td class="px-4 py-3">{row.rag}</td>
+                      <td class="px-4 py-3">{row.ft}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p class="mt-4">Колонка «типовой срок»&nbsp;— ориентировочная, зависит от&nbsp;готовности данных, инфраструктуры и&nbsp;команды.</p>
+          </div>
+        </div>
+
+        <!-- Бюджет -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Бюджет fine-tuning: с&nbsp;чем сравнивать</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Полная декомпозиция бюджета пилота приведена в&nbsp;<a href="/blog/15-stoimost-vnedreniya-llm-on-premise/" class="text-accent hover:underline">материале о&nbsp;стоимости LLM on-premise</a>. Применительно к&nbsp;fine-tuning имеет смысл разобрать структуру затрат отдельно&nbsp;— потому что бюджет, который выглядит на&nbsp;старте «средним», к&nbsp;концу проекта обычно превышает ожидания.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/17/budget.webp" alt="Структура бюджета fine-tuning LLM: подготовка датасета, GPU-время, работа архитектора и ML-инженера, интеграция, регулярная переоценка" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Пять основных статей расходов в&nbsp;пилоте fine-tuning&nbsp;— подготовка датасета доминирует</p>
+            </div>
+
+            <p>В&nbsp;типовом пилоте дообучения 13B-модели на&nbsp;корпус из&nbsp;3–5 тысяч размеченных примеров основные статьи расходов выглядят так:</p>
+
+            <div class="space-y-3 mt-4">
+              {budgetItems.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div class="text-yellow-400 font-bold mb-2">{item.title}</div>
+                  <p class="text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Если суммировать, классический сценарий «классификатор входящих обращений на&nbsp;5&nbsp;тысячах размеченных примеров» в&nbsp;закрытом контуре&nbsp;— это ориентировочно 2–3 месяца команды плюс понятная нагрузка на&nbsp;GPU на&nbsp;этапе экспериментов. Конкретные цифры сильно зависят от&nbsp;исходного состояния данных, наличия предметного эксперта и&nbsp;того, насколько готов внутренний регламент работы с&nbsp;моделями.</p>
+
+            <p>Fine-tuning почти всегда дороже сопоставимого по&nbsp;объёму RAG-проекта. Это нормально, если за&nbsp;стоимостью стоит измеримая выгода: рост точности классификации, отказ от&nbsp;ручной разметки, ускорение разбора потока документов. Если выгода неизмерима&nbsp;— это плохой повод запускать дообучение.</p>
+          </div>
+        </div>
+
+        <!-- Чек-лист -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Как принять решение</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Короткий чек-лист, который имеет смысл пройти до&nbsp;того, как закладывать fine-tuning в&nbsp;бюджет.</p>
+
+            <div class="my-6">
+              <img src="/images/blog/17/decision.webp" alt="Дерево принятия решения RAG vs Fine-tuning: знания или поведение, готовность датасета, метрики, инфраструктура" class="w-full rounded-2xl object-cover" loading="lazy">
+              <p class="text-sm text-muted-foreground/60 text-center mt-3 italic">Развилка «знания или поведение»&nbsp;— первый и&nbsp;главный вопрос при выборе между RAG и&nbsp;fine-tuning</p>
+            </div>
+
+            <div class="space-y-3 mt-4">
+              {decisionChecklist.map((item) => (
+                <div class="p-5 rounded-xl bg-white/[0.03] border border-white/10 flex gap-4">
+                  <div class="text-accent font-heading font-bold text-2xl shrink-0">{item.n}</div>
+                  <div>
+                    <div class="text-white font-bold mb-1">{item.title}</div>
+                    <p class="text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p class="mt-4">Если по&nbsp;любому из&nbsp;пунктов ответ «нет» или «непонятно»&nbsp;— старт fine-tuning лучше отложить и&nbsp;сначала закрыть пробел.</p>
+          </div>
+        </div>
+
+        <!-- Что дальше + мягкий CTA -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Что делать дальше</h2>
+          </div>
+
+          <div class="space-y-4">
+            <p>Если статья совпадает с&nbsp;вашей текущей ситуацией, естественный следующий шаг&nbsp;— превратить «нам, кажется, нужен fine-tuning» в&nbsp;техническую гипотезу, которую можно проверить за&nbsp;пилот. Это означает зафиксировать: какую именно проблему вы&nbsp;пытаетесь решить, какой класс задач это (знания или поведение), какой датасет реалистично собрать и&nbsp;какие метрики покажут, что цель достигнута.</p>
+
+            <p>Если на&nbsp;этих вопросах команда буксует, проверять гипотезу проще на&nbsp;короткой консультации с&nbsp;архитектором, а&nbsp;не&nbsp;на&nbsp;трёхмесячном проекте без видимого выхода.</p>
+
+            <div class="mt-8 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/10">
+              <p class="text-white font-medium text-lg leading-relaxed">Если в&nbsp;вашем случае непонятно, нужен&nbsp;ли fine-tuning или достаточно RAG, <strong>AZONE-AI</strong> проводит экспресс-аудит данных и&nbsp;сценариев. За&nbsp;одну встречу фиксируем применимый подход, реалистичные сроки и&nbsp;требования к&nbsp;датасету&nbsp;— <a href="/contact?product=other" class="text-accent hover:underline">оставьте заявку на&nbsp;консультацию</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Частые вопросы</h2>
+          </div>
+
+          <div class="space-y-4">
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Подрядчик говорит, что без fine-tuning нормального корпоративного ИИ не&nbsp;получится. Это правда?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Чаще всего&nbsp;— нет. RAG в&nbsp;связке с&nbsp;продуманным промптом и&nbsp;нормальной подготовкой корпуса закрывает большинство задач, которые корпоративный заказчик называет «корпоративным ИИ». Fine-tuning имеет смысл там, где проблема в&nbsp;поведении модели&nbsp;— стиль, формат, классификация,&nbsp;— а&nbsp;не&nbsp;в&nbsp;том, что она «не&nbsp;знает» ваших документов. Если подрядчик начинает разговор с&nbsp;дообучения, не&nbsp;разобравшись, в&nbsp;чём именно проблема, это повод задать ещё несколько вопросов.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Что выбрать: LoRA или QLoRA?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">QLoRA&nbsp;— практически универсальный выбор для пилотов на&nbsp;ограниченном железе. LoRA без квантизации даёт чуть лучшее качество, но&nbsp;требует более дорогих GPU. Full fine-tuning имеет смысл только при большом датасете и&nbsp;осознанной готовности нести стоимость поддержки.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Сколько данных нужно для дообучения LLM на&nbsp;русском языке?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">От&nbsp;500–1&nbsp;000 высококачественных примеров для узкой задачи и&nbsp;3&nbsp;000–10&nbsp;000+ для устойчивой генеративной задачи. Качество важнее объёма: 1&nbsp;000 выверенных пар «вопрос&nbsp;— образцовый ответ» обычно дают результат лучше, чем 10&nbsp;000 шумных.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Можно&nbsp;ли дообучать модель внутри закрытого контура?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Да. Для чувствительных данных это базовый сценарий: обучение разворачивается на&nbsp;инфраструктуре заказчика, базовая модель и&nbsp;датасет не&nbsp;покидают периметра, итоговые адаптеры хранятся во&nbsp;внутреннем реестре артефактов. Подробности&nbsp;— в&nbsp;<a href="/blog/07-llm-closed-circuit-guide/" class="text-accent hover:underline">руководстве по&nbsp;развёртыванию LLM в&nbsp;закрытом контуре</a>.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Заменяет&nbsp;ли fine-tuning RAG?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Нет&nbsp;— это инструменты для разных задач.</p>
+            </details>
+
+            <details class="glass-card p-5 group">
+              <summary class="cursor-pointer text-white font-bold flex items-center justify-between">Через какое время после запуска нужно переобучать модель?<svg class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+              <p class="mt-4 text-sm leading-relaxed">Если меняется поведение задачи или появляется большой объём новых корректных примеров&nbsp;— раз в&nbsp;3–6 месяцев. Если поведение задачи стабильно, адаптер может работать без изменений год и&nbsp;больше. Свежие знания должна обновлять RAG-часть, а&nbsp;не&nbsp;fine-tuning.</p>
+            </details>
+          </div>
+        </div>
+
+        <!-- Дисклеймер -->
+        <div>
+          <div class="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <div>
+                <h3 class="text-white font-bold mb-2">Актуальность материала</h3>
+                <ul class="space-y-1.5 text-sm leading-relaxed">
+                  <li>Материал подготовлен по&nbsp;состоянию на&nbsp;<strong class="text-white">май 2026&nbsp;года</strong>.</li>
+                  <li>Числовые ориентиры (размер датасета, требования к&nbsp;VRAM, сроки, гиперпараметры LoRA, доля бюджета на&nbsp;подготовку датасета)&nbsp;— диапазоны для оценки. Под коммерческое предложение их&nbsp;нужно проверять на&nbsp;конкретной задаче, корпусе и&nbsp;железе.</li>
+                  <li>Состав экосистемы PEFT, Axolotl, Unsloth, lm-evaluation-harness и&nbsp;MERA быстро меняется. Перед стартом стоит сверить совместимость с&nbsp;текущими релизами и&nbsp;поддерживаемыми архитектурами моделей.</li>
+                  <li>Лицензионная пригодность базовых моделей для коммерческого использования и&nbsp;корпоративных адаптеров согласовывается с&nbsp;юридической службой отдельно по&nbsp;каждой модели.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Похожие статьи -->
+  <section class="pb-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg>
+        </div>
+        <h2 class="text-2xl md:text-3xl font-heading font-bold text-white">Похожие статьи</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <a href="/blog/14-rag-arhitektura/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">RAG-архитектура для&nbsp;корпоративных данных: подключение LLM к&nbsp;документам</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            11 мин
+          </span>
+        </a>
+        <a href="/blog/15-stoimost-vnedreniya-llm-on-premise/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Коммерческая / ROI</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Сколько стоит LLM on-premise: разбор бюджета пилота</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            12 мин
+          </span>
+        </a>
+        <a href="/blog/07-llm-closed-circuit-guide/" class="glass-card p-5 flex flex-col group hover:-translate-y-1 transition-transform">
+          <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/5 text-[11px] font-medium text-accent border border-white/10 self-start mb-3">Технологии</span>
+          <h3 class="text-white font-bold text-[15px] leading-snug mb-auto group-hover:text-accent transition-colors">Как развернуть LLM в&nbsp;закрытом контуре: пошаговое руководство</h3>
+          <span class="mt-4 pt-3 border-t border-white/10 text-xs text-muted-foreground flex items-center gap-1.5">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            10 мин
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="relative rounded-3xl overflow-hidden">
+        <img src="/images/blog/17/cover.webp" alt="AZONE-AI: экспресс-аудит данных и выбор подхода — RAG или fine-tuning" class="absolute inset-0 w-full h-full object-cover opacity-20" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20"></div>
+        <div class="absolute inset-0 bg-background/40 backdrop-blur-xl"></div>
+        <div class="absolute inset-0 border border-white/10 rounded-3xl"></div>
+        <div class="relative p-10 md:p-16 text-center">
+          <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">RAG или <span class="text-gradient">fine-tuning</span>&nbsp;— что подойдёт под вашу задачу</h2>
+          <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">Экспресс-аудит данных и&nbsp;сценариев: за&nbsp;одну встречу зафиксируем применимый подход, реалистичные сроки и&nbsp;требования к&nbsp;датасету. Лицензии ФСТЭК, ФСБ и&nbsp;МО&nbsp;РФ. Опыт с&nbsp;2003&nbsp;года.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/contact/?product=other&utm_source=blog&utm_medium=cta-bottom&utm_campaign=article-17" data-ym-goal="discuss_project_click" data-product="other" data-placement="blog_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download data-ym-goal="presentation_download" data-download-type="presentation" data-placement="blog_cta" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Скачать презентацию
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+</Base>

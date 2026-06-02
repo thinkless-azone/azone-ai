@@ -9,8 +9,10 @@ interface Props {
 const { product } = Astro.props;
 
 // URL Cloud Function — вынеси в .env или захардкодь
-const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL 
-  || 'https://functions.yandexcloud.net/d4exxxxxxxxxxxxxxx'; // ← ЗАМЕНИ на свой
+const FUNCTION_URL = import.meta.env.DEV
+  ? '/api/contact'
+  : import.meta.env.PUBLIC_CONTACT_FUNCTION_URL ||
+    'https://functions.yandexcloud.net/d4erei6bq3unc5ficeqm';
 ---
 
 <form id="contact-form" class="space-y-6" novalidate>
@@ -127,10 +129,25 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL
   <!-- Статус -->
   <div id="form-status" class="hidden rounded-lg p-4 text-sm"></div>
 
-  <!-- Кнопка -->
+  <label class="flex items-start gap-3 text-sm text-gray-400 cursor-pointer">
+    <input
+      type="checkbox"
+      id="contactFormPdnConsent"
+      name="pdn_consent"
+      value="1"
+      required
+      class="mt-1 rounded border-white/20"
+    />
+    <span>
+      Согласен на обработку персональных данных в соответствии с{' '}
+      <a href="/privacy/" class="text-indigo-400 hover:underline">политикой конфиденциальности</a>
+    </span>
+  </label>
+
   <button
     type="submit"
     id="submit-btn"
+    disabled
     class="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium 
            rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
   >
@@ -153,19 +170,42 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL
   });
 </script>
 
-<script define:vars={{ FUNCTION_URL }}>
+<script type="module" define:vars={{ FUNCTION_URL }}>
+  import { postContactFunction, contactFetchErrorMessage } from '/scripts/contact-api.js';
+
   const form = document.getElementById('contact-form');
   const submitBtn = document.getElementById('submit-btn');
   const statusDiv = document.getElementById('form-status');
+  const pdnConsent = document.getElementById('contactFormPdnConsent');
+  let formStarted = false;
+
+  function syncContactFormSubmitBtn() {
+    if (!submitBtn || !pdnConsent) return;
+    submitBtn.disabled = !pdnConsent.checked;
+  }
+
+  pdnConsent?.addEventListener('change', syncContactFormSubmitBtn);
+  syncContactFormSubmitBtn();
+
+  form.addEventListener('input', () => {
+    if (formStarted) return;
+    formStarted = true;
+    window.trackAnalyticsGoal?.('lead_form_start', {
+      form: 'embedded_contact',
+      product: document.getElementById('product')?.value || '',
+    });
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Собрать данные
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
-    // Базовая клиентская валидация
+    if (!data.pdn_consent) {
+      showStatus('error', 'Необходимо согласие на обработку персональных данных');
+      return;
+    }
     if (!data.name || data.name.trim().length < 2) {
       showStatus('error', 'Пожалуйста, укажите имя');
       return;
@@ -175,31 +215,37 @@ const FUNCTION_URL = import.meta.env.PUBLIC_CONTACT_FUNCTION_URL
       return;
     }
 
-    // UI: загрузка
     submitBtn.disabled = true;
     submitBtn.textContent = 'Отправка...';
     statusDiv.classList.add('hidden');
+    window.trackAnalyticsGoal?.('lead_form_submit_attempt', {
+      form: 'embedded_contact',
+      product: data.product || '',
+      hasPhone: Boolean(data.phone),
+      messageLength: (data.message || '').length,
+    });
 
     try {
-      const response = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const { json: result, ok } = await postContactFunction(FUNCTION_URL, data);
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      if (ok) {
         showStatus('success', 'Заявка отправлена! Мы свяжемся с вами в ближайшее время.');
+        window.trackAnalyticsGoal?.('lead_form_submit', {
+          form: 'embedded_contact',
+          product: data.product || '',
+          hasPhone: Boolean(data.phone),
+          messageLength: (data.message || '').length,
+        });
+        window.trackAnalyticsGoal?.('form_submit', { form: 'embedded_contact' });
         form.reset();
       } else {
         showStatus('error', result.error || 'Произошла ошибка. Попробуйте ещё раз.');
       }
     } catch (err) {
-      showStatus('error', 'Не удалось отправить. Проверьте интернет или напишите на order@azone-it.ru');
+      showStatus('error', contactFetchErrorMessage(err));
     } finally {
-      submitBtn.disabled = false;
       submitBtn.textContent = 'Отправить заявку';
+      syncContactFormSubmitBtn();
     }
   });
 

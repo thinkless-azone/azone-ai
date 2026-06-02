@@ -36,7 +36,7 @@ const contactBase =
   `/contact/?service=${serviceId}&topic=pilot&utm_source=services&utm_medium=calculator&utm_campaign=service-${serviceId}`;
 ---
 
-<div class="pilot-cost-calculator" data-calc-root={idPrefix}>
+<div class="pilot-cost-calculator" data-calc-root={idPrefix} data-calc-service={serviceId}>
   {intro === 'service' && (
     <p class="text-sm text-muted-foreground leading-relaxed mb-6">
       Выберите параметры&nbsp;— получите ориентировочный диапазон бюджета на&nbsp;пилот и&nbsp;первый год эксплуатации.
@@ -144,7 +144,7 @@ const contactBase =
   </div>
 </div>
 
-<script is:inline define:vars={{ idPrefix, contactBase }}>
+<script is:inline define:vars={{ idPrefix, contactBase, serviceId }}>
   (function () {
     const root = document.querySelector(`[data-calc-root="${idPrefix}"]`);
     if (!root) return;
@@ -178,6 +178,9 @@ const contactBase =
     };
     const fmtRange = (min, max) => `${fmt(min)}–${fmt(max)} млн ₽`;
     const $ = (name) => root.querySelector(`#${idPrefix}-${name}`);
+    let changedOnce = false;
+    let pilotUsedSent = false;
+    let lastEstimatedBudget = '';
 
     function calc() {
       const u = $(`users`).value;
@@ -201,6 +204,7 @@ const contactBase =
       $(`work`).textContent = fmtRange(workMin, workMax);
       $(`opex`).textContent = fmtRange(opexMin, opexMax);
       $(`total`).textContent = fmtRange(totalMin, totalMax);
+      lastEstimatedBudget = fmtRange(totalMin, totalMax);
 
       $(`cta`).href =
         contactBase +
@@ -214,13 +218,47 @@ const contactBase =
         i;
     }
 
+    function getCalcParams() {
+      return {
+        calculatorId: idPrefix,
+        service: serviceId,
+        users: $(`users`).value,
+        model: $(`model`).value,
+        security: $(`security`).value,
+        integrations: $(`integrations`).value,
+        estimated_budget: lastEstimatedBudget,
+        placement: 'pilot_calculator',
+      };
+    }
+
+    function trackPilotUsed(trigger) {
+      if (pilotUsedSent) return;
+      pilotUsedSent = true;
+      window.trackAnalyticsGoal?.('calc_pilot_used', {
+        ...getCalcParams(),
+        trigger,
+      });
+    }
+
     root.querySelectorAll('[data-calc-field]').forEach((el) => {
-      el.addEventListener('change', calc);
+      el.addEventListener('change', () => {
+        calc();
+        trackPilotUsed('calculation_changed');
+        window.trackAnalyticsGoal?.('calculator_change', {
+          field: el.getAttribute('data-calc-field') || '',
+          ...getCalcParams(),
+        });
+        if (!changedOnce) {
+          changedOnce = true;
+          window.trackAnalyticsGoal?.('calculator_start', getCalcParams());
+        }
+      });
     });
 
     const cta = root.querySelector('[data-calc-cta]');
     cta?.addEventListener('click', function () {
-      if (typeof ym === 'function') ym(108466305, 'reachGoal', 'calculator_cta_click');
+      trackPilotUsed('cta_after_calculation');
+      window.trackAnalyticsGoal?.('calculator_cta_click', getCalcParams());
     });
 
     calc();

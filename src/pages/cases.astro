@@ -231,6 +231,9 @@ const faqJsonLd = {
             </p>
             <a
               href={`/products/${caseItem.productId}/`}
+              data-ym-goal="case_to_product_click"
+              data-product={caseItem.productId}
+              data-placement="case_card"
               class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors whitespace-nowrap"
             >
               Продукт {caseItem.product?.name}
@@ -269,7 +272,7 @@ const faqJsonLd = {
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
             Подготовим архитектуру, оценку сроков и диапазон бюджета под ваш контур и отрасль. Пилот — 4–8 недель.
           </p>
-          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4 inline-flex items-center gap-2">
+          <a href="/contact/?product=other" data-ym-goal="discuss_project_click" data-product="other" data-placement="cases_bottom_cta" class="premium-btn text-lg px-8 py-4 inline-flex items-center gap-2">
             Обсудить пилот
           </a>
         </div>

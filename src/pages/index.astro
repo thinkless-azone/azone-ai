@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import WhitepaperCallout from '../components/WhitepaperCallout.astro';
 import { products } from '../data/products.js';
 ---
 <Base title="ИИ и LLM в закрытом контуре on-premise" description="Внедряем ИИ, нейросети и LLM on-premise в закрытом контуре. Данные не покидают инфраструктуру. Лицензии ФСТЭК, ФСБ, МО РФ." image="/images/og/home.jpg">
@@ -24,9 +25,9 @@ import { products } from '../data/products.js';
           Внедряем нейросети и LLM on-premise. Данные не покидают вашу инфраструктуру. Лицензии ФСТЭК, ФСБ, МО РФ.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
-          <a href="/contact/" class="premium-btn w-full sm:w-auto text-lg">Обсудить проект</a>
+          <a href="/contact/" data-ym-goal="discuss_project_click" data-placement="home_hero" class="premium-btn w-full sm:w-auto text-lg">Обсудить проект</a>
           <a href="#products" class="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-center text-lg">Смотреть продукты</a>
-          <a href="/AZONE_AI_presentation.pdf" download="AZONE_AI_presentation.pdf" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+          <a href="/AZONE_AI_presentation.pdf" download="AZONE_AI_presentation.pdf" data-ym-goal="presentation_download" data-download-type="presentation" data-placement="home_hero" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Скачать презентацию
           </a>
@@ -64,6 +65,25 @@ import { products } from '../data/products.js';
           <h3 class="text-xl font-bold text-white mb-3">Бесшовная интеграция</h3>
           <p class="text-muted-foreground leading-relaxed">Подключение к 1С, SAP, Directum, ELMA, SCADA внутри периметра.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Context -->
+  <section class="py-20 border-y border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="glass-card p-8 md:p-10">
+        <h2 class="text-2xl md:text-4xl font-heading font-bold text-white mb-5">
+          Для закрытых контуров, КИИ и регулируемых отраслей
+        </h2>
+        <p class="text-muted-foreground leading-relaxed text-lg">
+          AZONE AI проектирует и внедряет ИИ-решения с учётом требований к защите данных, on-premise-развёртыванию,
+          интеграции с существующей ИТ- и ИБ-инфраструктурой, а также ограничений, характерных для госсектора, КИИ,
+          промышленности, энергетики и финансовых организаций.
+        </p>
+        <p class="text-sm text-muted-foreground/80 leading-relaxed mt-4">
+          Статус включения продуктов в реестры и совместимость с отечественным стеком уточняются для каждого проекта отдельно.
+        </p>
       </div>
     </div>
   </section>
@@ -183,6 +203,8 @@ import { products } from '../data/products.js';
     </div>
   </section>
 
+  <WhitepaperCallout source="home" />
+
   <!-- CTA -->
   <section class="py-24 relative">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -194,8 +216,8 @@ import { products } from '../data/products.js';
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре. Фиксированный результат, один подрядчик, один контракт.</p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
-            <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4 inline-flex items-center gap-2">Обсудить пилот</a>
-            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+            <a href="/contact/?product=other" data-ym-goal="discuss_project_click" data-product="other" data-placement="home_bottom_cta" class="premium-btn text-lg px-8 py-4 inline-flex items-center gap-2">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download data-ym-goal="presentation_download" data-download-type="presentation" data-placement="home_bottom_cta" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Скачать презентацию
             </a>

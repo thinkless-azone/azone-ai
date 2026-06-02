@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import WhitepaperCallout from '../../components/WhitepaperCallout.astro';
 
 const title = 'RAG-архитектура для корпоративных данных: как подключить LLM к документам';
 const description = 'Как устроена RAG-архитектура, из каких компонентов состоит, где ломается на пилотах и почему чувствительные корпоративные данные требуют закрытого контура.';
@@ -396,7 +397,7 @@ const pilotSteps = [
           </div>
 
           <div class="space-y-4">
-            <p><a href="/products/azonedoc/" class="text-accent hover:underline">AzoneDoc</a>&nbsp;— система AZONE-AI для работы с&nbsp;внутренними документами на&nbsp;базе RAG-подхода, разворачиваемая в&nbsp;закрытом контуре заказчика.</p>
+            <p><a href="/products/azonedoc/" data-ym-goal="blog_to_product_click" data-product="azonedoc" data-placement="blog_cta" class="text-accent hover:underline">AzoneDoc</a>&nbsp;— система AZONE-AI для работы с&nbsp;внутренними документами на&nbsp;базе RAG-подхода, разворачиваемая в&nbsp;закрытом контуре заказчика.</p>
 
             <p>Постановка задачи у&nbsp;заказчика обычно звучит примерно так: документы у&nbsp;нас есть, но&nbsp;сотрудники не&nbsp;всегда знают, где лежит актуальная версия, кому её&nbsp;можно показывать и&nbsp;какой пункт применять в&nbsp;конкретной ситуации. RAG в&nbsp;закрытом контуре отвечает именно на&nbsp;это.</p>
 
@@ -559,6 +560,8 @@ const pilotSteps = [
     </div>
   </section>
 
+  <WhitepaperCallout source="blog-14-rag-arhitektura" />
+
   <!-- CTA -->
   <section class="py-24 relative">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -571,8 +574,8 @@ const pilotSteps = [
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Запустите RAG <span class="text-gradient">на&nbsp;своём корпусе документов</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За&nbsp;4–8&nbsp;недель мы&nbsp;проведём экспресс-аудит корпуса и&nbsp;соберём пилот RAG в&nbsp;закрытом контуре заказчика. Лицензии ФСТЭК, ФСБ и&nbsp;МО&nbsp;РФ. Опыт с&nbsp;2003&nbsp;года.</p>
           <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
-            <a href="/AZONE_AI_presentation.pdf" download class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
+            <a href="/contact/?product=other" data-ym-goal="discuss_project_click" data-product="other" data-placement="blog_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+            <a href="/AZONE_AI_presentation.pdf" download data-ym-goal="presentation_download" data-download-type="presentation" data-placement="blog_cta" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-accent bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-colors text-lg">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Скачать презентацию
             </a>

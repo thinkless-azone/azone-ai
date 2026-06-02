@@ -103,14 +103,19 @@ npm run dev
 - `AWS_PROFILE` — по умолчанию `yc`.
 - `S3_BUCKET` — по умолчанию `azoneai.ru`.
 - `S3_ENDPOINT` — по умолчанию `https://storage.yandexcloud.net`.
+- `INDEXNOW_KEY` — ключ IndexNow для уведомления Яндекса о новых URL после деплоя (`npm run indexnow:setup`).
+- `SITE_URL` — по умолчанию `https://azoneai.ru`.
+- `NOTIFY_INDEXNOW=all` — при деплое отправить все URL из sitemap (не только новые).
 
 ## NPM-скрипты
 
 - `npm run dev` — dev-сервер.
 - `npm run build` — сборка `dist/` + `lastmod` в sitemap + индексация `Pagefind`.
 - `npm run preview` — локальный просмотр production-сборки.
-- `npm run deploy` — `build` + загрузка `dist/` в Object Storage.
-- `npm run deploy:only` — только загрузка уже собранного `dist/`.
+- `npm run deploy` — `build` + загрузка в Object Storage + уведомление Яндекса (IndexNow).
+- `npm run deploy:only` — загрузка `dist/` + IndexNow.
+- `npm run indexnow:setup` — один раз: создать `INDEXNOW_KEY` и файл проверки на сайте.
+- `npm run notify:index` — вручную отправить новые URL из sitemap в Яндекс.
 
 ## Деплой в Yandex Cloud
 
@@ -119,6 +124,13 @@ npm run dev
 ```bash
 npm run deploy
 ```
+
+### Индексация в Яндексе (новые статьи и страницы)
+
+1. Один раз: `npm run indexnow:setup` — ключ попадёт в `.env`, на сайт — `public/{ключ}.txt`.
+2. В [Яндекс.Вебмастер](https://webmaster.yandex.ru/) добавьте сайт и укажите sitemap: `https://azoneai.ru/sitemap-index.xml` (если ещё не добавлен).
+3. При каждом `npm run deploy` скрипт сравнивает URL из sitemap с кэшем и шлёт **новые** страницы в IndexNow (Яндекс).
+4. После правки существующей статьи без нового URL: `NOTIFY_INDEXNOW=all npm run notify:index` или деплой с этой переменной.
 
 Что делает `scripts/deploy-s3.mjs`:
 

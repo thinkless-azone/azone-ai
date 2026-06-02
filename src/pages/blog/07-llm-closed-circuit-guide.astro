@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import RelatedArticles from '../../components/RelatedArticles.astro';
+import WhitepaperCallout from '../../components/WhitepaperCallout.astro';
 import RelatedProducts from '../../components/RelatedProducts.astro';
 const relatedProducts = [
   { name: 'AzoneDoc', href: '/products/azonedoc/', tag: 'Документооборот', desc: 'Готовое решение для корпоративного архива с on-premise LLM. Быстрый пилот, интеграция с 1С, SAP, ELMA.' },
@@ -573,6 +574,7 @@ const faqItems = [
 
   <RelatedProducts products={relatedProducts} />
   <RelatedArticles articles={relatedArticles} />
+  <WhitepaperCallout source="blog-07-llm-closed-circuit-guide" />
 
   <!-- CTA -->
   <section class="py-24 relative">
@@ -584,7 +586,7 @@ const faqItems = [
         <div class="relative p-10 md:p-16 text-center">
           <h2 class="text-3xl md:text-5xl font-heading font-bold text-white mb-6">Начните с <span class="text-gradient">пилотного проекта</span></h2>
           <p class="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">За 4–8 недель мы развернём решение на вашей инфраструктуре.</p>
-          <a href="/contact/?product=other" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
+          <a href="/contact/?product=other" data-ym-goal="discuss_project_click" data-product="other" data-placement="blog_cta" class="premium-btn text-lg px-8 py-4">Обсудить пилот</a>
         </div>
       </div>
     </div>
